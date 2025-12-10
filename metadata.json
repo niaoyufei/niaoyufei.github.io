@@ -1,5 +1,7 @@
 {
-  "name": "自定义清单 - 个人作品展示",
-  "description": "自定义清单APP官方展示网站",
-  "requestFramePermissions": []
+  "name": "DevPortfolio - 个人作品展示",
+  "description": "一个现代化的个人开发者作品集网站，集成Gemini AI助手，展示微信小程序、移动端App及Web应用。",
+  "requestFramePermissions": [
+    "microphone"
+  ]
 }

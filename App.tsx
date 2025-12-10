@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { APP_NAME, APP_TAGLINE, APP_DESCRIPTION, APP_FEATURES, MYSTERY_TEASER } from './constants';
 import PhoneMockup from './components/PhoneMockup';
-import PrivacyPolicy from './components/PrivacyPolicy';
 import GeminiChat from './components/GeminiChat';
 import { 
   List, 
@@ -15,7 +14,6 @@ import {
 
 const App: React.FC = () => {
   const [activeFeatureIndex, setActiveFeatureIndex] = useState(0);
-  const [currentView, setCurrentView] = useState<'home' | 'privacy'>('home');
 
   const activeFeature = APP_FEATURES[activeFeatureIndex];
 
@@ -31,18 +29,13 @@ const App: React.FC = () => {
     }
   };
 
-  // If viewing privacy policy, render that component
-  if (currentView === 'privacy') {
-    return <PrivacyPolicy onBack={() => setCurrentView('home')} />;
-  }
-
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-black text-zinc-900 dark:text-zinc-100 font-sans selection:bg-green-500 selection:text-white">
       
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-30 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2 font-bold text-xl tracking-tight cursor-pointer" onClick={() => setCurrentView('home')}>
+          <div className="flex items-center gap-2 font-bold text-xl tracking-tight">
              <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center text-white">
                 <List size={20} />
              </div>
@@ -60,12 +53,10 @@ const App: React.FC = () => {
       {/* Main Content Area: Split View */}
       <main className="pt-24 pb-12 min-h-[90vh] flex flex-col items-center justify-center">
         <div className="container mx-auto px-6">
-          {/* Layout: Changed lg:flex-row to md:flex-row to ensure split view on laptops/tablets */}
-          <div className="flex flex-col md:flex-row items-start gap-12 md:gap-8 lg:gap-20">
+          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
             
             {/* Left: Phone Mockup (Sticky on desktop) */}
-            {/* Added sticky positioning so the phone stays visible while scrolling the list */}
-            <div className="w-full md:w-1/2 flex justify-center order-1 md:order-1 relative md:sticky md:top-32 self-start">
+            <div className="w-full lg:w-1/2 flex justify-center order-1 lg:order-1 relative">
               <div className="relative z-10">
                  <PhoneMockup 
                    mediaUrl={activeFeature.mediaUrl} 
@@ -77,8 +68,8 @@ const App: React.FC = () => {
             </div>
 
             {/* Right: Features List */}
-            <div className="w-full md:w-1/2 order-2 md:order-2 flex flex-col space-y-8 mt-8 md:mt-0">
-              <div className="text-center md:text-left space-y-4">
+            <div className="w-full lg:w-1/2 order-2 lg:order-2 flex flex-col space-y-8">
+              <div className="text-center lg:text-left space-y-4">
                 <span className="inline-block px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs font-bold tracking-wide uppercase">
                   WeChat Mini Program
                 </span>
@@ -88,7 +79,7 @@ const App: React.FC = () => {
                 <p className="text-xl md:text-2xl text-zinc-500 dark:text-zinc-400 font-light">
                   {APP_TAGLINE}
                 </p>
-                <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-lg mx-auto md:mx-0">
+                <p className="text-base text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-lg mx-auto lg:mx-0">
                   {APP_DESCRIPTION}
                 </p>
               </div>
@@ -167,26 +158,12 @@ const App: React.FC = () => {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 bg-zinc-50 dark:bg-black border-t border-zinc-200 dark:border-zinc-800">
-        <div className="container mx-auto px-6 text-center">
-          <p className="text-zinc-500 mb-4">&copy; {new Date().getFullYear()} Alex Dev. All rights reserved.</p>
-          
-          <div className="flex flex-wrap justify-center gap-6 text-sm text-zinc-600 dark:text-zinc-400 mb-6">
-            <button onClick={() => setCurrentView('privacy')} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-              隐私政策
-            </button>
-            <span className="text-zinc-300 dark:text-zinc-700">|</span>
-            <button onClick={() => setCurrentView('privacy')} className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-              用户协议
-            </button>
-            <span className="text-zinc-300 dark:text-zinc-700">|</span>
-            <a href="mailto:support@example.com" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-              技术支持
-            </a>
-          </div>
-        </div>
+      <footer className="py-8 bg-zinc-50 dark:bg-black border-t border-zinc-200 dark:border-zinc-800 text-center text-sm text-zinc-500">
+        <p>&copy; {new Date().getFullYear()} Alex Dev. All rights reserved.</p>
+        <p className="mt-2 text-xs">Powered by Gemini AI</p>
       </footer>
-      
+
+      {/* AI Assistant */}
       <GeminiChat />
 
     </div>
