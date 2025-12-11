@@ -1,50 +1,43 @@
-import { AppFeature, TeaserProject } from './types';
+// src/constants.ts
 
-export const APP_NAME = "自定义清单";
-export const APP_TAGLINE = "你的生活，井井有条";
-export const APP_DESCRIPTION = "一款极简主义的微信小程序，专注于帮你记录、排序和分享生活中的一切清单。无论是购物列表、待办事项还是旅行计划，都能轻松搞定。";
+export const APP_NAME = "Huang Zeze";
+export const APP_TAGLINE = "独立开发者 & 产品思考者";
+export const APP_DESCRIPTION = "专注于打造极致体验的 iOS 应用与微信小程序。我相信好的工具应该像空气一样，存在由于无形，使用时自然而然。";
 
-export const APP_FEATURES: AppFeature[] = [
+// 这是一个“神秘预告”板块，你可以写你正在开发的下一个 App
+export const MYSTERY_TEASER = {
+  title: "Project: Endless Maze",
+  description: "一个没有尽头、只有心流的数字迷宫。即将来到 iOS。",
+  releaseDate: "2025 Winter"
+};
+
+export const APP_FEATURES = [
   {
-    id: 'f1',
-    title: '极简录入',
-    subtitle: '告别繁琐，一键添加',
-    description: '采用创新的交互设计，支持语音输入与智能文本识别。只需简单的打字或说话，系统自动识别时间与重要性，让记录变得像呼吸一样自然。',
-    mediaUrl: 'https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?q=80&w=2072&auto=format&fit=crop',
-    mediaType: 'image',
-    iconName: 'List'
+    id: 1,
+    title: "极简清单 (Quick List)",
+    subtitle: "微信小程序",
+    description: "抛弃繁琐的分类与设置，打开即写，点击即完成。支持独创的“分享码”机制，多人协作从未如此简单。",
+    iconName: "List", // 对应 App.tsx 里的图标名字
+    // 这里放你的演示视频链接 (MP4) 或者 GIF 动图
+    mediaType: "video", 
+    mediaUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" 
   },
   {
-    id: 'f2',
-    title: '自由排序',
-    subtitle: '我的清单我做主',
-    description: '打破传统列表限制，支持长按拖拽任意排序。你可以按照优先级、时间或是心情随意调整条目顺序，真正实现个性化管理。',
-    mediaUrl: 'https://images.unsplash.com/photo-1507925921958-8a62f3d1a50d?q=80&w=2076&auto=format&fit=crop',
-    mediaType: 'image',
-    iconName: 'SortDesc'
+    id: 2,
+    title: "智能排序算法",
+    subtitle: "核心技术",
+    description: "基于用户习惯的自动排序，未完成的重要事项始终置顶，已完成的自动下沉，让你的注意力永远集中在当下。",
+    iconName: "SortDesc",
+    mediaType: "image",
+    mediaUrl: "https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?auto=format&fit=crop&w=800&q=80"
   },
   {
-    id: 'f3',
-    title: '一键分享',
-    subtitle: '好友协作，效率倍增',
-    description: '生成的清单可以生成精美卡片分享至朋友圈，或者直接邀请微信好友协作编辑。无论是家庭购物还是团队任务，同步不再是难题。',
-    mediaUrl: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop',
-    mediaType: 'image',
-    iconName: 'Share2'
-  },
-  {
-    id: 'f4',
-    title: '云端同步',
-    subtitle: '数据安全，永不丢失',
-    description: '依托微信云开发能力，所有数据实时同步至云端。更换设备、删除小程序，你的珍贵记录依然安然无恙，随时随地触手可及。',
-    mediaUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop',
-    mediaType: 'image',
-    iconName: 'Cloud'
+    id: 3,
+    title: "无缝协作",
+    subtitle: "云端同步",
+    description: "无论是在 iPhone, Android 还是 iPad 上，通过微信一键登录，你的数据时刻保持同步。",
+    iconName: "Cloud",
+    mediaType: "image",
+    mediaUrl: "https://images.unsplash.com/photo-1512314889357-e157c22f938d?auto=format&fit=crop&w=800&q=80"
   }
 ];
-
-export const MYSTERY_TEASER: TeaserProject = {
-  title: "Project: TimeFlow",
-  description: "一个结合番茄工作法与白噪音的深度专注工具。正在开发中，敬请期待...",
-  releaseDate: "2024 Winter"
-};

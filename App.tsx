@@ -1,5 +1,8 @@
+// src/App.tsx
 import React, { useState } from 'react';
+// 确保这里引入了我们刚才写的 constants
 import { APP_NAME, APP_TAGLINE, APP_DESCRIPTION, APP_FEATURES, MYSTERY_TEASER } from './constants';
+// 确保这里引入了我们刚才写的组件
 import PhoneMockup from './components/PhoneMockup';
 import { 
   List, 
@@ -8,7 +11,8 @@ import {
   Cloud, 
   Zap, 
   ChevronRight, 
-  HelpCircle 
+  HelpCircle,
+  Mail // 新增一个邮件图标
 } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -16,7 +20,7 @@ const App: React.FC = () => {
 
   const activeFeature = APP_FEATURES[activeFeatureIndex];
 
-  // Helper to map string icon names to components
+  // 图标映射辅助函数
   const getIcon = (iconName: string, active: boolean) => {
     const className = `w-6 h-6 ${active ? 'text-white' : 'text-zinc-500 dark:text-zinc-400'}`;
     switch (iconName) {
@@ -38,18 +42,19 @@ const App: React.FC = () => {
              <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center text-white">
                 <List size={20} />
              </div>
-            <span>Alex.Dev</span>
+            <span>{APP_NAME}</span>
           </div>
           <a 
-            href="mailto:alex@example.com"
-            className="px-4 py-2 bg-white text-black rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
+            href="mailto:huangzeze@example.com" // 记得改成你的真实邮箱
+            className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
           >
+            <Mail size={16} />
             联系我
           </a>
         </div>
       </nav>
 
-      {/* Main Content Area: Split View */}
+      {/* Main Content Area */}
       <main className="pt-24 pb-12 min-h-[90vh] flex flex-col items-center justify-center">
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row items-start justify-center gap-12 md:gap-16 lg:gap-24">
@@ -59,10 +64,10 @@ const App: React.FC = () => {
               <div className="relative z-10 w-full max-w-[320px]">
                  <PhoneMockup 
                    mediaUrl={activeFeature.mediaUrl} 
-                   mediaType={activeFeature.mediaType} 
+                   mediaType={activeFeature.mediaType as 'image' | 'video'} 
                  />
               </div>
-              {/* Background decorative blob */}
+              {/* 背景装饰光晕 */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-green-500/20 rounded-full blur-[80px] -z-0 pointer-events-none" />
             </div>
 
@@ -83,7 +88,7 @@ const App: React.FC = () => {
                 </p>
               </div>
 
-              {/* Interactive Feature List */}
+              {/* Feature Switcher */}
               <div className="space-y-4 mt-8">
                 {APP_FEATURES.map((feature, index) => {
                   const isActive = activeFeatureIndex === index;
@@ -158,7 +163,7 @@ const App: React.FC = () => {
 
       {/* Footer */}
       <footer className="py-8 bg-black border-t border-zinc-900 text-center text-sm text-zinc-600">
-        <p>&copy; {new Date().getFullYear()} Alex Dev. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} {APP_NAME}. All rights reserved.</p>
       </footer>
 
     </div>
