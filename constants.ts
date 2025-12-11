@@ -1,43 +1,74 @@
 // src/constants.ts
 
 export const APP_NAME = "Huang Zeze";
-export const APP_TAGLINE = "独立开发者 & 产品思考者";
-export const APP_DESCRIPTION = "专注于打造极致体验的 iOS 应用与微信小程序。我相信好的工具应该像空气一样，存在由于无形，使用时自然而然。";
+export const APP_TAGLINE = "独立开发者 & 生活收藏家";
+export const APP_DESCRIPTION = "不仅仅是待办事项。我致力于打造能够承载生活厚度的清单工具。在这里，清单不是为了划掉，而是为了记录、分享与长久保存。";
 
-// 这是一个“神秘预告”板块，你可以写你正在开发的下一个 App
 export const MYSTERY_TEASER = {
   title: "Project: Endless Maze",
   description: "一个没有尽头、只有心流的数字迷宫。即将来到 iOS。",
   releaseDate: "2025 Winter"
 };
 
+// --- 统一数据格式 ---
+
 export const APP_FEATURES = [
   {
-    id: 1,
-    title: "极简清单 (Quick List)",
-    subtitle: "微信小程序",
-    description: "抛弃繁琐的分类与设置，打开即写，点击即完成。支持独创的“分享码”机制，多人协作从未如此简单。",
-    iconName: "List", // 对应 App.tsx 里的图标名字
-    // 这里放你的演示视频链接 (MP4) 或者 GIF 动图
+    id: 'f1',
+    title: "内容清单",
+    subtitle: "从“待办”到“待阅”",
+    description: "打破传统 Todo 的焦虑感。无论是百部必看电影，还是城市探店地图，支持图文混排，让清单成为你生活的精美目录。",
+    iconName: "List", 
     mediaType: "video", 
     mediaUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" 
   },
   {
-    id: 2,
-    title: "智能排序算法",
-    subtitle: "核心技术",
-    description: "基于用户习惯的自动排序，未完成的重要事项始终置顶，已完成的自动下沉，让你的注意力永远集中在当下。",
-    iconName: "SortDesc",
-    mediaType: "image",
-    mediaUrl: "https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?auto=format&fit=crop&w=800&q=80"
-  },
-  {
-    id: 3,
-    title: "无缝协作",
-    subtitle: "云端同步",
-    description: "无论是在 iPhone, Android 还是 iPad 上，通过微信一键登录，你的数据时刻保持同步。",
-    iconName: "Cloud",
+    id: 'f2',
+    title: "广场与分享",
+    subtitle: "连接同好",
+    description: "你的清单也是别人的宝藏。一键发布到“清单广场”，支持“保存副本”，将别人的智慧存入你的个人库。",
+    iconName: "Share2",
     mediaType: "image",
     mediaUrl: "https://images.unsplash.com/photo-1512314889357-e157c22f938d?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    id: 'f3',
+    title: "沉淀与回顾",
+    subtitle: "长期主义",
+    description: "没有“过期”的清单。支持按时间轴、标签和完成度进行多维度检索。让清单成为你个人成长轨迹的数字化石。",
+    iconName: "Cloud",
+    mediaType: "image",
+    mediaUrl: "https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?auto=format&fit=crop&w=800&q=80"
+  }
+];
+
+export const TARGET_AUDIENCE = [
+  {
+    id: 't1',
+    title: "内容创作者",
+    subtitle: "为博主打造",
+    description: "用清单整理你的“探店地图”或“避坑指南”，生成精美卡片一键分享给粉丝，让干货更有条理。",
+    iconName: "PenTool",
+    // 为每个群体配了一张比较符合气质的图
+    mediaType: "image",
+    mediaUrl: "https://images.unsplash.com/photo-1499750310159-5298019773dd?auto=format&fit=crop&w=800&q=80" 
+  },
+  {
+    id: 't2',
+    title: "生活规划师",
+    subtitle: "备婚 / 装修 / 待产",
+    description: "面对长周期、数百项琐碎任务，你需要一个能稳定记录、随时回溯的长期清单，而不是便利贴。",
+    iconName: "Map",
+    mediaType: "image",
+    mediaUrl: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    id: 't3',
+    title: "知识收藏家",
+    subtitle: "构建个人知识库",
+    description: "不再让好文章、好电影在收藏夹里吃灰。通过结构化的清单管理你的精神食粮。",
+    iconName: "Library",
+    mediaType: "image",
+    mediaUrl: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=800&q=80"
   }
 ];
