@@ -18,11 +18,6 @@ export default defineConfig(({ mode }) => {
       alias: {
         '@': path.resolve(__dirname, '.'),
       }
-    },
-    base: './',
-    build: {
-      outDir: '../../gridcollage-app',
-      emptyOutDir: true
     }
   };
 });
