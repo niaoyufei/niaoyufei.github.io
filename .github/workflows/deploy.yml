@@ -30,15 +30,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install gridcollage dependencies
-        run: |
-          cd public/gridcollage
-          npm ci
-
-      - name: Build gridcollage
-        run: |
-          cd public/gridcollage
-          npm run build
+    
 
       - name: Build main site
         run: npm run build
