@@ -19,6 +19,10 @@ export default defineConfig(({ mode }) => {
         '@': path.resolve(__dirname, '.'),
       }
     },
-    base: './'
+    base: './',
+    build: {
+      outDir: '../../gridcollage-app',
+      emptyOutDir: true
+    }
   };
 });
