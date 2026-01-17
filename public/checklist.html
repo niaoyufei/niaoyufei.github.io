@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自定义清单 | 全能指南</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-canvas: #fafaf8;
+            --line-thick: 12px;
+            --line-color: #0a0a0a;
+            --primary-red: #e63946;
+            --primary-yellow: #ffc300;
+            --primary-blue: #1d3557;
+            --accent-green: #06a77d;
+            --text-main: #0a0a0a;
+            --text-light: #555;
+            --transition-smooth: cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #0a0a0c;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-main);
+            overflow-x: hidden;
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 30px;
+        }
+
+        /* Paper Grain Texture */
+        .grain-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.035;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* Mondrian Grid - Expanded Layout */
+        .mondrian-grid {
+            display: grid;
+            max-width: 1600px;
+            width: 100%;
+            height: auto;
+            min-height: 85vh;
+            grid-template-columns: var(--line-thick) 320px var(--line-thick) 1fr var(--line-thick) 280px var(--line-thick) 1fr var(--line-thick);
+            grid-template-rows: var(--line-thick) 140px var(--line-thick) 1fr var(--line-thick) 1fr var(--line-thick) 100px var(--line-thick);
+            background-color: var(--line-color);
+            animation: gridReveal 1s var(--transition-smooth) forwards;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6);
+        }
+
+        @keyframes gridReveal {
+            from {
+                opacity: 0;
+                transform: scale(0.98) translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .cell {
+            background-color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Color Cells with Variations */
+        .cell-red {
+            background-color: var(--primary-red);
+        }
+
+        .cell-yellow {
+            background-color: var(--primary-yellow);
+        }
+
+        .cell-blue {
+            background-color: var(--primary-blue);
+        }
+
+        .cell-green {
+            background-color: var(--accent-green);
+        }
+
+        .cell-canvas {
+            background-color: var(--bg-canvas);
+        }
+
+        /* Header Section */
+        .header-cell {
+            grid-column: 2 / 3;
+            grid-row: 2 / 3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .header-icon {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+        }
+
+        .title-cell {
+            grid-column: 4 / 7;
+            grid-row: 2 / 3;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 30px 40px;
+        }
+
+        .title-cell h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: -2px;
+            line-height: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .title-cell .subtitle {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--text-light);
+            margin-top: 8px;
+        }
+
+        .accent-header {
+            grid-column: 8 / 9;
+            grid-row: 2 / 3;
+        }
+
+        /* Feature Sections - Split Layout */
+        .feature-1 {
+            grid-column: 2 / 5;
+            grid-row: 4 / 5;
+            padding: 35px 40px;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .feature-2 {
+            grid-column: 6 / 9;
+            grid-row: 4 / 5;
+            padding: 35px 40px;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .feature-3 {
+            grid-column: 2 / 5;
+            grid-row: 6 / 7;
+            padding: 35px 40px;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .feature-4 {
+            grid-column: 6 / 9;
+            grid-row: 6 / 7;
+            padding: 35px 40px;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .feature-1:hover,
+        .feature-2:hover,
+        .feature-3:hover,
+        .feature-4:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Feature Content Styling */
+        .feature-header {
+            font-size: 1.5rem;
+            font-weight: 900;
+            margin-bottom: 8px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .feature-subtitle {
+            font-size: 0.85rem;
+            font-style: italic;
+            color: var(--text-light);
+            margin-bottom: 18px;
+            font-weight: 400;
+        }
+
+        .feature-content {
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: var(--text-main);
+        }
+
+        .feature-content ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+        }
+
+        .feature-content li {
+            margin-bottom: 10px;
+            padding-left: 18px;
+            position: relative;
+        }
+
+        .feature-content li::before {
+            content: "▪";
+            position: absolute;
+            left: 0;
+            color: var(--primary-red);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .feature-content strong {
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        /* Footer Navigation */
+        .footer-nav {
+            grid-column: 2 / 9;
+            grid-row: 8 / 9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 40px;
+        }
+
+        .nav-link {
+            font-family: 'JetBrains Mono', monospace;
+            text-decoration: none;
+            color: var(--text-main);
+            font-weight: 700;
+            font-size: 0.85rem;
+            position: relative;
+            padding: 10px 0;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-red);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: var(--primary-red);
+            transition: width 0.3s var(--transition-smooth);
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        /* Accent Blocks for Visual Interest */
+        .accent-small-1 {
+            grid-column: 6 / 7;
+            grid-row: 8 / 9;
+        }
+
+        .accent-small-2 {
+            grid-column: 8 / 9;
+            grid-row: 8 / 9;
+        }
+
+        /* Modal Dialog Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 12, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-content {
+            background: white;
+            max-width: 800px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            position: relative;
+            border: var(--line-thick) solid var(--line-color);
+            animation: slideUp 0.4s var(--transition-smooth);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            background: var(--bg-canvas);
+            padding: 30px 40px;
+            border-bottom: var(--line-thick) solid var(--line-color);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .modal-header h2 {
+            font-size: 2rem;
+            font-weight: 900;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .modal-header .subtitle {
+            font-size: 0.9rem;
+            font-style: italic;
+            color: var(--text-light);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 25px;
+            right: 30px;
+            width: 40px;
+            height: 40px;
+            background: var(--primary-red);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            transform: rotate(90deg);
+            background: var(--line-color);
+        }
+
+        .modal-body {
+            padding: 40px;
+            font-size: 1.05rem;
+            line-height: 1.8;
+        }
+
+        .modal-body ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 20px 0;
+        }
+
+        .modal-body li {
+            margin-bottom: 18px;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .modal-body li::before {
+            content: "●";
+            position: absolute;
+            left: 0;
+            color: var(--primary-red);
+            font-size: 1.2rem;
+        }
+
+        .modal-body strong {
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .modal-example {
+            background: #f5f5f5;
+            padding: 20px 25px;
+            margin: 20px 0;
+            border-left: 6px solid var(--primary-yellow);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            line-height: 1.8;
+        }
+
+        .modal-example-title {
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-main);
+        }
+
+        .modal-indent {
+            padding-left: 40px;
+            color: var(--text-light);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .mondrian-grid {
+                grid-template-columns: 10px 1fr 10px;
+                grid-template-rows: 10px auto 10px auto 10px auto 10px auto 10px auto 10px auto 10px;
+                min-height: auto;
+            }
+
+            .header-cell {
+                grid-column: 2/3;
+                grid-row: 2/3;
+                padding: 30px;
+            }
+
+            .title-cell {
+                grid-column: 2/3;
+                grid-row: 4/5;
+                padding: 30px;
+            }
+
+            .accent-header {
+                display: none;
+            }
+
+            .feature-1 {
+                grid-column: 2/3;
+                grid-row: 6/7;
+                padding: 30px;
+            }
+
+            .feature-2 {
+                grid-column: 2/3;
+                grid-row: 8/9;
+                padding: 30px;
+            }
+
+            .feature-3 {
+                grid-column: 2/3;
+                grid-row: 10/11;
+                padding: 30px;
+            }
+
+            .feature-4 {
+                grid-column: 2/3;
+                grid-row: 12/13;
+                padding: 30px;
+            }
+
+            .footer-nav {
+                grid-column: 2/3;
+                grid-row: 14/15;
+                flex-direction: column;
+                gap: 15px;
+                padding: 25px;
+            }
+
+            .accent-small-1,
+            .accent-small-2 {
+                display: none;
+            }
+
+            .feature-header {
+                font-size: 1.3rem;
+            }
+
+            .feature-content {
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Cursor Follow Effect */
+        .cursor-follow {
+            width: 35px;
+            height: 35px;
+            border: 2px solid var(--line-color);
+            position: fixed;
+            pointer-events: none;
+            z-index: 10000;
+            transition: transform 0.15s ease;
+            mix-blend-mode: difference;
+            border-radius: 50%;
+        }
+
+        /* Parallax Effect on Color Blocks */
+        .parallax-cell {
+            transition: transform 0.3s ease-out;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="grain-overlay"></div>
+    <div class="cursor-follow" id="cursor"></div>
+
+    <main class="mondrian-grid">
+        <!-- Header Row -->
+        <div class="cell header-cell">
+            <img src="checklist_icon.png" alt="自定义清单" class="header-icon">
+        </div>
+        <div class="cell title-cell">
+            <h1>自定义清单<br>全能指南</h1>
+            <div class="subtitle">Custom Checklist · Complete Guide</div>
+        </div>
+        <div class="cell cell-blue accent-header parallax-cell"></div>
+
+        <!-- Feature 1: 文字清单 -->
+        <div class="cell feature-1 cell-canvas" onclick="openModal('feature1')">
+
+            <h2 class="feature-header">🚀 文字清单</h2>
+            <p class="feature-subtitle">高效的文本处理与协作工具</p>
+            <div class="feature-content">
+                <ul>
+                    <li><strong>极速录入</strong> - 自定义分隔符，长文本一键拆分</li>
+                    <li><strong>分段条目</strong> - 换行即换条目，支持字段统一输入</li>
+                    <li><strong>云端协作</strong> - 多人编辑实时同步</li>
+                    <li><strong>实用工具</strong> - 聚光灯、闹钟、PDF导出、灵感话题</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Feature 2: 图片清单 -->
+        <div class="cell feature-2 cell-canvas" onclick="openModal('feature2')">
+
+            <h2 class="feature-header">🖼️ 图片清单</h2>
+            <p class="feature-subtitle">让图片本身成为你的检查表</p>
+            <div class="feature-content">
+                <ul>
+                    <li><strong>可视化管理</strong> - 支持10张图片，快速切换</li>
+                    <li><strong>自由打点</strong> - 任意位置生成勾选框，拖拽缩放</li>
+                    <li><strong>导出保存</strong> - 一键重置，高清导出带标记图片</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Feature 3: 拼图助手 -->
+        <div class="cell feature-3 cell-canvas" onclick="openModal('feature3')">
+            <h2 class="feature-header">🎨 拼图助手</h2>
+            <p class="feature-subtitle">强大的网格排版神器</p>
+            <div class="feature-content">
+                <ul>
+                    <li><strong>灵活布局</strong> - 1-9行列自由组合，自定义间距与比例</li>
+                    <li><strong>风格化</strong> - 多种背景色，自动添加序号</li>
+                    <li><strong>交互导出</strong> - 手势微调，自定义尺寸确保高清</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Feature 4: 我的文件 -->
+        <div class="cell feature-4 cell-canvas" onclick="openModal('feature4')">
+
+            <h2 class="feature-header">📂 我的文件</h2>
+            <p class="feature-subtitle">统一管理中心</p>
+            <div class="feature-content">
+                <ul>
+                    <li><strong>统一管理</strong> - 本地、云端、协作清单集中展示</li>
+                    <li><strong>提醒中心</strong> - 待办闹钟时间排序，不错过重要事项</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="cell cell-red accent-small-1 parallax-cell"></div>
+        <div class="cell footer-nav">
+            <a href="/" class="nav-link">← 返回首页</a>
+            <span style="font-family: 'JetBrains Mono'; opacity: 0.4; font-size: 0.75rem;">// 自定义清单工具 //</span>
+            <a href="#" class="nav-link" style="opacity: 0.4;">探索更多 →</a>
+        </div>
+        <div class="cell cell-yellow accent-small-2 parallax-cell"></div>
+    </main>
+
+    <script>
+        // Cursor Follow
+        const cursor = document.getElementById('cursor');
+        document.addEventListener('mousemove', e => {
+            cursor.style.transform = `translate(${e.clientX - 17.5}px, ${e.clientY - 17.5}px)`;
+        });
+
+        // Subtle Parallax on Color Cells
+        document.addEventListener('mousemove', (e) => {
+            const cells = document.querySelectorAll('.parallax-cell');
+            const x = (window.innerWidth / 2 - e.pageX) / 60;
+            const y = (window.innerHeight / 2 - e.pageY) / 60;
+
+            cells.forEach(cell => {
+                cell.style.transform = `translate(${x}px, ${y}px)`;
+            });
+        });
+
+        // Modal Functions
+        function openModal(featureId) {
+            const modal = document.getElementById('modal-overlay');
+            const modalTitle = document.getElementById('modal-title');
+            const modalSubtitle = document.getElementById('modal-subtitle');
+            const modalBody = document.getElementById('modal-body');
+
+            const features = {
+                feature1: {
+                    title: '🚀 文字清单',
+                    subtitle: '高效的文本处理与协作工具',
+                    content: `
+                        <ul>
+                            <li><strong>普通文本极速录入</strong>：根据自定义分隔符分隔，输入长文本一键拆分。</li>
+                            <li><strong>分段条目极速录入</strong>：
+                                <br><br>
+                                <div style="margin-left: 20px;">
+                                    <strong>方式1 - 条目内自定义分隔符分隔，换行即换条目</strong>
+                                    <div class="modal-example">
+                                        <div class="modal-example-title">示例：</div>
+                                        海底捞，8，市中心，土豆片<br>
+                                        味千拉面，6，长隆，煎饺
+                                    </div>
+                                    <strong>方式2 - 分字段统一输入，比如统一输入名称，换行即换条目</strong>
+                                    <div class="modal-example">
+                                        <div class="modal-example-title">示例：</div>
+                                        海底捞<br>
+                                        味千拉面<br>
+                                        必胜客
+                                    </div>
+                                </div>
+                            </li>
+                            <li><strong>云端协作</strong>：点击协作按钮转发好友，可多人编辑实时同步。</li>
+                            <li><strong>实用工具</strong>：内置"聚光灯"骰子帮做决定，暂不支持协作模式；支持单条闹钟同步日历，协作模式不支持闹钟；一键导出PDF；每日灵感话题。</li>
+                        </ul>
+                    `
+                },
+                feature2: {
+                    title: '🖼️ 图片清单',
+                    subtitle: '让图片本身成为你的检查表',
+                    content: `
+                        <ul>
+                            <li><strong>可视化管理</strong>：支持导入10张图片并自定义命名，点击缩略图快速切换。</li>
+                            <li><strong>自由打点</strong>：点击任意位置生成"勾选框"，点击切换空/选中状态；支持拖拽缩放与删除。</li>
+                            <li><strong>导出保存</strong>：一键清除勾选态（重置任务）；支持将带有标记的图片高清导出至相册。</li>
+                        </ul>
+                    `
+                },
+                feature3: {
+                    title: '🎨 拼图助手',
+                    subtitle: '强大的网格排版神器',
+                    content: `
+                        <ul>
+                            <li><strong>灵活布局</strong>：自定义 1-9 行与列的自由组合；自由调节图片间距与单元格比例（1:1, 3:4 等）。</li>
+                            <li><strong>风格化</strong>：提供多种背景色预设，支持为图片自动添加序号。</li>
+                            <li><strong>交互导出</strong>：手势微调图片显示区域；可自定义导出图片的宽高限制，确保高清画质。</li>
+                        </ul>
+                    `
+                },
+                feature4: {
+                    title: '📂 我的文件',
+                    subtitle: '统一管理中心',
+                    content: `
+                        <ul>
+                            <li><strong>统一管理</strong>：集中展示您的本地清单、本地清单可上传云端实时更新的云端清单，以及协作清单。</li>
+                            <li><strong>提醒中心</strong>：汇集所有清单中的待办闹钟，按时间顺序排列，不再错过重要事项。</li>
+                        </ul>
+                    `
+                }
+            };
+
+            const feature = features[featureId];
+            if (feature) {
+                modalTitle.textContent = feature.title;
+                modalSubtitle.textContent = feature.subtitle;
+                modalBody.innerHTML = feature.content;
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('modal-overlay');
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal on overlay click
+        document.addEventListener('click', (e) => {
+            const modal = document.getElementById('modal-overlay');
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+        // Close modal on ESC key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+
+    <!-- Modal Overlay -->
+    <div class="modal-overlay" id="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="modal-close" onclick="closeModal()">×</button>
+                <h2 id="modal-title"></h2>
+                <div class="subtitle" id="modal-subtitle"></div>
+            </div>
+            <div class="modal-body" id="modal-body"></div>
+        </div>
+    </div>
+</body>
+
+</html>
