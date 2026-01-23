@@ -3,9 +3,9 @@ import React, { useEffect, useRef } from 'react';
 // Enhanced tools data with color themes
 const TOOLS = [
   { id: 1, title: "自定义清单", description: "微信小程序", icon: "📋", link: "/checklist.html", theme: "red", isActive: true, isCompleted: true },
-  { id: 2, title: "Endless Walk", description: "无尽迷宫", icon: "🚶", link: "#", theme: "blue", isActive: true, isCompleted: false },
+  { id: 2, title: "能量加油站日历", description: "微信小程序", icon: "⚡", link: "#", theme: "blue", isActive: true, isCompleted: true },
   { id: 3, title: "图框记", description: "图+框+文字", icon: "🖼️", link: "#", theme: "yellow", isActive: true, isCompleted: false },
-  { id: 4, title: "", description: "", icon: "", link: "#", theme: "red", isActive: false, isCompleted: false }, // 装饰块
+  { id: 4, title: "Endless Walk", description: "无尽迷宫", icon: "🚶", link: "#", theme: "red", isActive: true, isCompleted: false },
   { id: 5, title: "图片拼贴", description: "网页工具", icon: "🎨", link: "/gridcollage-app/index.html", theme: "blue", isActive: true, isCompleted: true },
   { id: 6, title: "Stitch & Play", description: "管理拼接与播放", icon: "🧩", link: "#", theme: "yellow", isActive: true, isCompleted: false },
   { id: 7, title: "", description: "", icon: "", link: "#", theme: "red", isActive: false, isCompleted: false }, // 装饰块

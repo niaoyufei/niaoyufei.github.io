@@ -1,0 +1,5 @@
+{
+  "name": "GridCollage",
+  "description": "A powerful image grid generator that stitches photos together into rows and columns with custom backgrounds.",
+  "requestFramePermissions": []
+}
