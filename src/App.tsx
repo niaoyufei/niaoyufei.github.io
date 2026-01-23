@@ -296,12 +296,12 @@ const MondrianBlogIndex: React.FC<MondrianBlogIndexProps> = ({ onNavigate }) => 
             <h1>Read<br />Index</h1>
           </header>
 
-          {/* Post 2 - Latest */}
+          {/* Post 3 - Latest */}
           <article className="paper-block post-block" onClick={onNavigate}>
-            <div className="color-accent accent-blue"></div>
-            <span className="post-num">002 / 产品更新</span>
-            <h2>宝藏小程序：截图拼图打勾，三步搞定图片清单！</h2>
-            <p className="post-gist">从碎片到整合，从计划到执行——拼图助手+图片清单，效率提升何止一倍！</p>
+            <div className="color-accent accent-yellow"></div>
+            <span className="post-num">003 / 产品发布</span>
+            <h2>能量加油站日历 ⚡️ 让每一天都充满力量</h2>
+            <p className="post-gist">把温暖写进日历，让能量准时送达——治愈系小程序正式上线</p>
           </article>
 
           {/* Split Section */}
@@ -316,6 +316,14 @@ const MondrianBlogIndex: React.FC<MondrianBlogIndexProps> = ({ onNavigate }) => 
               <div style={{ fontWeight: 800, fontSize: '1.4rem', fontFamily: 'Outfit' }}>1.2k</div>
             </div>
           </div>
+
+          {/* Post 2 */}
+          <article className="paper-block post-block" onClick={onNavigate}>
+            <div className="color-accent accent-blue"></div>
+            <span className="post-num">002 / 产品更新</span>
+            <h2>宝藏小程序：截图拼图打勾，三步搞定图片清单！</h2>
+            <p className="post-gist">从碎片到整合，从计划到执行——拼图助手+图片清单，效率提升何止一倍！</p>
+          </article>
 
           {/* Post 1 */}
           <article className="paper-block post-block" onClick={onNavigate}>
@@ -336,7 +344,7 @@ const MondrianBlogIndex: React.FC<MondrianBlogIndexProps> = ({ onNavigate }) => 
           {/* Footer */}
           <footer className="paper-block footer-block">
             <div className="flex justify-between items-end">
-              <span>产品思考与实践的记录。此索引记录了 2 章探索之旅。</span>
+              <span>产品思考与实践的记录。此索引记录了 3 章探索之旅。</span>
               <a href="/privacy.html" className="text-[0.55rem] text-gray-500 hover:text-black underline decoration-gray-400">隐私政策</a>
             </div>
           </footer>
