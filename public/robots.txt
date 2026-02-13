@@ -1,0 +1,9 @@
+# robots.txt for www.huangzeze.com
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://www.huangzeze.com/sitemap.xml
+
+# Disallow admin/private directories
+Disallow: /.git/

@@ -298,6 +298,43 @@ const MondrianBlogPage: React.FC = () => {
                             <p>Product Design & Development Journal</p>
                         </header>
 
+                        {/* Article 4 - Spring Festival */}
+                        <article className="article-card">
+                            <div className="article-header">
+                                <div className="article-meta">
+                                    <span>📅 2026.02.12</span>
+                                    <span>📂 春节限定</span>
+                                    <span>👤 黄小桃</span>
+                                </div>
+                                <h2 className="article-title">🧨 不小心打造了一款既有“玄学”又有“科技感”的春节拜年神器？</h2>
+                                <p className="article-excerpt">能量加油站日历春节限定版上线！指尖烟花、AR抓金币，用黑科技重新定义拜年仪式感。</p>
+                                <div className="accent-bar accent-red"></div>
+                            </div>
+                            <div className="article-content">
+                                <p>每到春节，群发短信那种毫无感情的“复制粘贴”？想给朋友送祝福，只是文字有点干巴巴，又或者是城市禁燃，少了一点“爆竹声中一岁除”的仪式感？</p>
+
+                                <h3>✨ 黑科技加持：春节限定的“魔法”体验</h3>
+
+                                <h3>🎆 玩法一：指尖烟花 (Fireworks) —— 随时随地，想放就放</h3>
+
+                                <p><strong>交互设计：</strong></p>
+                                <p><em>点击：</em>点哪里，哪里就绽放一朵烟花。</p>
+                                <p><em>滑动：</em>从屏幕底部划过，留下一道道流光溢彩的尾迹，就像小时候玩的仙女棒。</p>
+                                <p><em>蓄力长按：</em>这是一个隐藏彩蛋！长按屏幕，能量条蓄满后松手，会触发一次震撼全屏的超级烟花。</p>
+
+                                <p><strong>情感彩蛋：</strong>这不仅仅是视觉特效。当烟花炸开时，你定制的那句祝福语（比如“祝爸妈身体健康”）会伴随着光影缓缓浮现。那一刻的感动，是任何静态图片都无法比拟的。</p>
+
+                                <h3>🤲 玩法二：魔法双手 (Magic Hands) —— AR 抓金币</h3>
+                                <p>这是今年的重头戏！利用 VKSession 和 WebGL 技术，我啥也不懂就背靠AI这座靠山，实现了一个仅靠手机摄像头就能玩的 AR 游戏。</p>
+
+                                <p><strong>手势识别：</strong>摄像头实时捕捉你的手部动作。</p>
+                                <p><strong>握拳抓取：</strong>当你看到屏幕上掉落金币，伸出手“握住”，手机会立刻震动反馈，金币上面的数字+n。这种“看得见摸得着”的反馈，让抢红包有了真实的体感。</p>
+                                <p>
+                                    <strong>集满100金币：</strong>又在张手握拳之间，金币浮尘化作满屏的粒子特效和最终的祝福语。
+                                </p>
+                            </div>
+                        </article>
+
                         {/* Article 3 - Latest */}
                         <article className="article-card">
                             <div className="article-header">
@@ -472,7 +509,7 @@ const MondrianBlogPage: React.FC = () => {
                         {/* Footer Navigation */}
                         <nav className="footer-nav">
                             <a onClick={handleBack} className="nav-link">← 返回首页</a>
-                            <span style={{ fontFamily: 'JetBrains Mono', opacity: 0.3, fontSize: '0.85rem' }}>// 3 Articles //</span>
+                            <span style={{ fontFamily: 'JetBrains Mono', opacity: 0.3, fontSize: '0.85rem' }}>// 4 Articles //</span>
                             <span className="nav-link" style={{ opacity: 0.3, cursor: 'default' }}>更多文章即将更新</span>
                         </nav>
                     </div>

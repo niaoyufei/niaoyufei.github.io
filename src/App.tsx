@@ -296,12 +296,12 @@ const MondrianBlogIndex: React.FC<MondrianBlogIndexProps> = ({ onNavigate }) => 
             <h1>Read<br />Index</h1>
           </header>
 
-          {/* Post 3 - Latest */}
+          {/* Post 4 - Latest */}
           <article className="paper-block post-block" onClick={onNavigate}>
-            <div className="color-accent accent-yellow"></div>
-            <span className="post-num">003 / 产品发布</span>
-            <h2>能量加油站日历 ⚡️ 让每一天都充满力量</h2>
-            <p className="post-gist">把温暖写进日历，让能量准时送达——治愈系小程序正式上线</p>
+            <div className="color-accent accent-red"></div>
+            <span className="post-num">004 / 春节限定</span>
+            <h2>🧨 春节拜年神器：既有“玄学”又有“科技感”？</h2>
+            <p className="post-gist">能量加油站日历春节限定版上线！指尖烟花、AR抓金币，用黑科技重新定义拜年仪式感。</p>
           </article>
 
           {/* Split Section */}
@@ -317,20 +317,20 @@ const MondrianBlogIndex: React.FC<MondrianBlogIndexProps> = ({ onNavigate }) => 
             </div>
           </div>
 
+          {/* Post 3 */}
+          <article className="paper-block post-block" onClick={onNavigate}>
+            <div className="color-accent accent-yellow"></div>
+            <span className="post-num">003 / 产品发布</span>
+            <h2>能量加油站日历 ⚡️ 让每一天都充满力量</h2>
+            <p className="post-gist">把温暖写进日历，让能量准时送达——治愈系小程序正式上线</p>
+          </article>
+
           {/* Post 2 */}
           <article className="paper-block post-block" onClick={onNavigate}>
             <div className="color-accent accent-blue"></div>
             <span className="post-num">002 / 产品更新</span>
             <h2>宝藏小程序：截图拼图打勾，三步搞定图片清单！</h2>
             <p className="post-gist">从碎片到整合，从计划到执行——拼图助手+图片清单，效率提升何止一倍！</p>
-          </article>
-
-          {/* Post 1 */}
-          <article className="paper-block post-block" onClick={onNavigate}>
-            <div className="color-accent accent-red"></div>
-            <span className="post-num">001 / 产品开发</span>
-            <h2>告别繁琐输入！支持图片勾选、文本秒转，清单还能这样玩？</h2>
-            <p className="post-gist">在谷歌Gemini的帮助下，开发了一款轻量化清单小程序——简化输入、方便分享。</p>
           </article>
 
           {/* Ticker */}
