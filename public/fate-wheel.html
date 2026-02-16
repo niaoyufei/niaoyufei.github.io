@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>命运轮盘：极差变速</title>
+    <!-- Tailwind CSS (via CDN for simplicity in standalone file) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- MediaPipe dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000;
+            user-select: none;
+            font-family: 'Microsoft YaHei', sans-serif;
+        }
+
+        #output_canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+            z-index: 0;
+        }
+
+        /* UI Layer */
+        #tips-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            text-align: center;
+            z-index: 10;
+            width: 100%;
+        }
+
+        #tips {
+            color: #ffd700;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 0 20px rgba(100, 100, 255, 0.8);
+            letter-spacing: 4px;
+            transition: opacity 0.5s;
+        }
+
+        /* Controls */
+        #controls {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: auto;
+            z-index: 20;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+        }
+
+        input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            font-size: 14px;
+            text-align: center;
+            outline: none;
+            backdrop-filter: blur(5px);
+        }
+
+        button.update-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            background: #ffd700;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            white-space: nowrap;
+        }
+
+        button.update-btn:active {
+            transform: scale(0.95);
+        }
+
+        button.mode-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        /* Mode styles */
+        .mode-mouse {
+            background: rgba(39, 39, 42, 0.8);
+            border-color: #3f3f46;
+            color: #a1a1aa;
+        }
+
+        .mode-mouse:hover {
+            background: #27272a;
+        }
+
+        .mode-camera {
+            background: #9333ea;
+            border-color: #a855f7;
+            color: white;
+            box-shadow: 0 0 15px rgba(147, 51, 234, 0.5);
+        }
+
+        /* Camera Feed */
+        #input_video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 120px;
+            height: auto;
+            opacity: 0.5;
+            z-index: 30;
+            pointer-events: none;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="output_canvas"></canvas>
+
+    <div id="tips-container">
+        <div id="tips">按住蓄力 · 抽取命运</div>
+    </div>
+
+    <div id="controls">
+        <div class="input-row">
+            <input type="text" id="custom-text" value="恭喜发财 万事如意 身体健康 财源广进 大吉大利 步步高升 心想事成" placeholder="输入祝福语，空格分隔">
+            <button class="update-btn" onclick="updatePhrases()">更新</button>
+        </div>
+        <button id="mode-btn" class="mode-btn mode-mouse" onclick="toggleMode()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+                <circle cx="12" cy="13" r="3" />
+            </svg>
+            <span id="mode-text">切换到手势操控</span>
+        </button>
+    </div>
+
+    <video id="input_video" playsinline></video>
+
+    <script>
+        const canvasElement = document.getElementById('output_canvas');
+        const canvasCtx = canvasElement.getContext('2d');
+        const tipsDiv = document.getElementById('tips');
+        const videoElement = document.getElementById('input_video');
+        const modeBtn = document.getElementById('mode-btn');
+        const modeText = document.getElementById('mode-text');
+
+        let canvasWidth, canvasHeight;
+        let cx, cy;
+
+        // State
+        let mode = 'mouse'; // 'mouse' | 'camera'
+        let isMouseDown = false;
+        let mouseX = 0, mouseY = 0;
+        let phrases = [];
+        const FL = 400;
+
+        // Camera State
+        let camera = null;
+        let hands = null;
+        let cameraActive = false;
+        let lastHandClosed = false;
+
+        // ==========================================
+        // 1. Assets
+        // ==========================================
+        const IDLE_EMOJIS = ['💰', '🧧', '🏮', '🥟', '🪙', '✨'];
+
+        let idleTextureMap = new Map();
+        let phraseTextureMap = new Map();
+
+        function preRenderIdle() {
+            idleTextureMap.clear();
+            const size = 64;
+            IDLE_EMOJIS.forEach(emoji => {
+                const c = document.createElement('canvas');
+                c.width = size; c.height = size;
+                const ctx = c.getContext('2d');
+                ctx.font = `bold ${size * 0.75}px "Segoe UI Emoji", sans-serif`;
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.shadowBlur = 10; ctx.shadowColor = '#4400ff';
+                ctx.fillText(emoji, size / 2, size / 2 + size * 0.05);
+                idleTextureMap.set(emoji, c);
+            });
+        }
+
+        function preRenderPhrases(currentPhrases) {
+            phraseTextureMap.clear();
+            const w = 180;
+            const h = 64;
+
+            currentPhrases.forEach(text => {
+                const c = document.createElement('canvas');
+                c.width = w; c.height = h;
+                const ctx = c.getContext('2d');
+                ctx.font = `bold 26px "Microsoft YaHei", sans-serif`;
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.shadowBlur = 15; ctx.shadowColor = '#ffcc00';
+                ctx.fillStyle = '#fff';
+                ctx.fillText(text, w / 2, h / 2);
+                ctx.strokeStyle = '#ffaa00';
+                ctx.lineWidth = 2;
+                ctx.strokeText(text, w / 2, h / 2);
+                phraseTextureMap.set(text, c);
+            });
+            phrases = currentPhrases;
+        }
+
+        function updatePhrases() {
+            const input = document.getElementById('custom-text').value;
+            if (input.trim()) {
+                const newPhrases = input.split(' ').filter(t => t.length > 0);
+                preRenderPhrases(newPhrases);
+            }
+        }
+
+        // ==========================================
+        // 2. Particles
+        // ==========================================
+
+        let bgParticles = [];
+
+        class BgParticle {
+            constructor() { this.reset(true); }
+            reset(init = false) {
+                this.emoji = IDLE_EMOJIS[Math.floor(Math.random() * IDLE_EMOJIS.length)];
+                this.x = (Math.random() - 0.5) * canvasWidth * 5;
+                this.y = (Math.random() - 0.5) * canvasHeight * 5;
+                this.z = init ? Math.random() * 5000 : 5000 + Math.random() * 500;
+                this.speed = Math.random() * 0.6 + 0.2;
+                this.rotation = Math.random() * Math.PI * 2;
+                this.rotSpeed = (Math.random() - 0.5) * 0.01;
+            }
+            update() {
+                this.z -= this.speed;
+                this.rotation += this.rotSpeed;
+                if (this.z < -FL) this.reset(false);
+            }
+        }
+
+        let burstParticles = [];
+
+        class SpinParticle {
+            constructor(centerX, centerY, phrase, startAngle, targetRadius, spinSpeed) {
+                this.phrase = phrase;
+                this.cx = centerX; this.cy = centerY; this.cz = 0;
+                this.angle = startAngle;
+                this.currentRadius = 0;
+                this.targetRadius = targetRadius;
+                this.spinSpeed = spinSpeed;
+                this.totalRotation = 0;
+                this.state = 'EXPANDING';
+                this.scale = 0.1;
+                this.alpha = 1;
+
+                // Init pos
+                this.x = 0; this.y = 0; this.z = 0;
+            }
+
+            update() {
+                if (this.state === 'EXPANDING') {
+                    const speed = (this.targetRadius - this.currentRadius) * 0.08;
+                    this.currentRadius += speed;
+                    this.angle += this.spinSpeed * 0.2;
+                    if (this.targetRadius - this.currentRadius < 1) {
+                        this.currentRadius = this.targetRadius;
+                        this.state = 'SPINNING';
+                    }
+                } else if (this.state === 'SPINNING' || this.state === 'FADING') {
+                    this.angle += this.spinSpeed;
+                    this.totalRotation += Math.abs(this.spinSpeed);
+                    if (this.totalRotation > Math.PI * 4) this.state = 'FADING';
+                }
+
+                this.x = this.cx + Math.cos(this.angle) * this.currentRadius;
+                this.y = this.cy + Math.sin(this.angle) * this.currentRadius;
+                this.z = this.cz;
+
+                if (this.scale < 1) this.scale += 0.05;
+                if (this.state === 'FADING') this.alpha -= 0.02;
+            }
+        }
+
+        // ==========================================
+        // 3. Logic & Loop
+        // ==========================================
+
+        function init() {
+            resizeCanvas();
+            preRenderIdle();
+            updatePhrases(); // Init phrases from default input
+            bgParticles = [];
+            for (let i = 0; i < 150; i++) bgParticles.push(new BgParticle());
+        }
+
+        function triggerOneRing() {
+            const mousePerspective = 1;
+            const targetX3D = (mouseX - cx);
+            const targetY3D = (mouseY - cy);
+
+            const targetRadius = Math.random() * 630 + 120;
+            let count = Math.floor((targetRadius * 2 * Math.PI) / 100);
+            if (count < 6) count = 6;
+            if (count > 24) count = 24;
+
+            const dir = Math.random() > 0.5 ? 1 : -1;
+            const speedFactor = Math.pow(Math.random(), 2);
+            const spinSpeed = (speedFactor * 0.08 + 0.002) * dir;
+            const angleStep = (Math.PI * 2) / count;
+
+            for (let i = 0; i < count; i++) {
+                const text = phrases[i % phrases.length];
+                const startAngle = i * angleStep;
+                burstParticles.push(new SpinParticle(
+                    targetX3D, targetY3D,
+                    text, startAngle, targetRadius, spinSpeed
+                ));
+            }
+        }
+
+        function loop() {
+            canvasCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+            // Background
+            const grd = canvasCtx.createRadialGradient(cx, cy, 0, cx, cy, canvasHeight);
+            grd.addColorStop(0, '#050010');
+            grd.addColorStop(1, '#000000');
+            canvasCtx.fillStyle = grd;
+            canvasCtx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+            // Interaction Glow
+            if (isMouseDown) {
+                const glow = canvasCtx.createRadialGradient(mouseX, mouseY, 0, mouseX, mouseY, 150);
+                glow.addColorStop(0, 'rgba(100, 200, 255, 0.6)');
+                glow.addColorStop(1, 'rgba(0,0,0,0)');
+                canvasCtx.fillStyle = glow;
+                canvasCtx.globalCompositeOperation = 'lighter';
+                canvasCtx.beginPath();
+                canvasCtx.arc(mouseX, mouseY, 150, 0, Math.PI * 2);
+                canvasCtx.fill();
+                canvasCtx.globalCompositeOperation = 'source-over';
+
+                tipsDiv.style.opacity = 0;
+            } else {
+                tipsDiv.style.opacity = 1;
+                if (mode === 'camera') tipsDiv.innerText = "捏合手指蓄力 · 松开抽取";
+                else tipsDiv.innerText = "按住蓄力 · 抽取命运";
+            }
+
+            bgParticles.sort((a, b) => b.z - a.z);
+            bgParticles.forEach(p => {
+                p.update();
+                const perspective = FL / (FL + p.z);
+                const screenX = cx + p.x * perspective;
+                const screenY = cy + p.y * perspective;
+                const size = 100 * perspective;
+                if (size > 300 || p.z < -FL + 10 || size < 2) return;
+                const img = idleTextureMap.get(p.emoji);
+                if (!img) return;
+                canvasCtx.save();
+                canvasCtx.translate(screenX, screenY);
+                canvasCtx.rotate(p.rotation);
+                canvasCtx.globalAlpha = Math.min(1, (5000 - p.z) / 1000);
+                canvasCtx.drawImage(img, -size / 2, -size / 2, size, size);
+                canvasCtx.restore();
+            });
+
+            for (let i = burstParticles.length - 1; i >= 0; i--) {
+                const p = burstParticles[i];
+                p.update();
+                if (p.alpha <= 0) {
+                    burstParticles.splice(i, 1);
+                    continue;
+                }
+                const perspective = FL / (FL + p.z);
+                const screenX = cx + p.x * perspective;
+                const screenY = cy + p.y * perspective;
+
+                let sizeBonus = p.targetRadius / 500;
+                sizeBonus = Math.max(0.8, Math.min(1.2, sizeBonus));
+
+                const baseW = 120 * sizeBonus;
+                const baseH = 42 * sizeBonus;
+                const w = baseW * perspective * p.scale;
+                const h = baseH * perspective * p.scale;
+
+                const img = phraseTextureMap.get(p.phrase);
+                if (!img) continue;
+
+                canvasCtx.save();
+                canvasCtx.translate(screenX, screenY);
+                canvasCtx.rotate(p.angle + Math.PI / 2);
+                canvasCtx.globalAlpha = p.alpha;
+                canvasCtx.globalCompositeOperation = 'lighter';
+                canvasCtx.drawImage(img, -w / 2, -h / 2, w, h);
+                canvasCtx.restore();
+            }
+
+            requestAnimationFrame(loop);
+        }
+
+        // ==========================================
+        // 4. Input Handling
+        // ==========================================
+
+        window.addEventListener('mousedown', e => {
+            if (mode === 'mouse') { isMouseDown = true; mouseX = e.clientX; mouseY = e.clientY; }
+        });
+        window.addEventListener('mousemove', e => {
+            if (mode === 'mouse') { mouseX = e.clientX; mouseY = e.clientY; }
+        });
+        window.addEventListener('mouseup', () => {
+            if (mode === 'mouse') { isMouseDown = false; triggerOneRing(); }
+        });
+
+        window.addEventListener('touchstart', e => {
+            if (mode === 'mouse') {
+                e.preventDefault();
+                isMouseDown = true;
+                mouseX = e.touches[0].clientX; mouseY = e.touches[0].clientY;
+            }
+        }, { passive: false });
+
+        window.addEventListener('touchmove', e => {
+            if (mode === 'mouse') {
+                e.preventDefault();
+                mouseX = e.touches[0].clientX; mouseY = e.touches[0].clientY;
+            }
+        }, { passive: false });
+
+        window.addEventListener('touchend', () => {
+            if (mode === 'mouse') { isMouseDown = false; triggerOneRing(); }
+        });
+
+        window.addEventListener('resize', resizeCanvas);
+
+        function resizeCanvas() {
+            canvasWidth = window.innerWidth;
+            canvasHeight = window.innerHeight;
+            canvasElement.width = canvasWidth;
+            canvasElement.height = canvasHeight;
+            cx = canvasWidth / 2; cy = canvasHeight / 2;
+        }
+
+        // ==========================================
+        // 5. Camera Logic
+        // ==========================================
+
+        async function toggleMode() {
+            if (mode === 'mouse') {
+                mode = 'camera';
+                modeBtn.classList.remove('mode-mouse');
+                modeBtn.classList.add('mode-camera');
+                modeText.innerText = '摄像头操控中 (捏合手指)';
+                videoElement.style.display = 'block';
+                await startCamera();
+            } else {
+                mode = 'mouse';
+                modeBtn.classList.remove('mode-camera');
+                modeBtn.classList.add('mode-mouse');
+                modeText.innerText = '切换到手势操控';
+                videoElement.style.display = 'none';
+                stopCamera();
+            }
+        }
+
+        async function startCamera() {
+            if (!hands) {
+                hands = new Hands({
+                    locateFile: (file) => {
+                        return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+                    }
+                });
+                hands.setOptions({
+                    maxNumHands: 1,
+                    modelComplexity: 1,
+                    minDetectionConfidence: 0.5,
+                    minTrackingConfidence: 0.5
+                });
+                hands.onResults(onResults);
+            }
+
+            if (!camera) {
+                camera = new Camera(videoElement, {
+                    onFrame: async () => {
+                        await hands.send({ image: videoElement });
+                    },
+                    width: 320,
+                    height: 240
+                });
+            }
+            cameraActive = true;
+            await camera.start();
+        }
+
+        function stopCamera() {
+            cameraActive = false;
+            // Note: Camera utils stop logic is limited in simple implementation 
+            // but hiding video and ignoring results is enough for UI.
+            // Ideally we should stop the tracks.
+        }
+
+        function onResults(results) {
+            if (!cameraActive) return;
+
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                const landmarks = results.multiHandLandmarks[0];
+                const x = (1 - landmarks[8].x) * canvasWidth;
+                const y = landmarks[8].y * canvasHeight;
+
+                mouseX = x;
+                mouseY = y;
+
+                const dx = landmarks[8].x - landmarks[4].x;
+                const dy = landmarks[8].y - landmarks[4].y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const isPinching = dist < 0.1;
+
+                if (isPinching && !lastHandClosed) {
+                    isMouseDown = true;
+                } else if (!isPinching && lastHandClosed) {
+                    isMouseDown = false;
+                    triggerOneRing();
+                }
+
+                lastHandClosed = isPinching;
+            } else {
+                isMouseDown = false;
+                lastHandClosed = false;
+            }
+        }
+
+        // Init
+        init();
+        loop();
+
+    </script>
+</body>
+
+</html>

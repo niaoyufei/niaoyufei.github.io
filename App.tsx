@@ -9,6 +9,7 @@ import {
   MYSTERY_TEASER
 } from './constants';
 import PhoneMockup from './components/PhoneMockup';
+import FateWheel from './components/FateWheel';
 import {
   List, SortDesc, Share2, Cloud, Zap, ChevronRight, HelpCircle, Mail,
   PenTool, Map, Library
@@ -99,7 +100,8 @@ const App: React.FC = () => {
                 {/* 手机屏幕内容会根据 activeItem 自动变化 */}
                 <PhoneMockup
                   mediaUrl={activeItem.mediaUrl}
-                  mediaType={activeItem.mediaType as 'image' | 'video'}
+                  mediaType={activeItem.mediaType as any}
+                  customContent={activeItem.id === 'f4' ? <FateWheel /> : undefined}
                 />
               </div>
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-green-500/20 rounded-full blur-[80px] -z-0 pointer-events-none" />

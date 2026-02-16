@@ -18,9 +18,9 @@ export const APP_FEATURES = [
     title: "内容清单",
     subtitle: "从“待办”到“待阅”",
     description: "打破传统 Todo 的焦虑感。无论是百部必看电影，还是城市探店地图，支持图文混排，让清单成为你生活的精美目录。",
-    iconName: "List", 
-    mediaType: "video", 
-    mediaUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" 
+    iconName: "List",
+    mediaType: "video",
+    mediaUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"
   },
   {
     id: 'f2',
@@ -39,6 +39,15 @@ export const APP_FEATURES = [
     iconName: "Cloud",
     mediaType: "image",
     mediaUrl: "https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?auto=format&fit=crop&w=800&q=80"
+  },
+  {
+    id: 'f4', // Fate Wheel
+    title: "命运轮盘",
+    subtitle: "极差变速 · 互动组件",
+    description: "在这个工具区空白栏，体验一次命运的抽取。支持鼠标点击或摄像头手势操控（捏合蓄力），看看你的今日运势。",
+    iconName: "Zap",
+    mediaType: "component", // Special type handler in App.tsx
+    mediaUrl: ""
   }
 ];
 
@@ -51,7 +60,7 @@ export const TARGET_AUDIENCE = [
     iconName: "PenTool",
     // 为每个群体配了一张比较符合气质的图
     mediaType: "image",
-    mediaUrl: "https://images.unsplash.com/photo-1499750310159-5298019773dd?auto=format&fit=crop&w=800&q=80" 
+    mediaUrl: "https://images.unsplash.com/photo-1499750310159-5298019773dd?auto=format&fit=crop&w=800&q=80"
   },
   {
     id: 't2',

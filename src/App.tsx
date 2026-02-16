@@ -8,7 +8,7 @@ const TOOLS = [
   { id: 4, title: "Endless Walk", description: "无尽迷宫", icon: "🚶", link: "#", theme: "red", isActive: true, isCompleted: false },
   { id: 5, title: "图片拼贴", description: "网页工具", icon: "🎨", link: "/gridcollage-app/index.html", theme: "blue", isActive: true, isCompleted: true },
   { id: 6, title: "Stitch & Play", description: "管理拼接与播放", icon: "🧩", link: "#", theme: "yellow", isActive: true, isCompleted: false },
-  { id: 7, title: "", description: "", icon: "", link: "#", theme: "red", isActive: false, isCompleted: false }, // 装饰块
+  { id: 7, title: "命运轮盘", description: "极差变速 · 互动", icon: "🔮", link: "/fate-wheel.html", theme: "red", isActive: true, isCompleted: true }, // Fate Wheel
   { id: 8, title: "XX传", description: "您的传记故事", icon: "📡", link: "#", theme: "blue", isActive: true, isCompleted: false },
   { id: 9, title: "事事计时器", description: "了解时间去哪了", icon: "⏱️", link: "#", theme: "yellow", isActive: true, isCompleted: false },
   { id: 10, title: "英语场景听说", description: "尚雯婕学习法", icon: "🎧", link: "#", theme: "yellow", isActive: true, isCompleted: false },
