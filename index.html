@@ -7,7 +7,7 @@
 
   <!-- SEO 基础标签 -->
   <title>黄小桃 | 独立开发者 & 微信小程序开发 - 自定义清单、能量加油站日历</title>
-  <meta name="description" content="黄小桃，一人公司独立开发者。专注于微信小程序开发，打造自定义清单、图片清单、能量加油站日历等实用工具，让生活更有条理，让每一天都充满力量。" />
+  <meta name="description" content="寻找高自由度的排版打卡工具？全新高级图志功能支持自定义网格、多页画板、批量文字填入与自动勾选框，三种排版模式一键导出高清图，专为高效清单与社交分享设计。" />
   <meta name="keywords" content="微信小程序,清单工具,自定义清单,黄小桃,能量加油站日历,图片清单,独立开发者,一人公司" />
   <meta name="author" content="黄小桃" />
   <link rel="canonical" href="https://www.huangzeze.com/" />
@@ -38,6 +38,36 @@
     "knowsAbout": ["微信小程序开发", "清单工具", "效率工具"],
     "email": "hq829165@hotmail.com"
   }
+  </script>
+
+  <!-- Google Analytics 4（仅对中国大陆以外地区启用，保护国内用户隐私）-->
+  <!-- 请将两处 G-XXXXXXXXXX 替换为您在 Google Analytics 中获取的真实 Measurement ID -->
+  <script>
+    (async function () {
+      try {
+        // 通过 IP 检测用户所在国家（ipapi.co 免费版每天 1000 次请求）
+        const res = await fetch('https://ipapi.co/country/', { cache: 'no-store' });
+        const countryCode = (await res.text()).trim();
+
+        // 仅在非中国大陆地区（CN）加载 GA4
+        if (countryCode !== 'CN') {
+          const s = document.createElement('script');
+          s.async = true;
+          s.src = 'https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX';
+          document.head.appendChild(s);
+
+          window.dataLayer = window.dataLayer || [];
+          function gtag() { dataLayer.push(arguments); }
+          window.gtag = gtag;
+          gtag('js', new Date());
+          gtag('config', 'G-XXXXXXXXXX');
+        }
+        // 如果是 CN，静默跳过，不采集任何数据
+      } catch (e) {
+        // 若地理位置 API 请求失败，保守处理：不加载 GA4，保护用户隐私
+        console.warn('GA4 skipped: geolocation check failed.', e);
+      }
+    })();
   </script>
 
   <script src="https://cdn.tailwindcss.com"></script>
