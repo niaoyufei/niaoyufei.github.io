@@ -21,17 +21,16 @@ interface AppEntry {
 const APPS: AppEntry[] = [
   {
     id: 'tujianji',
-    name: '图框计',
-    nameEn: 'FrameNote',
+    name: '图框计 MemoFrame',
+    nameEn: 'MemoFrame',
     type: 'iOS App',
     typeColor: '#f59e0b',
-    tagline: '让影像自带时间的重量',
+    tagline: '让影像自带时间的重量 / Give weight to time in your images',
     features: [
-      '七重美学分身： 一次导入，同步显示7种模框效果，一秒选出你的心头好，所见即所得',
-      '快门时间校准： 无需手动翻日历，一秒精准计算并打上宝宝成长、恋爱纪念或健身打卡的真实时间戳。',
-      '批量排版引擎： 一键将精心调校的版面逻辑同步至多张照片，让修图变自动化作业。',
-      '沙盒级断网运行环境： 坚持 100% 纯本地运算，让你的私人生活影像在绝对隔离的本地环境中完成升华。',
-        
+      '七重美学分身 / 7 Aesthetic Variations: 一次导入，同步显示 7 种模框效果。 / Import once, preview 7 framing effects instantly.',
+      '快门时间校准 / Time Calibration: 无需翻日历，精准计算并打上真实时间戳。 / Automatically calculate and apply accurate timestamps.',
+      '批量排版引擎 / Batch Layout Engine: 一键将版面逻辑同步至多张照片。 / Sync layout settings to multiple photos with one click.',
+      '沙盒级断网运行 / Offline Environment: 坚持 100% 本地运算，全方位保护隐私。 / 100% local processing to keep your private photos secure.',
     ],
     mediaUrl: [
       '/images/中1.png',
@@ -387,9 +386,6 @@ const PhoneMockup: React.FC<PhoneMockupProps> = ({ mediaUrl, isTransitioning }) 
                 zIndex: index === currentIndex ? 2 : 1,
                 // Image Clarity Optimizations
                 imageRendering: 'high-quality',
-                WebkitFontSmoothing: 'antialiased',
-                transform: 'translateZ(0)',
-                backfaceVisibility: 'hidden',
               }}
             />
           ))}
