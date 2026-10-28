@@ -1,0 +1,1754 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>《三体 II：黑暗森林》共读问答笔记</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #0b0f19;
+      background-image: radial-gradient(#1e293b 1px, transparent 1px);
+      background-size: 24px 24px;
+      color: #f8fafc;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    .glass {
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(12px);
+    }
+    body.is-locked > header,
+    body.is-locked > main {
+      display: none !important;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col overflow-x-hidden is-locked">
+
+  <!-- ==================== 静态口令锁屏遮罩（首次外网访问需输入口令，验证后本机持久免输） ==================== -->
+  <div id="static-lock-screen" class="fixed inset-0 bg-slate-950 z-[100] flex items-center justify-center p-4">
+    <form onsubmit="handleStaticUnlock(event)" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-2xl">
+      <div class="text-center space-y-1.5">
+        <div class="text-2xl">🔒</div>
+        <h1 class="text-base font-bold text-white">私人读书笔记 · 访问验证</h1>
+        <p class="text-xs text-slate-400">请输入专属访问口令（验证一次后本设备自动记住）</p>
+      </div>
+      <input id="static-lock-input" type="password" placeholder="请输入访问口令" autofocus required
+        class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-center text-white focus:outline-none focus:border-amber-500">
+      <p id="static-lock-error" class="hidden text-xs text-rose-400 text-center">口令不正确，请重新输入</p>
+      <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs py-2.5 rounded-xl transition shadow">
+        验证进入
+      </button>
+    </form>
+  </div>
+
+  <script>
+    const PASS_HASH_TARGET = "24zo8m3o1bj";
+    const PASS_STORAGE_KEY = "sike_auth_hash_v1";
+
+    function hashPasscode(str) {
+      const input = "sike_lock_v1:" + String(str || "");
+      let h1 = 0xdeadbeef ^ input.length, h2 = 0x41c6ce57 ^ input.length;
+      for (let i = 0, ch; i < input.length; i++) {
+        ch = input.charCodeAt(i);
+        h1 = Math.imul(h1 ^ ch, 2654435761);
+        h2 = Math.imul(h2 ^ ch, 1597334677);
+      }
+      h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+      h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+      return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+    }
+
+    function unlockPage() {
+      document.body.classList.remove("is-locked");
+      const lockEl = document.getElementById("static-lock-screen");
+      if (lockEl) lockEl.classList.add("hidden");
+    }
+
+    function lockPageAgain() {
+      localStorage.removeItem(PASS_STORAGE_KEY);
+      document.body.classList.add("is-locked");
+      const lockEl = document.getElementById("static-lock-screen");
+      if (lockEl) lockEl.classList.remove("hidden");
+      const inputEl = document.getElementById("static-lock-input");
+      if (inputEl) {
+        inputEl.value = "";
+        inputEl.focus();
+      }
+    }
+
+    function handleStaticUnlock(event) {
+      event.preventDefault();
+      const val = (document.getElementById("static-lock-input")?.value || "").trim();
+      const errEl = document.getElementById("static-lock-error");
+      if (hashPasscode(val) === PASS_HASH_TARGET) {
+        localStorage.setItem(PASS_STORAGE_KEY, PASS_HASH_TARGET);
+        if (errEl) errEl.classList.add("hidden");
+        unlockPage();
+      } else {
+        if (errEl) errEl.classList.remove("hidden");
+      }
+    }
+
+    (function checkInitialLock() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const urlKey = params.get("key");
+        if (urlKey && hashPasscode(urlKey) === PASS_HASH_TARGET) {
+          localStorage.setItem(PASS_STORAGE_KEY, PASS_HASH_TARGET);
+          params.delete("key");
+          const cleanUrl = window.location.pathname + (params.toString() ? "?" + params.toString() : "") + window.location.hash;
+          window.history.replaceState({}, "", cleanUrl);
+          unlockPage();
+          return;
+        }
+        if (localStorage.getItem(PASS_STORAGE_KEY) === PASS_HASH_TARGET) {
+          unlockPage();
+        }
+      } catch (_) {}
+    })();
+  </script>
+
+  <!-- ==================== 顶部极简导航栏 ==================== -->
+  <header class="border-b border-slate-800/80 glass px-4 sm:px-6 py-3 flex items-center justify-between gap-3 sticky top-0 z-30">
+    <div class="flex items-center space-x-2.5 min-w-0">
+      <button onclick="switchToMacro()" class="text-base sm:text-lg font-bold text-white hover:text-amber-400 transition truncate flex items-center gap-2">
+        <span>📖</span>
+        <span class="truncate">《三体 II：黑暗森林》</span>
+      </button>
+      <span class="hidden sm:inline-block text-xs text-slate-400">共读问答笔记</span>
+    </div>
+
+    <div class="flex items-center space-x-2 shrink-0">
+      <button onclick="focusAskInput()" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3.5 py-2 rounded-xl shadow-sm transition flex items-center gap-1">
+        <span>✏️</span>
+        <span>提个问题</span>
+      </button>
+
+      <!-- 顶栏低调 ··· 更多菜单（收纳云端同步、重置与重新上锁） -->
+      <div class="relative" id="header-more-wrap">
+        <button onclick="toggleHeaderMoreMenu(event)" title="更多设置" class="text-xs px-2.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 transition font-bold">
+          ···
+        </button>
+        <div id="header-more-menu" class="hidden absolute right-0 mt-2 w-48 bg-slate-900 border border-slate-700/90 rounded-xl shadow-2xl py-1.5 z-50 text-xs">
+          <button onclick="openSyncModal(); hideHeaderMoreMenu();" class="w-full px-3.5 py-2 text-left text-slate-200 hover:bg-slate-800 flex items-center justify-between">
+            <span>☁️ 云端同步与备份</span>
+            <span class="flex items-center gap-1 text-[11px] text-emerald-400">
+              <span id="cloud-status-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>
+              <span id="cloud-status-text">已连</span>
+            </span>
+          </button>
+          <button onclick="lockPageAgain(); hideHeaderMoreMenu();" class="w-full px-3.5 py-2 text-left text-slate-300 hover:bg-slate-800 flex items-center gap-1.5">
+            <span>🔒 锁定当前设备访问</span>
+          </button>
+          <div class="border-t border-slate-800 my-1"></div>
+          <button onclick="resetDemoData(); hideHeaderMoreMenu();" class="w-full px-3.5 py-2 text-left text-rose-400 hover:bg-slate-800 flex items-center gap-1.5">
+            <span>↺ 重置初始演示数据</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== 页面一：书籍主页（搜问合一 + 章节筛选 + 极简问题卡片流） ==================== -->
+  <main id="macro-view" class="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-6 space-y-5">
+
+    <!-- 1. 搜问合一主输入框 -->
+    <section class="space-y-2.5">
+      <div class="relative flex items-center">
+        <span class="absolute left-4 text-slate-400 text-base pointer-events-none">🔍</span>
+        <input id="unified-search-input" type="text"
+          oninput="handleSearchOrAskInput(this.value)"
+          onkeydown="handleSearchInputKeydown(event)"
+          placeholder="搜索书里的疑问、人物，或直接输入你的问题..."
+          class="w-full bg-slate-900/95 border border-slate-700/90 focus:border-amber-500 rounded-2xl pl-11 pr-20 py-3.5 text-sm sm:text-base text-white placeholder-slate-400 shadow-lg focus:outline-none transition">
+        <button id="clear-search-btn" onclick="clearSearchAndAsk()" class="hidden absolute right-3 text-xs px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
+          清空
+        </button>
+      </div>
+
+      <!-- 一键转提问轻巧操作条（输入框有字或点“提个问题”时浮现） -->
+      <div id="quick-ask-bar" class="hidden bg-slate-900/95 border border-amber-500/40 rounded-2xl p-3.5 shadow-xl space-y-3 transition">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="text-xs sm:text-sm text-slate-200 leading-relaxed">
+            💬 没找到满意的解释？直接把 <span id="quick-ask-preview" class="font-bold text-amber-400"></span> 发出来问大家
+          </div>
+          <div class="flex items-center gap-2 ml-auto">
+            <button type="button" onclick="toggleQuickAskExtras()" id="quick-ask-extras-btn" class="text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+              + 选章节/贴原文
+            </button>
+            <button type="button" onclick="submitQuickAsk()" class="text-xs px-4 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold shadow transition">
+              立即提问 ↵
+            </button>
+          </div>
+        </div>
+
+        <!-- 选填折叠项：选择章节 & 粘贴原书句子 -->
+        <div id="quick-ask-extras" class="hidden pt-2.5 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <div>
+            <label class="text-[11px] text-slate-400 block mb-1">所在章节（选填）：</label>
+            <select id="ask-chapter" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
+              <option value="unlocated">暂不选章节（未归类）</option>
+              <option value="ch1">第 1 章 · 序幕与科学边界</option>
+              <option value="ch2">第 2 章 · 面壁计划启动</option>
+              <option value="ch3">第 3 章 · 咒语与末日之战</option>
+              <option value="ch4">第 4 章 · 黑暗森林与雪地威慑</option>
+            </select>
+          </div>
+          <div class="sm:col-span-2">
+            <label class="text-[11px] text-slate-400 block mb-1">附带原书句子（选填，150字内）：</label>
+            <input id="ask-quote" type="text" maxlength="150" placeholder="粘贴让你犯迷糊的那句原话..."
+              class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. 章节横滑胶囊栏 -->
+    <nav id="chapter-pills" class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar"></nav>
+
+    <!-- 3. 极简问题卡片流 -->
+    <section id="question-feed" class="space-y-3.5"></section>
+
+  </main>
+
+  <!-- ==================== 页面二：问题详情页（中心带分支卡片树 + 原地展开 + 原地回答） ==================== -->
+  <main id="micro-view" class="hidden flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
+
+    <!-- 详情页顶部操作条 -->
+    <div class="flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <button onclick="switchToMacro()" class="text-xs bg-slate-900 hover:bg-slate-800 text-slate-200 px-3.5 py-2 rounded-xl border border-slate-700/80 transition font-semibold flex items-center gap-1">
+          <span>←</span>
+          <span>返回列表</span>
+        </button>
+        <button id="back-prev-node-btn" onclick="goBackPrevNode()" class="hidden text-xs bg-indigo-950/60 hover:bg-indigo-900/70 text-indigo-300 px-3 py-2 rounded-xl border border-indigo-500/40 transition font-semibold flex items-center gap-1">
+          <span>↩</span>
+          <span>返回上一题</span>
+        </button>
+      </div>
+
+      <button onclick="scrollToAnswerBox()" class="text-xs bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1">
+        <span>✏️</span>
+        <span>我来回答</span>
+      </button>
+    </div>
+
+    <!-- 1. 顶部/中心：核心问题卡片 -->
+    <div id="center-node" class="bg-slate-900/95 border border-slate-700/90 rounded-2xl p-5 sm:p-6 shadow-xl"></div>
+
+    <!-- 2. 自然向下生长的已点亮分类框（无回答的分类自动隐形） -->
+    <div id="detail-branches-wrap" class="space-y-4">
+      <div id="detail-branches-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start"></div>
+    </div>
+
+    <!-- 3. 🔗 顺藤摸瓜（关联问题传送门卡片：含串联解说词 + 跳转链接） -->
+    <section id="detail-related-section" class="hidden space-y-2.5 pt-2">
+      <div class="text-xs font-bold text-indigo-300 flex items-center gap-1.5">
+        <span>🔗 顺藤摸瓜（前后关联的问题）</span>
+      </div>
+      <div id="detail-related-list" class="grid grid-cols-1 gap-3"></div>
+    </section>
+
+    <!-- 4. 底部原地回答区（告别弹窗，默认选中「💬 说人话」） -->
+    <section id="inline-answer-section" class="bg-slate-900/95 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-3.5">
+      <!-- 温和浅灰灵感提示（解决 0 回答或少回答空白冷场） -->
+      <div id="answer-inspiration-tip" class="text-xs text-slate-400 leading-relaxed bg-slate-950/60 border border-slate-800/80 rounded-xl px-3.5 py-2.5">
+        💡 试试这样帮大家理清：用大白话翻译 · 补齐隐藏背景 · 拿生活常识打比方 · 串联前后伏笔
+      </div>
+
+      <!-- 分类胶囊单选（默认选中 d1 💬 说人话） -->
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div class="flex flex-wrap items-center gap-1.5" id="answer-dim-pills"></div>
+        <span id="char-count" class="text-xs text-slate-500">0 / 150 字</span>
+      </div>
+
+      <!-- 仅当选中「🪜 打比方」时才顺手展示的生活标签选择 -->
+      <div id="answer-metaphor-tags-wrap" class="hidden flex items-center flex-wrap gap-1.5 pt-0.5">
+        <span class="text-[11px] text-slate-400 mr-1">打比方场景（可选）：</span>
+        <div id="tag-selector" class="flex flex-wrap gap-1.5"></div>
+      </div>
+
+      <!-- 仅当选中「🔗 串前后」时展示的关联问题选择 -->
+      <div id="link-selector-wrap" class="hidden space-y-1">
+        <label class="text-xs text-indigo-300 font-medium">🔗 关联书里的另一个问题（选填，方便读者顺藤摸瓜）：</label>
+        <select id="link-node-select" class="w-full bg-slate-950 border border-indigo-500/40 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-400"></select>
+      </div>
+
+      <!-- 原地回答输入框 -->
+      <textarea id="note-input" rows="3" maxlength="150" oninput="updateCharCount()"
+        placeholder="写下你的理解，150字内..."
+        class="w-full bg-slate-950 border border-slate-700/90 rounded-xl p-3.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 transition"></textarea>
+
+      <div class="flex items-center justify-between gap-2">
+        <input id="author-input" type="text" placeholder="你的署名（选填，如：野生读者）"
+          class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 w-48 sm:w-56 focus:outline-none focus:border-amber-500">
+        <button onclick="submitNote()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-5 py-2.5 rounded-xl shadow transition">
+          发送回答
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== 跨设备云端同步与数据备份弹窗（从顶栏 ··· 唤起） ==================== -->
+  <div id="sync-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <div>
+          <h3 class="text-base font-bold text-white">☁️ 跨设备云端实时同步</h3>
+          <p class="text-xs text-slate-400 mt-0.5">手机在外网新增的问答，回家在电脑打开自动互通</p>
+        </div>
+        <button onclick="closeSyncModal()" class="text-slate-400 hover:text-white text-2xl leading-none">&times;</button>
+      </div>
+
+      <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3.5 space-y-2">
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-slate-400">当前同步状态：</span>
+          <span id="sync-modal-status" class="font-bold text-emerald-400">☁️ 已连接默认云端空间</span>
+        </div>
+        <div class="flex gap-2 pt-1">
+          <button onclick="pullFromCloud(true)" class="flex-1 text-xs py-2 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 font-semibold transition">
+            🔄 立即从云端拉取
+          </button>
+          <button onclick="pushToCloud(true)" class="flex-1 text-xs py-2 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 font-semibold transition">
+            ☁️ 推送本机到云端
+          </button>
+        </div>
+      </div>
+
+      <div class="space-y-1.5">
+        <label class="text-xs text-slate-300 font-semibold block">🔑 云端同步房间 ID（多台设备填同一个 ID 即可共享）：</label>
+        <div class="flex gap-2">
+          <input id="sync-room-input" type="text" placeholder="输入同步房间 ID"
+            class="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200 font-mono focus:outline-none focus:border-amber-500">
+          <button onclick="saveSyncRoomId()" class="text-xs px-3.5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold transition shrink-0">
+            切换/保存
+          </button>
+        </div>
+        <div class="flex items-center justify-between pt-1">
+          <span class="text-[11px] text-slate-500">已内置你的专属同步 ID，开箱即用无需额外配置</span>
+          <button onclick="createNewSyncRoom()" class="text-[11px] text-indigo-400 hover:text-indigo-300 underline">
+            + 新建独立云端房间
+          </button>
+        </div>
+      </div>
+
+      <div class="border-t border-slate-800 pt-3 flex items-center justify-between gap-2">
+        <span class="text-xs text-slate-400">📦 本地文件兜底备份：</span>
+        <div class="flex gap-2">
+          <button onclick="exportJsonData()" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+            📥 导出 JSON
+          </button>
+          <label class="cursor-pointer text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+            📤 导入 JSON
+            <input type="file" accept=".json" onchange="importJsonData(event)" class="hidden">
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const CHAPTERS = [
+      { id: "ch1", shortName: "第1章", name: "第 1 章 · 序幕与科学边界", pos: "约全书 8%" },
+      { id: "ch2", shortName: "第2章", name: "第 2 章 · 面壁计划启动", pos: "约全书 32%" },
+      { id: "ch3", shortName: "第3章", name: "第 3 章 · 咒语与末日之战", pos: "约全书 65%" },
+      { id: "ch4", shortName: "第4章", name: "第 4 章 · 黑暗森林与雪地威慑", pos: "约全书 92%" }
+    ];
+
+    const PERSPECTIVE_TAGS = [
+      "🍳 做饭/生活", "🎮 游戏/娱乐", "💼 职场/商业", "💻 编程/科技", "🔬 科学/考据", "🎨 脑洞/直觉"
+    ];
+
+    // 大白话四分类（彻底去除自造黑话）
+    const DIMENSIONS = {
+      d1: {
+        short: "💬 说人话",
+        bestLabel: "💬 最佳解释",
+        addLabel: "+ 我也用大白话讲讲",
+        title: "💬 说人话",
+        prompt: "用大白话直接说明白这段到底在讲什么..."
+      },
+      d2: {
+        short: "🔦 补背景",
+        bestLabel: "🔦 最佳背景补充",
+        addLabel: "+ 我也补个背景",
+        title: "🔦 补背景",
+        prompt: "补齐作者默认你知道但没明说的科学前提、历史典故或人物动机..."
+      },
+      d3: {
+        short: "🪜 打比方",
+        bestLabel: "💡 最佳打比方",
+        addLabel: "+ 我也打个比方",
+        title: "🪜 打比方",
+        prompt: "用做饭、打游戏、职场等日常生活常识打个比方，让人一秒听懂..."
+      },
+      d4: {
+        short: "🔗 串前后",
+        bestLabel: "🔗 最佳前后关联",
+        addLabel: "+ 我来串个前后伏笔",
+        title: "🔗 串前后",
+        prompt: "写下这里填了前面哪里的坑，或者和后面哪个情节互相呼应..."
+      }
+    };
+
+    // 初始演示数据
+    const defaultData = [
+      {
+        id: "node-blind-1",
+        chapterId: "unlocated",
+        quote: "",
+        confusion: "三体人既然能造出锁死地球科学的智子，为什么不直接用智子暗杀罗辑，还要大费周章派水滴和ETO去杀他？",
+        sameAskCount: 312,
+        branches: {
+          d1: [
+            { id: 901, author: "微观物理课代表", coAuthors: [], tag: "🔬 科学/考据", text: "智子本质上只是两颗被二维展开后刻了电路的「质子」。它的质量只有10的负27次方克，撞在人身上连灰尘都不如，只能挡挡对撞机里的粒子或往视网膜投个影，根本没有宏观物理杀伤力。", votes: 142, downvotes: 0 }
+          ],
+          d2: [],
+          d3: [
+            { id: 902, author: "数码发烧友", coAuthors: [], tag: "💻 编程/科技", text: "智子就像一只自带4K激光投影仪的纳米蚊子——它能在你眼前晃出恐怖片字幕把你逼疯，但你让它去搬一块砖头砸死人，它根本使不上劲。", votes: 89, downvotes: 0 }
+          ],
+          d4: []
+        }
+      },
+      {
+        id: "node-blind-2",
+        chapterId: "unlocated",
+        quote: "",
+        confusion: "章北海明明是个坚定的胜利主义军人，为什么他一到太空就毫不犹豫开枪把老航天员全暗杀了？",
+        sameAskCount: 164,
+        branches: {
+          d1: [],
+          d2: [
+            { id: 903, author: "星舰史官", coAuthors: [], tag: "💼 职场/商业", text: "老航天派坚持研发「工质飞船（化学燃料）」，而星际逃亡必须用「无工质辐射驱动飞船」。不杀掉那几位泰斗，人类飞船永远飞不出太阳系，章北海是用恶魔手段为人类保住火种。", votes: 76, downvotes: 0 }
+          ],
+          d3: [],
+          d4: []
+        }
+      },
+      {
+        id: "node-ch1-1",
+        chapterId: "ch1",
+        quote: "一只褐蚁在墓碑上攀爬，搜寻着地面上的食物残渣，它对旁边刚刚发生的改变宇宙命运的对话一无所知。",
+        confusion: "开篇花了整整好几页写一只蚂蚁在墓碑上爬，这段描写跟主线有什么关系？",
+        sameAskCount: 128,
+        branches: {
+          d1: [],
+          d2: [
+            { id: 111, author: "文学拉片员", coAuthors: [], tag: "🎨 脑洞/直觉", text: "褐蚁在墓碑笔画的沟壑里爬行，只能看到眼前的局部线条，看不见整个墓志铭的文字——隐喻人类在更高维的宇宙规律面前，就像这只蚂蚁一样盲目。", votes: 63, downvotes: 0 }
+          ],
+          d3: [],
+          d4: [
+            { id: 112, author: "草蛇灰线控", coAuthors: [], tag: "🔬 科学/考据", text: "极致的对称闭环！全书第一页是叶文洁与罗辑在墓地旁对话，褐蚁在爬；全书最后一页是罗辑在同一个墓地用摇篮威慑三体，低头又看到了褐蚁。", votes: 91, downvotes: 0, linkTo: "node-ch4-2" }
+          ]
+        }
+      },
+      {
+        id: "node-ch2-1",
+        chapterId: "ch2",
+        quote: "面壁计划的核心在于：三体人虽然能通过智子监控人类的一切语言、文字和电脑数据，但唯独看不透人类的思维本身。",
+        confusion: "既然面壁者不能把真实计划写下来、也不能跟任何人说，那他怎么指挥下属去干活？下属岂不是全被蒙在鼓里？",
+        sameAskCount: 195,
+        branches: {
+          d1: [
+            { id: 211, author: "博弈论玩家", coAuthors: [], tag: "💼 职场/商业", text: "面壁者下达的每一个指令都是「真假掺半」的。比如表面上让下属造核弹去炸木星，实际上真正的战略意图藏在造核弹顺带研发的某种材料里。", votes: 54, downvotes: 0 }
+          ],
+          d2: [],
+          d3: [
+            { id: 212, author: "古装剧十级学者", coAuthors: [], tag: "🎮 游戏/娱乐", text: "就像诸葛亮让士兵每天去山上砍竹子扎稻草人，士兵和奸细都以为丞相疯了，直到大雾天把草船开到曹营借箭，大家才明白当初扎草人是干嘛的。", votes: 112, downvotes: 0 }
+          ],
+          d4: []
+        }
+      },
+      {
+        id: "node-ch3-1",
+        chapterId: "ch3",
+        quote: "水滴在三分钟内贯穿了联合舰队的一百艘恒星级战舰，它甚至没有发射任何能量武器，仅仅依靠最原始的撞击。",
+        confusion: "人类的恒星级战舰都能飞出15%光速了，为什么连一颗几米长的实心铁疙瘩都打不穿，反而像纸糊的一样被撞碎？",
+        sameAskCount: 276,
+        branches: {
+          d1: [],
+          d2: [
+            { id: 311, author: "材料学博士生", coAuthors: [], tag: "🔬 科学/考据", text: "人类战舰的装甲是由普通金属原子靠「电磁力」结合的；而水滴表面被力场锁死，原子间靠「强相互作用力」紧紧钉死，强度比太阳系任何物质高出一百倍，温度处于绝对零度。", votes: 134, downvotes: 0 }
+          ],
+          d3: [
+            { id: 312, author: "厨房破坏王", coAuthors: [], tag: "🍳 做饭/生活", text: "人类的战舰相当于是用「米饭粒」粘起来的航母模型，虽然看着巨大威猛；但水滴是一颗烧红的「实心钢珠」——钢珠穿米饭团，来一万个也是瞬间打穿。", votes: 188, downvotes: 0 }
+          ],
+          d4: []
+        }
+      },
+      {
+        id: "node-ch4-1",
+        chapterId: "ch4",
+        quote: "即使两个文明都是善意的，只要没有交流，猜疑链就会无限延伸，最终导致黑暗森林打击。",
+        confusion: "既然两个外星文明都是善良的，为什么见面不能先打个招呼试探一下，非要直接开枪毁灭对方？",
+        sameAskCount: 420,
+        branches: {
+          d1: [
+            { id: 401, author: "逻辑课代表", coAuthors: [], tag: "🔬 科学/考据", text: "哪怕我知道你是好人，你也知道我是好人，但我不知道「你相不相信我是好人」。为了防止你因为害怕我而先开枪，我只能抢先开枪。", votes: 82, downvotes: 0 },
+            { id: 402, author: "太空水手", coAuthors: [], tag: "💼 职场/商业", text: "善良在生存面前不值一提，猜疑链的本质是「信息不透明导致的博弈死局」，跟文明本身的道德水平毫无关系。", votes: 61, downvotes: 0 },
+            { id: 499, author: "鸡汤大师", coAuthors: [], tag: "🎨 脑洞/直觉", text: "太深刻了！人生也是这样，人与人之间总是充满猜忌，我们要多一点真诚少一点套路！打卡！", votes: 1, downvotes: 3 }
+          ],
+          d2: [
+            { id: 403, author: "天体物理民工", coAuthors: [], tag: "🔬 科学/考据", text: "作者隐去了两个地球上没有的致命前提：1.宇宙通讯动辄耗时几百年；2.等你的「你好」传过去，对方可能已经发生「技术爆炸」造出灭世武器了。", votes: 115, downvotes: 0 }
+          ],
+          d3: [
+            { id: 404, author: "吃鸡老玩家", coAuthors: ["战术大师"], tag: "🎮 游戏/娱乐", text: "就像决赛圈两个穿吉利服的人突然脸贴脸撞上，耳机还坏了没法开麦。哪怕你俩平时都是大善人，第一反应绝对是按死左键扫射，因为赌不起对方不开枪。", votes: 210, downvotes: 1 }
+          ],
+          d4: [
+            { id: 405, author: "面壁者罗辑", coAuthors: [], tag: "🔬 科学/考据", text: "这是全书最核心的底座！想通了「不是因为坏，而是因为怕」，就能看懂大结局里罗辑为什么能靠自杀式广播逼退三体舰队。", votes: 94, downvotes: 0, linkTo: "node-ch4-2" }
+          ]
+        }
+      },
+      {
+        id: "node-ch4-2",
+        chapterId: "ch4",
+        quote: "罗辑举起手枪对准自己的心脏：如果我死，摇篮系统就会向宇宙广播三体星系的坐标。",
+        confusion: "罗辑明明只有孤身一人，为什么三体人造出能摧毁千艘战舰的水滴，却被他一把老式手枪吓退了？",
+        sameAskCount: 289,
+        branches: {
+          d1: [
+            { id: 421, author: "逻辑观察员", coAuthors: [], tag: "🔬 科学/考据", text: "罗辑把自己的心跳绑在了「同归于尽发射器」上。三体人杀他很容易，但杀他的瞬间三体老家也会暴露并被宇宙第三方神级文明顺手碾碎。", votes: 73, downvotes: 0 }
+          ],
+          d2: [],
+          d3: [
+            { id: 422, author: "房东老王", coAuthors: [], tag: "🍳 做饭/生活", text: "恶霸拿着大砍刀闯进你家，打架你肯定秒躺，但你手里捏着打火机坐在煤气罐上——恶霸再猛也得跪下听你谈条件。", votes: 156, downvotes: 0 }
+          ],
+          d4: [
+            { id: 423, author: "执剑人观察员", coAuthors: [], tag: "🔬 科学/考据", text: "不仅实战应用了「猜疑链」，还首尾呼应了全书开篇第1章叶文洁在墓地给罗辑的启示！", votes: 68, downvotes: 0, linkTo: "node-ch4-1" }
+          ]
+        }
+      },
+      {
+        id: "node-ch4-3",
+        chapterId: "ch4",
+        quote: "黑暗战役爆发：星舰地球的战舰为了夺取其它战舰的核聚变燃料和零件，向昔日的战友发射了次声波氢弹。",
+        confusion: "为什么逃亡的太空军不等到燃料耗尽再想办法，刚脱离太阳系没多久就立刻互相残杀？",
+        sameAskCount: 150,
+        branches: {
+          d1: [],
+          d2: [],
+          d3: [
+            { id: 431, author: "荒岛求生狂", coAuthors: [], tag: "🍳 做饭/生活", text: "五个人困在救生艇上，剩下的淡水只够一个人活命。谁都知道迟早要动手，如果等大家都渴得没力气再抢就晚了，所以第一天晚上就会爆发流血冲突。", votes: 84, downvotes: 0 }
+          ],
+          d4: []
+        }
+      }
+    ];
+
+    const DEFAULT_CLOUD_ROOM_ID = "ff808181a09d98f701a16b4c481373c3";
+    const CLOUD_API_BASE = "https://api.restful-api.dev/objects";
+    let cloudRoomId = localStorage.getItem("bookgraph_cloud_room_id") || DEFAULT_CLOUD_ROOM_ID;
+    let lastLocalUpdateAt = Number(localStorage.getItem("bookgraph_updated_at") || 0);
+
+    let appData = JSON.parse(localStorage.getItem("bookgraph_v1_0")) || JSON.parse(JSON.stringify(defaultData));
+    let currentNodeId = "node-ch4-1";
+
+    // 页面一（搜问合一 & 章节胶囊筛选）状态
+    let searchQuery = "";
+    let selectedChapterFilter = "all";
+
+    // 页面二（原地展开 & 原地回答 & 历史返回栈）状态
+    let selectedAnswerDim = "d1"; // 默认替用户选中「💬 说人话」
+    let selectedSubmitTag = PERSPECTIVE_TAGS[0];
+    let expandedBranches = {}; // { "nodeId_dimKey": true }
+    let nodeHistoryStack = []; // 顺藤摸瓜连续跳转返回栈
+
+    // 本地已同问 / 已赞同即时状态（支持点击高亮 +1，再次点击取消）
+    let likedQuestions = JSON.parse(localStorage.getItem("bookgraph_liked_questions") || "{}");
+    let likedNotes = JSON.parse(localStorage.getItem("bookgraph_liked_notes") || "{}");
+
+    function saveData() {
+      lastLocalUpdateAt = Date.now();
+      localStorage.setItem("bookgraph_v1_0", JSON.stringify(appData));
+      localStorage.setItem("bookgraph_updated_at", String(lastLocalUpdateAt));
+      pushToCloud(false);
+    }
+
+    function saveLikesState() {
+      localStorage.setItem("bookgraph_liked_questions", JSON.stringify(likedQuestions));
+      localStorage.setItem("bookgraph_liked_notes", JSON.stringify(likedNotes));
+    }
+
+    function isQuestionLiked(nodeId) {
+      return Boolean(likedQuestions[nodeId]);
+    }
+
+    function isNoteLiked(noteId) {
+      return Boolean(likedNotes[noteId]);
+    }
+
+    function getNodeById(id) {
+      return appData.find(n => n.id === id);
+    }
+
+    function getNetScore(note) {
+      return (note.votes || 0) - (note.downvotes || 0);
+    }
+
+    function isFolded(note) {
+      return getNetScore(note) <= -3;
+    }
+
+    function getActiveNotes(node, dimKey) {
+      return (node.branches[dimKey] || [])
+        .filter(n => !isFolded(n))
+        .sort((a, b) => getNetScore(b) - getNetScore(a));
+    }
+
+    function formatAuthor(note) {
+      if (note.coAuthors && note.coAuthors.length > 0) {
+        return `@${note.author} & @${note.coAuthors.join(", @")} 共创`;
+      }
+      return `@${note.author}`;
+    }
+
+    function getChapterMeta(chapterId) {
+      return CHAPTERS.find(c => c.id === chapterId) || { id: "unlocated", shortName: "", name: "未归类章节", pos: "" };
+    }
+
+    // 获取某个问题获赞最高的一条回答作为列表卡片预览
+    function getBestPreviewNote(node) {
+      let all = [];
+      Object.keys(DIMENSIONS).forEach(k => {
+        getActiveNotes(node, k).forEach(n => all.push({
+          ...n,
+          dimKey: k,
+          dimShort: DIMENSIONS[k].short,
+          bestLabel: DIMENSIONS[k].bestLabel
+        }));
+      });
+      all.sort((a, b) => getNetScore(b) - getNetScore(a));
+      return all[0] || null;
+    }
+
+    // 顶栏 ··· 菜单控制
+    function toggleHeaderMoreMenu(event) {
+      if (event) event.stopPropagation();
+      const menu = document.getElementById("header-more-menu");
+      if (menu) menu.classList.toggle("hidden");
+    }
+
+    function hideHeaderMoreMenu() {
+      const menu = document.getElementById("header-more-menu");
+      if (menu) menu.classList.add("hidden");
+    }
+
+    document.addEventListener("click", () => {
+      hideHeaderMoreMenu();
+      document.querySelectorAll(".card-more-menu").forEach(el => el.classList.add("hidden"));
+    });
+
+    // ==================== 视图切换：列表页 vs 问题详情页（含浏览器历史与返回上一题） ====================
+    function switchToMacro(pushState = true) {
+      document.getElementById("macro-view").classList.remove("hidden");
+      document.getElementById("micro-view").classList.add("hidden");
+      nodeHistoryStack = [];
+      if (pushState && history.state?.view === "micro") {
+        history.pushState({ view: "macro" }, "");
+      }
+      renderMacroView();
+    }
+
+    function openMicroNode(nodeId, fromRelated = false, pushState = true) {
+      if (fromRelated && currentNodeId && currentNodeId !== nodeId) {
+        nodeHistoryStack.push(currentNodeId);
+      } else if (!fromRelated) {
+        nodeHistoryStack = [];
+      }
+      currentNodeId = nodeId;
+      selectedAnswerDim = "d1"; // 每次进详情页默认选中「💬 说人话」
+      document.getElementById("macro-view").classList.add("hidden");
+      document.getElementById("micro-view").classList.remove("hidden");
+
+      const backPrevBtn = document.getElementById("back-prev-node-btn");
+      if (backPrevBtn) {
+        backPrevBtn.classList.toggle("hidden", nodeHistoryStack.length === 0);
+      }
+
+      if (pushState) {
+        history.pushState({ view: "micro", nodeId, stack: [...nodeHistoryStack] }, "");
+      }
+      renderMicroView();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function goBackPrevNode() {
+      if (nodeHistoryStack.length === 0) {
+        switchToMacro();
+        return;
+      }
+      const prevNodeId = nodeHistoryStack.pop();
+      currentNodeId = prevNodeId;
+      const backPrevBtn = document.getElementById("back-prev-node-btn");
+      if (backPrevBtn) {
+        backPrevBtn.classList.toggle("hidden", nodeHistoryStack.length === 0);
+      }
+      renderMicroView();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    window.addEventListener("popstate", (event) => {
+      const state = event.state;
+      if (state && state.view === "micro" && state.nodeId && getNodeById(state.nodeId)) {
+        nodeHistoryStack = Array.isArray(state.stack) ? state.stack : [];
+        openMicroNode(state.nodeId, false, false);
+        const backPrevBtn = document.getElementById("back-prev-node-btn");
+        if (backPrevBtn) backPrevBtn.classList.toggle("hidden", nodeHistoryStack.length === 0);
+      } else {
+        switchToMacro(false);
+      }
+    });
+
+    // ==================== 页面一：书籍主页（搜问合一 + 章节筛选 + 极简问题卡片流） ====================
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function highlightSearch(text, query) {
+      const safe = escapeHtml(text);
+      if (!query) return safe;
+      const escapedQ = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      return safe.replace(new RegExp(`(${escapedQ})`, "gi"), `<mark class="bg-amber-500/30 text-amber-200 px-0.5 rounded">$1</mark>`);
+    }
+
+    function handleSearchOrAskInput(val) {
+      searchQuery = (val || "").trim();
+      const clearBtn = document.getElementById("clear-search-btn");
+      const quickAskBar = document.getElementById("quick-ask-bar");
+      const previewEl = document.getElementById("quick-ask-preview");
+
+      if (clearBtn) clearBtn.classList.toggle("hidden", !val);
+
+      if (searchQuery.length > 0) {
+        if (quickAskBar) quickAskBar.classList.remove("hidden");
+        if (previewEl) previewEl.innerText = `「${searchQuery.slice(0, 36)}${searchQuery.length > 36 ? "..." : ""}」`;
+      } else {
+        if (quickAskBar) quickAskBar.classList.add("hidden");
+      }
+
+      renderMacroView();
+    }
+
+    function handleSearchInputKeydown(event) {
+      if (event.key === "Enter" && !event.isComposing) {
+        const val = document.getElementById("unified-search-input")?.value.trim();
+        if (val) {
+          event.preventDefault();
+          submitQuickAsk();
+        }
+      }
+    }
+
+    function clearSearchAndAsk() {
+      const input = document.getElementById("unified-search-input");
+      if (input) input.value = "";
+      searchQuery = "";
+      document.getElementById("clear-search-btn")?.classList.add("hidden");
+      document.getElementById("quick-ask-bar")?.classList.add("hidden");
+      document.getElementById("quick-ask-extras")?.classList.add("hidden");
+      renderMacroView();
+    }
+
+    function focusAskInput() {
+      if (document.getElementById("macro-view").classList.contains("hidden")) {
+        switchToMacro();
+      }
+      const input = document.getElementById("unified-search-input");
+      const quickAskBar = document.getElementById("quick-ask-bar");
+      const previewEl = document.getElementById("quick-ask-preview");
+      if (input) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        input.focus();
+        if (!input.value.trim()) {
+          if (quickAskBar) quickAskBar.classList.remove("hidden");
+          if (previewEl) previewEl.innerText = "「你在上方输入的疑问」";
+        }
+      }
+    }
+
+    function toggleQuickAskExtras() {
+      const extras = document.getElementById("quick-ask-extras");
+      if (!extras) return;
+      const isHidden = extras.classList.contains("hidden");
+      if (isHidden) {
+        const askChSelect = document.getElementById("ask-chapter");
+        if (askChSelect && selectedChapterFilter !== "all") {
+          askChSelect.value = selectedChapterFilter;
+        }
+        extras.classList.remove("hidden");
+      } else {
+        extras.classList.add("hidden");
+      }
+    }
+
+    function submitQuickAsk() {
+      const input = document.getElementById("unified-search-input");
+      const confusion = (input?.value || "").trim();
+      if (!confusion) {
+        input?.focus();
+        return;
+      }
+
+      const extrasOpen = !document.getElementById("quick-ask-extras")?.classList.contains("hidden");
+      let chapterId = "unlocated";
+      if (extrasOpen) {
+        chapterId = document.getElementById("ask-chapter")?.value || "unlocated";
+      } else if (selectedChapterFilter !== "all") {
+        chapterId = selectedChapterFilter;
+      }
+      const quote = extrasOpen ? (document.getElementById("ask-quote")?.value || "").trim() : "";
+
+      const newNode = {
+        id: "node-" + Date.now(),
+        chapterId,
+        quote,
+        confusion,
+        sameAskCount: 1,
+        branches: { d1: [], d2: [], d3: [], d4: [] }
+      };
+
+      appData.unshift(newNode);
+      likedQuestions[newNode.id] = true;
+      saveLikesState();
+      saveData();
+
+      // 重置搜索与提问栏并直接进入新问题详情页
+      if (input) input.value = "";
+      if (document.getElementById("ask-quote")) document.getElementById("ask-quote").value = "";
+      searchQuery = "";
+      document.getElementById("clear-search-btn")?.classList.add("hidden");
+      document.getElementById("quick-ask-bar")?.classList.add("hidden");
+      document.getElementById("quick-ask-extras")?.classList.add("hidden");
+
+      openMicroNode(newNode.id);
+    }
+
+    function setChapterFilter(filterId) {
+      selectedChapterFilter = filterId;
+      renderMacroView();
+    }
+
+    function nodeMatchesSearch(node, q) {
+      if (!q) return true;
+      const lower = q.toLowerCase();
+      if ((node.confusion || "").toLowerCase().includes(lower)) return true;
+      if ((node.quote || "").toLowerCase().includes(lower)) return true;
+      for (const dimKey of Object.keys(DIMENSIONS)) {
+        const notes = getActiveNotes(node, dimKey);
+        if (notes.some(n => (n.text || "").toLowerCase().includes(lower) || (n.author || "").toLowerCase().includes(lower))) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function toggleCardMoreMenu(menuId, event) {
+      if (event) event.stopPropagation();
+      const target = document.getElementById(menuId);
+      document.querySelectorAll(".card-more-menu").forEach(el => {
+        if (el.id !== menuId) el.classList.add("hidden");
+      });
+      if (target) target.classList.toggle("hidden");
+    }
+
+    function renderMacroView() {
+      // 1. 渲染章节横滑胶囊栏
+      const pills = [
+        { id: "all", label: "全部" },
+        ...CHAPTERS.map(c => ({ id: c.id, label: c.shortName })),
+        { id: "unlocated", label: "未归类" }
+      ];
+
+      const pillsContainer = document.getElementById("chapter-pills");
+      if (pillsContainer) {
+        pillsContainer.innerHTML = `
+          <span class="text-xs text-slate-500 shrink-0 mr-1">章节筛选：</span>
+          ${pills.map(p => {
+            const active = selectedChapterFilter === p.id;
+            return `
+              <button onclick="setChapterFilter('${p.id}')"
+                class="text-xs px-3 py-1.5 rounded-full border shrink-0 transition ${active
+                  ? 'bg-amber-500 text-slate-950 font-bold border-amber-400 shadow-sm'
+                  : 'bg-slate-900/90 text-slate-300 border-slate-800 hover:border-slate-600 hover:text-white'}">
+                ${p.label}
+              </button>
+            `;
+          }).join('')}
+        `;
+      }
+
+      // 2. 筛选并排序问题列表
+      const filteredNodes = appData
+        .filter(node => {
+          if (selectedChapterFilter !== "all" && node.chapterId !== selectedChapterFilter) return false;
+          return nodeMatchesSearch(node, searchQuery);
+        })
+        .sort((a, b) => b.sameAskCount - a.sameAskCount);
+
+      const feedContainer = document.getElementById("question-feed");
+      if (!feedContainer) return;
+
+      if (filteredNodes.length === 0) {
+        feedContainer.innerHTML = `
+          <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-8 text-center space-y-3">
+            <div class="text-sm text-slate-300 font-medium">
+              ${searchQuery ? `没有找到包含「${escapeHtml(searchQuery)}」的已有问题` : '该章节下暂时还没有问题'}
+            </div>
+            ${searchQuery ? `
+              <button onclick="submitQuickAsk()" class="text-xs px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold transition shadow">
+                💬 直接把「${escapeHtml(searchQuery.slice(0, 24))}」作为新问题发出 →
+              </button>
+            ` : ''}
+          </div>
+        `;
+        return;
+      }
+
+      // 3. 渲染极简问题卡片流（每张卡片仅展示：1.疑问标题 2.最高赞回答预览 3.同问按钮与低调···菜单）
+      feedContainer.innerHTML = filteredNodes.map(node => {
+        const best = getBestPreviewNote(node);
+        const ch = getChapterMeta(node.chapterId);
+        const hasChapter = node.chapterId && node.chapterId !== "unlocated" && ch.shortName;
+        const liked = isQuestionLiked(node.id);
+        const menuId = `q-more-${node.id}`;
+
+        return `
+          <article onclick="openMicroNode('${node.id}')"
+            class="cursor-pointer bg-slate-900/90 hover:bg-slate-900 border border-slate-800/90 hover:border-slate-600 rounded-2xl p-5 shadow-lg transition group">
+            
+            <!-- 标题行 + 右上角低调 ··· 菜单 -->
+            <div class="flex items-start justify-between gap-3">
+              <h2 class="text-base sm:text-lg font-bold text-white group-hover:text-amber-300 transition leading-snug">
+                ❓ ${highlightSearch(node.confusion, searchQuery)}
+              </h2>
+
+              <!-- 卡片右上角不起眼的 ··· 菜单（收纳章节归位功能） -->
+              <div class="relative shrink-0" onclick="event.stopPropagation()">
+                <button onclick="toggleCardMoreMenu('${menuId}', event)" title="更多操作"
+                  class="text-xs px-2 py-1 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-slate-800/80 transition font-bold">
+                  ···
+                </button>
+                <div id="${menuId}" class="card-more-menu hidden absolute right-0 mt-1 w-44 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-40 text-xs space-y-1">
+                  <div class="text-[11px] text-slate-400 px-1.5 py-0.5">📍 归位/调整所属章节：</div>
+                  ${CHAPTERS.map(c => `
+                    <button onclick="assignChapter('${node.id}', '${c.id}')"
+                      class="w-full text-left px-2 py-1.5 rounded-lg hover:bg-slate-800 transition ${node.chapterId === c.id ? 'text-amber-400 font-bold' : 'text-slate-300'}">
+                      ${c.shortName} · ${c.name.split('·')[1] || c.name}
+                    </button>
+                  `).join('')}
+                  ${node.chapterId !== 'unlocated' ? `
+                    <button onclick="assignChapter('${node.id}', 'unlocated')"
+                      class="w-full text-left px-2 py-1.5 rounded-lg hover:bg-slate-800 text-slate-400 transition">
+                      设为未归类
+                    </button>
+                  ` : ''}
+                </div>
+              </div>
+            </div>
+
+            <!-- 章节小灰字（无章节则不显示） + 同问按钮（支持已同问高亮切换） -->
+            <div class="flex items-center justify-between gap-2 mt-2.5 mb-3">
+              <div class="text-xs text-slate-400">
+                ${hasChapter ? `<span>📍 ${ch.shortName}</span>` : ''}
+              </div>
+              <button onclick="voteSameAsk('${node.id}', event)"
+                class="text-xs px-3 py-1 rounded-full border transition font-semibold flex items-center gap-1 ${liked
+                  ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
+                  : 'bg-slate-950/80 hover:bg-slate-800 text-slate-300 border-slate-700/80'}">
+                <span>🙋</span>
+                <span>${liked ? '已同问' : '同问'} ${node.sameAskCount}</span>
+              </button>
+            </div>
+
+            <!-- 获赞最高的那 1 条神仙回答预览 -->
+            ${best ? `
+              <div class="bg-slate-950/75 border border-slate-800/80 rounded-xl p-3.5 text-xs sm:text-sm text-slate-200 leading-relaxed">
+                <div class="text-xs text-amber-400/90 font-semibold mb-1">
+                  ${best.bestLabel} (${formatAuthor(best)})：
+                </div>
+                <p class="line-clamp-2 text-slate-200">
+                  “${highlightSearch(best.text, searchQuery)}”
+                </p>
+              </div>
+            ` : `
+              <div class="bg-slate-950/40 border border-dashed border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-400">
+                🌱 还没有人回答，点进来写下第一条解释吧 →
+              </div>
+            `}
+          </article>
+        `;
+      }).join('');
+    }
+
+    // 帮问题归位章节（收纳在卡片右上角 ··· 菜单中）
+    function assignChapter(nodeId, newChapterId) {
+      if (!newChapterId) return;
+      const node = getNodeById(nodeId);
+      if (node) {
+        node.chapterId = newChapterId;
+        saveData();
+        if (!document.getElementById("micro-view").classList.contains("hidden")) {
+          renderMicroView();
+        } else {
+          renderMacroView();
+        }
+      }
+    }
+
+    // 同问即时切换（点一下变亮 +1，再点一下取消 -1）
+    function voteSameAsk(nodeId, event) {
+      if (event) event.stopPropagation();
+      const node = getNodeById(nodeId);
+      if (!node) return;
+
+      if (likedQuestions[nodeId]) {
+        delete likedQuestions[nodeId];
+        node.sameAskCount = Math.max(0, (node.sameAskCount || 1) - 1);
+      } else {
+        likedQuestions[nodeId] = true;
+        node.sameAskCount = (node.sameAskCount || 0) + 1;
+      }
+      saveLikesState();
+      saveData();
+
+      if (!document.getElementById("micro-view").classList.contains("hidden")) {
+        renderMicroView();
+      } else {
+        renderMacroView();
+      }
+    }
+
+    // ==================== 页面二：问题详情页（中心带分支卡片树 + 原地展开 + 顺藤摸瓜 + 原地回答） ====================
+    function renderNoteItemHtml(node, dimKey, note, isKing, foldedNotes = []) {
+      const liked = isNoteLiked(note.id);
+      const menuId = `note-more-${dimKey}-${note.id}`;
+      const showTag = dimKey === "d3" && note.tag;
+
+      return `
+        <div class="${isKing ? '' : 'pt-3.5 mt-3.5 border-t border-slate-800/80'} space-y-2">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center flex-wrap gap-1.5 text-xs">
+              <span class="font-bold ${isKing ? 'text-amber-300' : 'text-slate-300'}">${formatAuthor(note)}</span>
+              ${showTag ? `<span class="text-[11px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">${escapeHtml(note.tag)}</span>` : ''}
+            </div>
+
+            <!-- 右下/右上低调 ··· 菜单（收纳合并共创、水贴踩与折叠区） -->
+            <div class="relative shrink-0" onclick="event.stopPropagation()">
+              <button onclick="toggleCardMoreMenu('${menuId}', event)" title="更多操作"
+                class="text-xs px-2 py-0.5 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-slate-800 transition font-bold">
+                ···
+              </button>
+              <div id="${menuId}" class="card-more-menu hidden absolute right-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-1.5 z-40 text-xs space-y-1">
+                ${!isKing ? `
+                  <button onclick="mergeIntoKing('${dimKey}', ${note.id})"
+                    class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-purple-300 transition flex items-center gap-1.5">
+                    <span>🔗 吸纳并入榜首回答 (共创)</span>
+                  </button>
+                ` : ''}
+                <button onclick="downvoteNote('${dimKey}', ${note.id})"
+                  class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-rose-400 transition flex items-center justify-between">
+                  <span>▼ 觉得没帮助 / 折叠水贴</span>
+                  <span class="text-[11px] text-slate-500">(${note.downvotes || 0})</span>
+                </button>
+                ${isKing && foldedNotes.length > 0 ? `
+                  <details class="border-t border-slate-800 pt-1 mt-1 px-2 py-1">
+                    <summary class="text-[11px] text-slate-500 cursor-pointer hover:text-slate-400">
+                      🗑️ 已折叠低分回答 (${foldedNotes.length}条)
+                    </summary>
+                    <div class="space-y-1.5 mt-1.5 pt-1.5 border-t border-slate-900 max-h-32 overflow-y-auto">
+                      ${foldedNotes.map(fn => `<div class="text-[11px] text-slate-500 leading-snug">@${escapeHtml(fn.author)}：${escapeHtml(fn.text)}</div>`).join('')}
+                    </div>
+                  </details>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+
+          <p class="text-sm text-slate-100 leading-relaxed bg-slate-950/70 p-3 rounded-xl border border-slate-800/80">
+            “${escapeHtml(note.text)}”
+          </p>
+
+          <div class="flex items-center justify-between pt-0.5 text-xs">
+            <button onclick="echoNote('${dimKey}', ${note.id})"
+              class="px-3 py-1 rounded-full border transition font-semibold flex items-center gap-1 ${liked
+                ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
+                : 'bg-slate-950/90 hover:bg-slate-800 text-slate-300 border-slate-700/80'}">
+              <span>👍</span>
+              <span>${liked ? '已赞同' : '赞同'} ${note.votes}</span>
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function toggleExpandBranch(dimKey) {
+      const key = `${currentNodeId}_${dimKey}`;
+      expandedBranches[key] = !expandedBranches[key];
+      renderMicroView();
+    }
+
+    function quickSelectAnswerDim(dimKey) {
+      selectedAnswerDim = dimKey;
+      renderInlineAnswerControls();
+      scrollToAnswerBox();
+    }
+
+    function scrollToAnswerBox() {
+      const section = document.getElementById("inline-answer-section");
+      const input = document.getElementById("note-input");
+      if (section) {
+        section.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      if (input) {
+        setTimeout(() => input.focus(), 220);
+      }
+    }
+
+    function renderMicroView() {
+      const node = getNodeById(currentNodeId);
+      if (!node) return;
+      const ch = getChapterMeta(node.chapterId);
+      const hasChapter = node.chapterId && node.chapterId !== "unlocated" && ch.shortName;
+      const qLiked = isQuestionLiked(node.id);
+      const qMenuId = `detail-q-more-${node.id}`;
+
+      // 统计是否有任何回答（用于垂直连接线与 0 回答破冰判断）
+      const mainDimKeys = ["d1", "d2", "d3"];
+      const litMainDims = mainDimKeys.filter(dimKey => getActiveNotes(node, dimKey).length > 0);
+      const d4Notes = getActiveNotes(node, "d4");
+      const backlinkItems = [];
+      appData.forEach(other => {
+        if (other.id !== node.id) {
+          getActiveNotes(other, "d4").forEach(n => {
+            if (n.linkTo === node.id) {
+              backlinkItems.push({ note: n, sourceNode: other });
+            }
+          });
+        }
+      });
+      const totalAnswersCount = litMainDims.reduce((acc, k) => acc + getActiveNotes(node, k).length, 0) + d4Notes.length;
+
+      // 1. 渲染顶部/中心问题卡片（有原文用浅色小字附在下面，没有就不显示）
+      document.getElementById("center-node").innerHTML = `
+        <div class="flex items-start justify-between gap-3">
+          <h1 class="text-lg sm:text-xl font-bold text-white leading-snug">
+            ❓ ${escapeHtml(node.confusion)}
+          </h1>
+
+          <!-- 右上角低调 ··· 菜单（收纳章节归位） -->
+          <div class="relative shrink-0" onclick="event.stopPropagation()">
+            <button onclick="toggleCardMoreMenu('${qMenuId}', event)" title="更多操作"
+              class="text-xs px-2 py-1 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-slate-800 transition font-bold">
+              ···
+            </button>
+            <div id="${qMenuId}" class="card-more-menu hidden absolute right-0 mt-1 w-44 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-40 text-xs space-y-1">
+              <div class="text-[11px] text-slate-400 px-1.5 py-0.5">📍 归位/调整所属章节：</div>
+              ${CHAPTERS.map(c => `
+                <button onclick="assignChapter('${node.id}', '${c.id}')"
+                  class="w-full text-left px-2 py-1.5 rounded-lg hover:bg-slate-800 transition ${node.chapterId === c.id ? 'text-amber-400 font-bold' : 'text-slate-300'}">
+                  ${c.shortName} · ${c.name.split('·')[1] || c.name}
+                </button>
+              `).join('')}
+              ${node.chapterId !== 'unlocated' ? `
+                <button onclick="assignChapter('${node.id}', 'unlocated')"
+                  class="w-full text-left px-2 py-1.5 rounded-lg hover:bg-slate-800 text-slate-400 transition">
+                  设为未归类
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+
+        ${node.quote ? `
+          <p class="text-xs sm:text-sm text-slate-400 italic mt-2.5 leading-relaxed">
+            “${escapeHtml(node.quote)}”
+          </p>
+        ` : ''}
+
+        <div class="flex items-center justify-between gap-2 mt-4 pt-3 border-t border-slate-800/80 text-xs">
+          <div class="text-slate-400">
+            ${hasChapter ? `<span>📍 ${ch.shortName}（${ch.name.split('·')[1]?.trim() || ch.name}）</span>` : ''}
+          </div>
+          <button onclick="voteSameAsk('${node.id}', event)"
+            class="px-3 py-1 rounded-full border transition font-semibold flex items-center gap-1 ${qLiked
+              ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
+              : 'bg-slate-950 hover:bg-slate-800 text-slate-300 border-slate-700'}">
+            <span>🙋</span>
+            <span>${qLiked ? '已同问' : '同问'} ${node.sameAskCount}</span>
+          </button>
+        </div>
+      `;
+
+      // 2. 渲染向下生长的分类卡片树（没人回答的分类直接隐形）
+      const branchesGrid = document.getElementById("detail-branches-grid");
+      if (litMainDims.length === 0 && d4Notes.length === 0 && backlinkItems.length === 0) {
+        // 0 回答新问题破冰提示
+        branchesGrid.className = "grid grid-cols-1 gap-4";
+        branchesGrid.innerHTML = `
+          <div class="bg-slate-900/60 border border-dashed border-slate-800 rounded-2xl p-6 text-center space-y-1.5">
+            <div class="text-sm text-slate-300 font-semibold">🌱 这个问题刚刚提出，还在等第一个破冰回答</div>
+            <div class="text-xs text-slate-400">不用有压力，在下方输入框用大白话写两句你的直觉理解就可以！</div>
+          </div>
+        `;
+      } else {
+        branchesGrid.className = `grid grid-cols-1 ${litMainDims.length === 1 ? 'md:grid-cols-1' : 'md:grid-cols-2'} gap-4 items-start`;
+        branchesGrid.innerHTML = litMainDims.map(dimKey => {
+          const meta = DIMENSIONS[dimKey];
+          const allNotes = node.branches[dimKey] || [];
+          const activeNotes = getActiveNotes(node, dimKey);
+          const foldedNotes = allNotes.filter(n => isFolded(n));
+          const king = activeNotes[0];
+          const others = activeNotes.slice(1);
+          const isExpanded = Boolean(expandedBranches[`${node.id}_${dimKey}`]);
+
+          return `
+            <div class="bg-slate-900/95 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-3">
+              <!-- 分类框顶部标题 -->
+              <div class="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
+                <span class="text-sm font-bold text-amber-400">${meta.short} (${activeNotes.length}条)</span>
+              </div>
+
+              <!-- 默认展示赞数第 1 的回答 -->
+              ${renderNoteItemHtml(node, dimKey, king, true, foldedNotes)}
+
+              <!-- 原地展开的其余回答 -->
+              ${isExpanded && others.length > 0 ? `
+                <div class="space-y-3">
+                  ${others.map(n => renderNoteItemHtml(node, dimKey, n, false, [])).join('')}
+                </div>
+              ` : ''}
+
+              <!-- 框底操作栏：左边展开其余 N 条，右边 [+ 我也打个比方/说人话] 顺手补充 -->
+              <div class="flex items-center justify-between pt-2.5 border-t border-slate-800/80 text-xs">
+                <div>
+                  ${others.length > 0 ? `
+                    <button onclick="toggleExpandBranch('${dimKey}')" class="text-slate-300 hover:text-white font-semibold transition">
+                      ${isExpanded ? `收起其余 ${others.length} 条回答 ▴` : `展开其余 ${others.length} 条回答 ▾`}
+                    </button>
+                  ` : `<span class="text-slate-600 text-[11px]">共 1 条回答</span>`}
+                </div>
+                <button onclick="quickSelectAnswerDim('${dimKey}')" class="text-amber-400/90 hover:text-amber-300 font-semibold transition">
+                  [${meta.addLabel}]
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // 3. 渲染 🔗 顺藤摸瓜（关联问题轻量卡片：上面展示串联解说词，下面紧跟关联问题跳转链接）
+      const relatedSection = document.getElementById("detail-related-section");
+      const relatedList = document.getElementById("detail-related-list");
+      const hasRelated = d4Notes.length > 0 || backlinkItems.length > 0;
+
+      if (!hasRelated) {
+        relatedSection.classList.add("hidden");
+        relatedList.innerHTML = "";
+      } else {
+        relatedSection.classList.remove("hidden");
+        const forwardCardsHtml = d4Notes.map(n => {
+          const targetNode = n.linkTo ? getNodeById(n.linkTo) : null;
+          const targetCh = targetNode ? getChapterMeta(targetNode.chapterId) : null;
+          const targetChLabel = targetCh && targetCh.shortName ? `[${targetCh.shortName}] ` : "";
+          const liked = isNoteLiked(n.id);
+          const menuId = `d4-more-${n.id}`;
+
+          return `
+            <div class="bg-slate-900/95 border border-indigo-500/35 rounded-2xl p-4 shadow-lg space-y-2.5">
+              <div class="flex items-center justify-between gap-2 text-xs">
+                <span class="font-bold text-indigo-300">${formatAuthor(n)} 串联了前后伏笔：</span>
+                <div class="flex items-center gap-2">
+                  <button onclick="echoNote('d4', ${n.id})"
+                    class="px-2.5 py-0.5 rounded-full border transition font-semibold ${liked
+                      ? 'bg-amber-500 text-slate-950 border-amber-400'
+                      : 'bg-slate-950 text-slate-300 border-slate-700 hover:bg-slate-800'}">
+                    👍 ${liked ? '已赞同' : '赞同'} ${n.votes}
+                  </button>
+                  <div class="relative" onclick="event.stopPropagation()">
+                    <button onclick="toggleCardMoreMenu('${menuId}', event)" class="px-1.5 py-0.5 rounded text-slate-500 hover:text-slate-300 font-bold">···</button>
+                    <div id="${menuId}" class="card-more-menu hidden absolute right-0 mt-1 w-44 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-1.5 z-40 text-xs">
+                      <button onclick="downvoteNote('d4', ${n.id})" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-rose-400">
+                        ▼ 觉得没帮助 / 折叠 (${n.downvotes || 0})
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 精彩的串联解说词 -->
+              <p class="text-sm text-slate-100 leading-relaxed bg-slate-950/70 p-3 rounded-xl border border-slate-800/80">
+                “${escapeHtml(n.text)}”
+              </p>
+
+              <!-- 紧跟可点击跳转的关联问题 -->
+              ${targetNode ? `
+                <button onclick="openMicroNode('${targetNode.id}', true)"
+                  class="w-full text-left bg-indigo-950/50 hover:bg-indigo-900/60 border border-indigo-500/40 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-indigo-200 hover:text-amber-300 font-semibold transition flex items-center justify-between gap-2">
+                  <span class="truncate">👉 关联问题：${targetChLabel}${escapeHtml(targetNode.confusion)}</span>
+                  <span class="shrink-0 text-xs text-indigo-300">去看这题 →</span>
+                </button>
+              ` : ''}
+            </div>
+          `;
+        }).join('');
+
+        // 反向被其他问题串联过来的卡片（避免重复展示已经正向连过去的同一题）
+        const forwardTargetIds = new Set(d4Notes.map(n => n.linkTo).filter(Boolean));
+        const backlinkCardsHtml = backlinkItems
+          .filter(item => !forwardTargetIds.has(item.sourceNode.id))
+          .map(({ note: bNote, sourceNode }) => {
+            const sourceCh = getChapterMeta(sourceNode.chapterId);
+            const sourceChLabel = sourceCh && sourceCh.shortName ? `[${sourceCh.shortName}] ` : "";
+            return `
+              <div class="bg-slate-900/95 border border-indigo-500/35 rounded-2xl p-4 shadow-lg space-y-2.5">
+                <div class="text-xs font-bold text-indigo-300">
+                  ${formatAuthor(bNote)} 从另一处关联到了这里：
+                </div>
+                <p class="text-sm text-slate-100 leading-relaxed bg-slate-950/70 p-3 rounded-xl border border-slate-800/80">
+                  “${escapeHtml(bNote.text)}”
+                </p>
+                <button onclick="openMicroNode('${sourceNode.id}', true)"
+                  class="w-full text-left bg-indigo-950/50 hover:bg-indigo-900/60 border border-indigo-500/40 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-indigo-200 hover:text-amber-300 font-semibold transition flex items-center justify-between gap-2">
+                  <span class="truncate">👉 关联问题：${sourceChLabel}${escapeHtml(sourceNode.confusion)}</span>
+                  <span class="shrink-0 text-xs text-indigo-300">去看这题 →</span>
+                </button>
+              </div>
+            `;
+          }).join('');
+
+        relatedList.innerHTML = forwardCardsHtml + backlinkCardsHtml;
+      }
+
+      // 4. 渲染底部原地回答输入栏的分类胶囊与选项
+      renderInlineAnswerControls();
+
+      // 如果是 0 回答的新问题，自动聚焦到底部回答输入框邀请破冰
+      if (totalAnswersCount === 0) {
+        setTimeout(() => {
+          const input = document.getElementById("note-input");
+          if (input && document.activeElement !== input) input.focus();
+        }, 150);
+      }
+    }
+
+    function renderInlineAnswerControls() {
+      const pillsEl = document.getElementById("answer-dim-pills");
+      if (pillsEl) {
+        pillsEl.innerHTML = Object.keys(DIMENSIONS).map(dimKey => {
+          const active = selectedAnswerDim === dimKey;
+          return `
+            <button type="button" onclick="selectAnswerDim('${dimKey}')"
+              class="text-xs px-3 py-1.5 rounded-full border transition ${active
+                ? 'bg-amber-500 text-slate-950 font-bold border-amber-400 shadow-sm'
+                : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-600'}">
+              ${DIMENSIONS[dimKey].short}
+            </button>
+          `;
+        }).join('');
+      }
+
+      const noteInput = document.getElementById("note-input");
+      if (noteInput && DIMENSIONS[selectedAnswerDim]) {
+        noteInput.placeholder = DIMENSIONS[selectedAnswerDim].prompt + "（150字内）";
+      }
+
+      // 仅在选中「🪜 打比方」(d3) 时才显示生活标签选择
+      const metaphorWrap = document.getElementById("answer-metaphor-tags-wrap");
+      if (metaphorWrap) {
+        metaphorWrap.classList.toggle("hidden", selectedAnswerDim !== "d3");
+        if (selectedAnswerDim === "d3") {
+          renderTagSelector();
+        }
+      }
+
+      // 仅在选中「🔗 串前后」(d4) 时才显示关联问题下拉框
+      const linkWrap = document.getElementById("link-selector-wrap");
+      if (linkWrap) {
+        if (selectedAnswerDim === "d4") {
+          linkWrap.classList.remove("hidden");
+          const selectEl = document.getElementById("link-node-select");
+          if (selectEl) {
+            selectEl.innerHTML = `<option value="">-- 可选：不绑定具体题目，仅文字说明前后呼应 --</option>` +
+              appData.filter(n => n.id !== currentNodeId).map(n => {
+                const ch = getChapterMeta(n.chapterId);
+                const chPrefix = ch.shortName ? `[${ch.shortName}] ` : "";
+                return `<option value="${n.id}">${chPrefix}${escapeHtml(n.confusion.slice(0, 38))}</option>`;
+              }).join('');
+          }
+        } else {
+          linkWrap.classList.add("hidden");
+        }
+      }
+    }
+
+    function selectAnswerDim(dimKey) {
+      selectedAnswerDim = dimKey;
+      renderInlineAnswerControls();
+    }
+
+    function selectSubmitTag(tag) {
+      selectedSubmitTag = tag;
+      renderTagSelector();
+    }
+
+    function renderTagSelector() {
+      const el = document.getElementById("tag-selector");
+      if (!el) return;
+      el.innerHTML = PERSPECTIVE_TAGS.map(tag => `
+        <button type="button" onclick="selectSubmitTag('${tag}')"
+          class="text-xs px-2.5 py-1 rounded-full border transition ${selectedSubmitTag === tag
+            ? 'bg-amber-500/25 text-amber-300 font-bold border-amber-400/60'
+            : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-600'}">
+          ${tag}
+        </button>
+      `).join('');
+    }
+
+    // ==================== 回答互动：赞同高亮切换、水贴折叠、榜首共创合并、原地提交 ====================
+    function echoNote(dimKey, noteId) {
+      const node = getNodeById(currentNodeId);
+      if (!node) return;
+      const target = (node.branches[dimKey] || []).find(n => n.id === noteId);
+      if (!target) return;
+
+      if (likedNotes[noteId]) {
+        delete likedNotes[noteId];
+        target.votes = Math.max(0, (target.votes || 1) - 1);
+      } else {
+        likedNotes[noteId] = true;
+        target.votes = (target.votes || 0) + 1;
+      }
+      saveLikesState();
+      saveData();
+      renderMicroView();
+    }
+
+    function downvoteNote(dimKey, noteId) {
+      const node = getNodeById(currentNodeId);
+      if (!node) return;
+      const target = (node.branches[dimKey] || []).find(n => n.id === noteId);
+      if (target) {
+        target.downvotes = (target.downvotes || 0) + 1;
+        saveData();
+        renderMicroView();
+      }
+    }
+
+    function mergeIntoKing(dimKey, candidateId) {
+      const node = getNodeById(currentNodeId);
+      if (!node) return;
+      const activeNotes = getActiveNotes(node, dimKey);
+      if (activeNotes.length < 2) return;
+
+      const king = activeNotes[0];
+      const candidate = node.branches[dimKey].find(n => n.id === candidateId);
+      if (!candidate || king.id === candidate.id) return;
+
+      const suggested = `${king.text}（补充：${candidate.text}）`.slice(0, 150);
+      const merged = prompt(
+        `【🔗 合并共创回答】\n将 @${candidate.author} 的补充并入第一条回答（限150字内），双方共享署名且赞同数累加：`,
+        suggested
+      );
+
+      if (merged && merged.trim()) {
+        king.text = merged.trim().slice(0, 150);
+        king.coAuthors = king.coAuthors || [];
+        if (!king.coAuthors.includes(candidate.author)) {
+          king.coAuthors.push(candidate.author);
+        }
+        king.votes += candidate.votes;
+        node.branches[dimKey] = node.branches[dimKey].filter(n => n.id !== candidateId);
+        saveData();
+        renderMicroView();
+      }
+    }
+
+    function updateCharCount() {
+      const len = document.getElementById("note-input")?.value.length || 0;
+      const countEl = document.getElementById("char-count");
+      if (countEl) countEl.innerText = `${len} / 150 字`;
+    }
+
+    function submitNote() {
+      const inputEl = document.getElementById("note-input");
+      const text = (inputEl?.value || "").trim();
+      const author = (document.getElementById("author-input")?.value || "").trim() || "热心书友";
+      const linkTo = document.getElementById("link-node-select")?.value || "";
+
+      if (!text) {
+        inputEl?.focus();
+        return;
+      }
+
+      const node = getNodeById(currentNodeId);
+      if (!node) return;
+      const dimKey = selectedAnswerDim || "d1";
+
+      const newNote = {
+        id: Date.now(),
+        author,
+        coAuthors: [],
+        tag: dimKey === "d3" ? selectedSubmitTag : "",
+        text,
+        votes: 1,
+        downvotes: 0
+      };
+      if (dimKey === "d4" && linkTo) {
+        newNote.linkTo = linkTo;
+      }
+
+      node.branches[dimKey] = node.branches[dimKey] || [];
+      node.branches[dimKey].push(newNote);
+      likedNotes[newNote.id] = true;
+      expandedBranches[`${node.id}_${dimKey}`] = true;
+      saveLikesState();
+      saveData();
+
+      if (inputEl) inputEl.value = "";
+      updateCharCount();
+      renderMicroView();
+    }
+
+    function resetDemoData() {
+      if (!confirm("确定要将本机与云端数据重置回初始《三体 II》演示数据吗？")) return;
+      localStorage.removeItem("bookgraph_v1_0");
+      localStorage.removeItem("bookgraph_liked_questions");
+      localStorage.removeItem("bookgraph_liked_notes");
+      likedQuestions = {};
+      likedNotes = {};
+      appData = JSON.parse(JSON.stringify(defaultData));
+      saveData();
+      switchToMacro();
+    }
+
+    // ==================== 跨设备云端实时同步 & 备份逻辑 ====================
+    function setCloudStatus(state, message) {
+      const dot = document.getElementById("cloud-status-dot");
+      const text = document.getElementById("cloud-status-text");
+      const modalStatus = document.getElementById("sync-modal-status");
+      if (!dot || !text) return;
+
+      if (state === "syncing") {
+        dot.className = "w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse inline-block";
+        text.innerText = "同步中";
+        if (modalStatus) modalStatus.innerText = "🔄 " + (message || "正在与云端同步...");
+      } else if (state === "ok") {
+        dot.className = "w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block";
+        text.innerText = "已连";
+        if (modalStatus) modalStatus.innerText = "☁️ " + (message || "云端实时同步正常");
+      } else {
+        dot.className = "w-1.5 h-1.5 rounded-full bg-rose-400 inline-block";
+        text.innerText = "本地";
+        if (modalStatus) modalStatus.innerText = "⚠️ " + (message || "当前离线，已保存在本地缓存");
+      }
+    }
+
+    function refreshCurrentView() {
+      if (!document.getElementById("micro-view").classList.contains("hidden")) {
+        if (!getNodeById(currentNodeId) && appData.length > 0) {
+          currentNodeId = appData[0].id;
+        }
+        renderMicroView();
+      } else {
+        renderMacroView();
+      }
+    }
+
+    async function pullFromCloud(manual = false) {
+      if (manual) setCloudStatus("syncing", "正在拉取最新数据...");
+      // 优先同步本机私有服务 /api/data (data.json)
+      if (location.protocol.startsWith("http")) {
+        try {
+          const localRes = await fetch(`/api/data?t=${Date.now()}`, { cache: "no-store" });
+          if (localRes.ok) {
+            const payload = await localRes.json();
+            if (Array.isArray(payload?.nodes) && payload.nodes.length > 0) {
+              appData = payload.nodes;
+              lastLocalUpdateAt = Number(payload.updatedAt || Date.now());
+              localStorage.setItem("bookgraph_v1_0", JSON.stringify(appData));
+              localStorage.setItem("bookgraph_updated_at", String(lastLocalUpdateAt));
+              refreshCurrentView();
+              setCloudStatus("ok", `已与本机 data.json 同步 (${new Date().toLocaleTimeString()})`);
+              return;
+            } else {
+              await pushToCloud(false);
+              return;
+            }
+          }
+        } catch (_) {}
+      }
+
+      if (!cloudRoomId) return;
+      try {
+        const res = await fetch(`${CLOUD_API_BASE}/${cloudRoomId}?t=${Date.now()}`, { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const payload = await res.json();
+        const remoteNodes = payload?.data?.nodes;
+        const remoteUpdatedAt = Number(payload?.data?.updatedAt || 0);
+
+        if (Array.isArray(remoteNodes) && remoteNodes.length > 0) {
+          if (manual || remoteUpdatedAt >= lastLocalUpdateAt || !localStorage.getItem("bookgraph_v1_0")) {
+            appData = remoteNodes;
+            lastLocalUpdateAt = remoteUpdatedAt || Date.now();
+            localStorage.setItem("bookgraph_v1_0", JSON.stringify(appData));
+            localStorage.setItem("bookgraph_updated_at", String(lastLocalUpdateAt));
+            refreshCurrentView();
+          }
+          setCloudStatus("ok", `已同步 (${new Date().toLocaleTimeString()})`);
+        } else {
+          await pushToCloud(false);
+        }
+      } catch (err) {
+        console.warn("Cloud pull skipped:", err);
+        setCloudStatus("offline", "网络离线或受限，已启用本地存储兜底");
+      }
+    }
+
+    async function pushToCloud(manual = false) {
+      setCloudStatus("syncing", "正在保存数据...");
+      const now = Date.now();
+      lastLocalUpdateAt = now;
+      localStorage.setItem("bookgraph_updated_at", String(now));
+
+      // 优先写入本机私有服务 /api/data (data.json)
+      if (location.protocol.startsWith("http")) {
+        try {
+          const localRes = await fetch("/api/data", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ updatedAt: now, nodes: appData })
+          });
+          if (localRes.ok) {
+            setCloudStatus("ok", `已存入本机 data.json (${new Date().toLocaleTimeString()})`);
+            if (manual) alert("✅ 已保存到本机 data.json！");
+            return;
+          }
+        } catch (_) {}
+      }
+
+      if (!cloudRoomId) return;
+      try {
+        const res = await fetch(`${CLOUD_API_BASE}/${cloudRoomId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: "bookgraph_v1_0",
+            data: {
+              updatedAt: now,
+              nodes: appData
+            }
+          })
+        });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        setCloudStatus("ok", `已同步到云端 (${new Date().toLocaleTimeString()})`);
+        if (manual) alert("✅ 已成功将本机黑板数据推送到云端！");
+      } catch (err) {
+        console.warn("Cloud push failed:", err);
+        setCloudStatus("offline", "云端推送失败，数据已安全保存在本地");
+        if (manual) alert("⚠️ 云端推送失败，请检查网络或点击「新建独立云端房间」重试。");
+      }
+    }
+
+    function openSyncModal() {
+      document.getElementById("sync-room-input").value = cloudRoomId;
+      const modal = document.getElementById("sync-modal");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    }
+
+    function closeSyncModal() {
+      const modal = document.getElementById("sync-modal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+
+    async function saveSyncRoomId() {
+      const val = document.getElementById("sync-room-input").value.trim();
+      if (!val) return alert("请输入有效的云端房间 ID");
+      cloudRoomId = val;
+      localStorage.setItem("bookgraph_cloud_room_id", cloudRoomId);
+      await pullFromCloud(true);
+      alert("✅ 已切换云端同步房间 ID！");
+    }
+
+    async function createNewSyncRoom() {
+      setCloudStatus("syncing", "正在创建新云端房间...");
+      try {
+        const now = Date.now();
+        const res = await fetch(CLOUD_API_BASE, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: "bookgraph_v1_0",
+            data: {
+              updatedAt: now,
+              nodes: appData
+            }
+          })
+        });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const created = await res.json();
+        if (created && created.id) {
+          cloudRoomId = created.id;
+          localStorage.setItem("bookgraph_cloud_room_id", cloudRoomId);
+          document.getElementById("sync-room-input").value = cloudRoomId;
+          setCloudStatus("ok", "新房间已创建并同步");
+          alert(`🎉 新建云端房间成功！\n房间 ID: ${cloudRoomId}\n将该 ID 复制到手机或其它电脑即可互通。`);
+        }
+      } catch (err) {
+        setCloudStatus("offline", "创建云端房间失败");
+        alert("创建失败，请检查网络连接。");
+      }
+    }
+
+    function exportJsonData() {
+      const blob = new Blob([JSON.stringify(appData, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `死磕黑板备份_${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importJsonData(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (!Array.isArray(parsed)) throw new Error("格式不正确");
+          appData = parsed;
+          saveData();
+          refreshCurrentView();
+          closeSyncModal();
+          alert("✅ 数据导入成功并已同步至云端！");
+        } catch (err) {
+          alert("导入失败：请选择有效的 JSON 备份文件");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    window.addEventListener("load", () => {
+      switchToMacro();
+      pullFromCloud(false);
+      // 切回标签页或手机唤醒时自动拉取最新云端数据
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") pullFromCloud(false);
+      });
+    });
+  </script>
+</body>
+</html>
