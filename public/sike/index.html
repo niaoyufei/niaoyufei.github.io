@@ -18,16 +18,191 @@
       background: rgba(15, 23, 42, 0.88);
       backdrop-filter: blur(12px);
     }
+    html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
     body.is-locked > header,
-    body.is-locked > main {
+    body.is-locked > #stage,
+    body.is-locked > #map-controls,
+    body.is-locked > #map-hint {
       display: none !important;
     }
+
+    /* ===== 星图画布 ===== */
+    #stage { position: fixed; inset: 0; overflow: hidden; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
+    #stage.dragging { cursor: grabbing; }
+    #world { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
+    #world.animating { transition: transform 0.6s cubic-bezier(0.22, 0.61, 0.36, 1); }
+    #links-layer { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: visible; pointer-events: none; }
+    .link { stroke: #64748b; stroke-opacity: 0.35; stroke-width: 1; transition: stroke-opacity 0.4s, stroke 0.4s; }
+    .link.is-active { stroke: #cbd5e1; stroke-opacity: 0.7; }
+    .link.is-faint { stroke-opacity: 0.12; }
+    .link.is-hidden { stroke-opacity: 0; }
+
+    .star { position: absolute; width: max-content; transform: translate(-50%, calc(var(--r) * -1)); display: flex; flex-direction: column; align-items: center; gap: 6px;
+            background: none; border: 0; padding: 0; cursor: pointer; color: inherit; transition: opacity 0.4s; outline: none; }
+    .star-dot { width: calc(var(--r) * 2); height: calc(var(--r) * 2); border-radius: 9999px; background: #94a3b8;
+                box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.10), 0 0 14px rgba(148, 163, 184, 0.25); transition: transform 0.3s, background 0.3s, box-shadow 0.3s; }
+    .star-label { width: max-content; max-width: 10em; font-size: 12px; line-height: 1.35; color: #94a3b8; text-align: center; white-space: normal; transition: color 0.3s; }
+    .star:hover .star-dot, .star:focus-visible .star-dot { background: #e2e8f0; transform: scale(1.15); }
+    .star:hover .star-label, .star:focus-visible .star-label { color: #f1f5f9; }
+    .star.is-focus .star-dot { background: #f8fafc; transform: scale(1.25); box-shadow: 0 0 0 6px rgba(248, 250, 252, 0.10), 0 0 28px rgba(248, 250, 252, 0.45); }
+    .star.is-focus .star-label { color: #fff; font-weight: 600; }
+    .star.is-neighbor { opacity: 0.85; }
+    .star.is-hidden { opacity: 0; pointer-events: none; }
+    .star.is-faint { opacity: 0.18; }
+    .star.is-match .star-dot { background: #f8fafc; animation: star-breathe 1.6s ease-in-out infinite; }
+    .star.is-match .star-label { color: #fff; }
+    @keyframes star-breathe {
+      0%, 100% { box-shadow: 0 0 0 3px rgba(248, 250, 252, 0.15), 0 0 12px rgba(248, 250, 252, 0.35); }
+      50% { box-shadow: 0 0 0 8px rgba(248, 250, 252, 0.06), 0 0 26px rgba(248, 250, 252, 0.6); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #world.animating { transition: none; }
+      .star.is-match .star-dot { animation: none; }
+    }
+    .map-ctrl { width: 36px; height: 36px; border-radius: 12px; background: rgba(15, 23, 42, 0.88); border: 1px solid #1e293b; color: #94a3b8; font-size: 16px; }
+    .map-ctrl:hover { color: #f1f5f9; border-color: #334155; }
+    input[type="search"]::-webkit-search-cancel-button { filter: invert(0.6); }
+    /* ===== 单点聚焦：中心问题卡 + 四维辐射框 + 外侧竖向手风琴折叠列 ===== */
+    #mindmap-layer { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: visible; pointer-events: none; }
+    #mindmap-links { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: visible; pointer-events: none; }
+    .mm-branch-line { stroke: #475569; stroke-opacity: 0.65; stroke-width: 1.25; fill: none; stroke-dasharray: 3 3; }
+
+    .focus-center-card {
+      position: absolute;
+      width: 280px;
+      transform: translate(-50%, -50%);
+      background: rgba(15, 23, 42, 0.94);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(148, 163, 184, 0.32);
+      border-radius: 16px;
+      padding: 16px 18px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.04);
+      pointer-events: auto;
+      cursor: pointer;
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+    .focus-center-card:hover {
+      border-color: rgba(226, 232, 240, 0.48);
+    }
+
+    .dim-anchor {
+      position: absolute;
+      width: 290px;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .dim-king-card {
+      width: 290px;
+      background: rgba(15, 23, 42, 0.90);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(71, 85, 105, 0.48);
+      border-radius: 14px;
+      padding: 14px 16px;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.50);
+      pointer-events: auto;
+      cursor: pointer;
+      transition: border-color 0.25s, transform 0.25s, background 0.25s;
+    }
+    .dim-king-card:hover,
+    .dim-king-card.is-subfocused {
+      border-color: rgba(203, 213, 225, 0.55);
+      background: rgba(15, 23, 42, 0.96);
+    }
+
+    /* 榜一框紧邻外侧：短线 + 竖向手风琴折叠窄条列 */
+    .dim-outer-wrap {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      pointer-events: none;
+    }
+    .dim-outer-wrap.is-left {
+      right: 100%;
+      flex-direction: row-reverse;
+    }
+    .dim-outer-wrap.is-right {
+      left: 100%;
+      flex-direction: row;
+    }
+    .dim-short-line {
+      width: 22px;
+      height: 1px;
+      background: rgba(100, 116, 139, 0.55);
+      flex-shrink: 0;
+    }
+    .dim-acc-col {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      width: 216px;
+      pointer-events: auto;
+    }
+    .acc-strip {
+      background: rgba(15, 23, 42, 0.86);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(51, 65, 85, 0.65);
+      border-radius: 10px;
+      padding: 8px 11px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s, width 0.2s;
+      text-align: left;
+    }
+    .acc-strip:hover {
+      border-color: rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.95);
+    }
+    .acc-strip.is-open {
+      width: 244px;
+      background: rgba(15, 23, 42, 0.96);
+      border-color: rgba(203, 213, 225, 0.5);
+      padding: 11px 13px;
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55);
+    }
+    .dim-outer-wrap.is-left .dim-acc-col {
+      align-items: flex-end;
+    }
+    .dim-outer-wrap.is-right .dim-acc-col {
+      align-items: flex-start;
+    }
+
+    /* 聚焦时隐藏中心问题原本的小圆点（由中心卡片替代） */
+    .star.is-focus {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .star.is-neighbor {
+      opacity: 0.92;
+      transition: left 0.45s cubic-bezier(0.22, 0.61, 0.36, 1), top 0.45s cubic-bezier(0.22, 0.61, 0.36, 1), opacity 0.35s;
+    }
+    .star.is-neighbor .star-dot {
+      background: #cbd5e1;
+      box-shadow: 0 0 0 4px rgba(203, 213, 225, 0.12), 0 0 16px rgba(203, 213, 225, 0.3);
+    }
+    .star.is-neighbor .star-label {
+      color: #cbd5e1;
+    }
+    dialog#answer-dialog {
+      background: transparent;
+      border: 0;
+      padding: 0;
+      max-width: min(92vw, 480px);
+      width: 100%;
+      color: #f8fafc;
+    }
+    dialog#answer-dialog::backdrop {
+      background-color: rgba(2, 6, 23, 0.68);
+      backdrop-filter: blur(4px);
+    }
+
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #0f172a; }
     ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
   </style>
 </head>
-<body class="min-h-screen flex flex-col overflow-x-hidden is-locked">
+<body class="is-locked">
 
   <!-- ==================== 静态口令锁屏遮罩（首次外网访问需输入口令，验证后本机持久免输） ==================== -->
   <div id="static-lock-screen" class="fixed inset-0 bg-slate-950 z-[100] flex items-center justify-center p-4">
@@ -113,187 +288,118 @@
     })();
   </script>
 
-  <!-- ==================== 顶部极简导航栏 ==================== -->
-  <header class="border-b border-slate-800/80 glass px-4 sm:px-6 py-3 flex items-center justify-between gap-3 sticky top-0 z-30">
-    <div class="flex items-center space-x-2.5 min-w-0">
-      <button onclick="switchToMacro()" class="text-base sm:text-lg font-bold text-white hover:text-amber-400 transition truncate flex items-center gap-2">
-        <span>📖</span>
-        <span class="truncate">《三体 II：黑暗森林》</span>
-      </button>
-      <span class="hidden sm:inline-block text-xs text-slate-400">共读问答笔记</span>
+  <!-- ==================== 顶部悬浮栏：书名 + 搜索框 + 提问按钮 ==================== -->
+  <header id="top-bar" class="fixed top-3 left-1/2 -translate-x-1/2 z-30 w-[min(96vw,760px)] glass border border-slate-800/80 rounded-2xl px-2.5 py-2 flex items-center gap-2 shadow-2xl">
+    <button onclick="resetView()" title="回到全景" class="shrink-0 text-sm font-semibold text-slate-200 hover:text-white px-1.5 transition">
+      <span class="hidden sm:inline">《三体 II：黑暗森林》</span><span class="sm:hidden">三体 II</span>
+    </button>
+
+    <div class="relative flex-1 min-w-0">
+      <input id="unified-search-input" type="search" autocomplete="off" enterkeyhint="send"
+        oninput="handleSearchInput(this.value)"
+        onkeydown="handleSearchKeydown(event)"
+        placeholder="搜索或直接提问…"
+        aria-label="搜索问题，或直接输入新问题"
+        class="w-full min-w-0 bg-slate-950/70 border border-slate-800 focus:border-slate-500 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none transition">
+      <div id="search-hint" class="hidden absolute left-0 right-0 top-full mt-2 text-xs text-slate-400 bg-slate-950/95 border border-slate-800 rounded-xl px-3 py-2 shadow-xl"></div>
     </div>
 
-    <div class="flex items-center space-x-2 shrink-0">
-      <button onclick="focusAskInput()" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-3.5 py-2 rounded-xl shadow-sm transition flex items-center gap-1">
-        <span>✏️</span>
-        <span>提个问题</span>
-      </button>
+    <button onclick="onAskButton()" class="shrink-0 text-xs bg-slate-100 hover:bg-white text-slate-950 font-semibold px-3.5 py-2 rounded-xl transition">
+      提问
+    </button>
 
-      <!-- 顶栏低调 ··· 更多菜单（收纳云端同步、重置与重新上锁） -->
-      <div class="relative" id="header-more-wrap">
-        <button onclick="toggleHeaderMoreMenu(event)" title="更多设置" class="text-xs px-2.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 transition font-bold">
-          ···
+    <!-- 低调 ··· 更多菜单（收纳云端同步、重置与重新上锁） -->
+    <div class="relative shrink-0" id="header-more-wrap">
+      <button onclick="toggleHeaderMoreMenu(event)" title="更多设置" class="text-xs px-2.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 transition font-bold">
+        ···
+      </button>
+      <div id="header-more-menu" class="hidden absolute right-0 mt-2 w-48 bg-slate-900 border border-slate-700/90 rounded-xl shadow-2xl py-1.5 z-50 text-xs">
+        <button onclick="openSyncModal(); hideHeaderMoreMenu();" class="w-full px-3.5 py-2 text-left text-slate-200 hover:bg-slate-800 flex items-center justify-between">
+          <span>云端同步与备份</span>
+          <span class="flex items-center gap-1 text-[11px] text-emerald-400">
+            <span id="cloud-status-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>
+            <span id="cloud-status-text">已连</span>
+          </span>
         </button>
-        <div id="header-more-menu" class="hidden absolute right-0 mt-2 w-48 bg-slate-900 border border-slate-700/90 rounded-xl shadow-2xl py-1.5 z-50 text-xs">
-          <button onclick="openSyncModal(); hideHeaderMoreMenu();" class="w-full px-3.5 py-2 text-left text-slate-200 hover:bg-slate-800 flex items-center justify-between">
-            <span>☁️ 云端同步与备份</span>
-            <span class="flex items-center gap-1 text-[11px] text-emerald-400">
-              <span id="cloud-status-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>
-              <span id="cloud-status-text">已连</span>
-            </span>
-          </button>
-          <button onclick="lockPageAgain(); hideHeaderMoreMenu();" class="w-full px-3.5 py-2 text-left text-slate-300 hover:bg-slate-800 flex items-center gap-1.5">
-            <span>🔒 锁定当前设备访问</span>
-          </button>
-          <div class="border-t border-slate-800 my-1"></div>
-          <button onclick="resetDemoData(); hideHeaderMoreMenu();" class="w-full px-3.5 py-2 text-left text-rose-400 hover:bg-slate-800 flex items-center gap-1.5">
-            <span>↺ 重置初始演示数据</span>
-          </button>
-        </div>
+        <button onclick="lockPageAgain(); hideHeaderMoreMenu();" class="w-full px-3.5 py-2 text-left text-slate-300 hover:bg-slate-800">
+          锁定当前设备访问
+        </button>
+        <div class="border-t border-slate-800 my-1"></div>
+        <button onclick="resetDemoData(); hideHeaderMoreMenu();" class="w-full px-3.5 py-2 text-left text-rose-400 hover:bg-slate-800">
+          重置初始演示数据
+        </button>
       </div>
     </div>
   </header>
 
-  <!-- ==================== 页面一：书籍主页（搜问合一 + 章节筛选 + 极简问题卡片流） ==================== -->
-  <main id="macro-view" class="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-6 space-y-5">
+  <!-- ==================== 全屏无边界星图画布（拖拽平移 + 滚轮/双指缩放） ==================== -->
+  <div id="stage" aria-label="问题星图">
+    <div id="world">
+      <svg id="links-layer" aria-hidden="true"></svg>
+      <svg id="mindmap-links" aria-hidden="true"></svg>
+      <div id="nodes-layer"></div>
+      <div id="mindmap-layer"></div>
+    </div>
+  </div>
 
-    <!-- 1. 搜问合一主输入框 -->
-    <section class="space-y-2.5">
-      <div class="relative flex items-center">
-        <span class="absolute left-4 text-slate-400 text-base pointer-events-none">🔍</span>
-        <input id="unified-search-input" type="text"
-          oninput="handleSearchOrAskInput(this.value)"
-          onkeydown="handleSearchInputKeydown(event)"
-          placeholder="搜索书里的疑问、人物，或直接输入你的问题..."
-          class="w-full bg-slate-900/95 border border-slate-700/90 focus:border-amber-500 rounded-2xl pl-11 pr-20 py-3.5 text-sm sm:text-base text-white placeholder-slate-400 shadow-lg focus:outline-none transition">
-        <button id="clear-search-btn" onclick="clearSearchAndAsk()" class="hidden absolute right-3 text-xs px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
-          清空
-        </button>
+  <!-- 聚焦态底部轻巧导航（支持两段式防迷路返回） -->
+  <div id="focus-nav-bar" class="hidden fixed left-1/2 -translate-x-1/2 bottom-8 z-20 flex items-center gap-2">
+    <button id="btn-back-center" type="button" onclick="panToFocusOverview(true)"
+      class="hidden text-xs px-3 py-1.5 rounded-full glass border border-slate-700 text-slate-200 hover:text-white hover:border-slate-500 shadow-lg transition">
+      回到问题中心
+    </button>
+    <button type="button" onclick="resetView()"
+      class="text-xs px-3 py-1.5 rounded-full glass border border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-600 shadow-lg transition">
+      返回全局星图
+    </button>
+  </div>
+
+  <!-- 右下角极简缩放控件 -->
+  <div id="map-controls" class="fixed right-3 bottom-3 z-20 flex flex-col gap-1.5">
+    <button onclick="zoomBy(1.25)" title="放大" aria-label="放大" class="map-ctrl">+</button>
+    <button onclick="zoomBy(0.8)" title="缩小" aria-label="缩小" class="map-ctrl">−</button>
+    <button onclick="resetView()" title="回到全景" aria-label="回到全景" class="map-ctrl text-xs">全景</button>
+  </div>
+  <div id="map-hint" class="fixed left-1/2 -translate-x-1/2 bottom-3 z-20 text-[11px] text-slate-500 pointer-events-none whitespace-nowrap">
+    拖动平移 · 滚轮或双指缩放 · 点击圆点聚焦
+  </div>
+
+  <!-- ==================== 零负担写回答弹窗（直接写 + 自动识别四维归类 + 浅灰例子启发） ==================== -->
+  <dialog id="answer-dialog" closedby="any" aria-labelledby="answer-dialog-title" class="rounded-2xl">
+    <form onsubmit="submitAnswerForm(event)" class="bg-slate-900/95 border border-slate-700/90 rounded-2xl p-5 shadow-2xl space-y-3.5 text-left">
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <h2 id="answer-dialog-title" class="text-xs font-medium text-slate-400">写下你的理解</h2>
+          <p id="answer-dialog-question" class="text-sm font-semibold text-slate-100 mt-1 line-clamp-2 leading-snug"></p>
+        </div>
+        <button type="button" onclick="closeAnswerDialog()" aria-label="关闭" class="text-slate-500 hover:text-slate-200 text-lg leading-none px-1">&times;</button>
       </div>
 
-      <!-- 一键转提问轻巧操作条（输入框有字或点“提个问题”时浮现） -->
-      <div id="quick-ask-bar" class="hidden bg-slate-900/95 border border-amber-500/40 rounded-2xl p-3.5 shadow-xl space-y-3 transition">
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <div class="text-xs sm:text-sm text-slate-200 leading-relaxed">
-            💬 没找到满意的解释？直接把 <span id="quick-ask-preview" class="font-bold text-amber-400"></span> 发出来问大家
-          </div>
-          <div class="flex items-center gap-2 ml-auto">
-            <button type="button" onclick="toggleQuickAskExtras()" id="quick-ask-extras-btn" class="text-xs px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
-              + 选章节/贴原文
-            </button>
-            <button type="button" onclick="submitQuickAsk()" class="text-xs px-4 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold shadow transition">
-              立即提问 ↵
-            </button>
-          </div>
+      <!-- 顺着某维度 + 点进来时的半行榜一参考（从中心点进来则隐藏） -->
+      <div id="answer-example-bar" class="hidden text-xs text-slate-400 bg-slate-950/70 border border-slate-800/80 rounded-xl px-3 py-2 leading-relaxed"></div>
+
+      <textarea id="answer-text-input" rows="4" maxlength="220" required
+        oninput="handleAnswerTextInput(this.value)"
+        placeholder="写下你的理解…（比如：用一句话大白话点破 / 补齐书里没明说的背景设定 / 拿生活常识打个比方 / 点出和前后哪段情节呼应）"
+        class="w-full bg-slate-950 border border-slate-800 focus:border-slate-500 rounded-xl p-3.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none leading-relaxed transition"></textarea>
+
+      <div class="flex flex-wrap items-center justify-between gap-2 pt-0.5">
+        <div class="flex items-center gap-2">
+          <input id="answer-author-input" type="text" maxlength="20" placeholder="署名（选填）"
+            class="bg-slate-950 border border-slate-800 focus:border-slate-600 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 placeholder-slate-600 w-28 focus:outline-none">
+          <!-- 低调自动归类提示（默认无需操作，点击可顺手微调） -->
+          <button type="button" id="answer-dim-badge" onclick="cycleAnswerDimOverride()" title="点击可手动切换归类维度"
+            class="text-[11px] px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-600 transition">
+            自动归入：直白真相
+          </button>
         </div>
 
-        <!-- 选填折叠项：选择章节 & 粘贴原书句子 -->
-        <div id="quick-ask-extras" class="hidden pt-2.5 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-          <div>
-            <label class="text-[11px] text-slate-400 block mb-1">所在章节（选填）：</label>
-            <select id="ask-chapter" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
-              <option value="unlocated">暂不选章节（未归类）</option>
-              <option value="ch1">第 1 章 · 序幕与科学边界</option>
-              <option value="ch2">第 2 章 · 面壁计划启动</option>
-              <option value="ch3">第 3 章 · 咒语与末日之战</option>
-              <option value="ch4">第 4 章 · 黑暗森林与雪地威慑</option>
-            </select>
-          </div>
-          <div class="sm:col-span-2">
-            <label class="text-[11px] text-slate-400 block mb-1">附带原书句子（选填，150字内）：</label>
-            <input id="ask-quote" type="text" maxlength="150" placeholder="粘贴让你犯迷糊的那句原话..."
-              class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 2. 章节横滑胶囊栏 -->
-    <nav id="chapter-pills" class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar"></nav>
-
-    <!-- 3. 极简问题卡片流 -->
-    <section id="question-feed" class="space-y-3.5"></section>
-
-  </main>
-
-  <!-- ==================== 页面二：问题详情页（中心带分支卡片树 + 原地展开 + 原地回答） ==================== -->
-  <main id="micro-view" class="hidden flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
-
-    <!-- 详情页顶部操作条 -->
-    <div class="flex items-center justify-between gap-2">
-      <div class="flex items-center gap-2">
-        <button onclick="switchToMacro()" class="text-xs bg-slate-900 hover:bg-slate-800 text-slate-200 px-3.5 py-2 rounded-xl border border-slate-700/80 transition font-semibold flex items-center gap-1">
-          <span>←</span>
-          <span>返回列表</span>
-        </button>
-        <button id="back-prev-node-btn" onclick="goBackPrevNode()" class="hidden text-xs bg-indigo-950/60 hover:bg-indigo-900/70 text-indigo-300 px-3 py-2 rounded-xl border border-indigo-500/40 transition font-semibold flex items-center gap-1">
-          <span>↩</span>
-          <span>返回上一题</span>
+        <button type="submit" class="text-xs bg-slate-100 hover:bg-white text-slate-950 font-semibold px-4 py-2 rounded-xl transition">
+          发送
         </button>
       </div>
-
-      <button onclick="scrollToAnswerBox()" class="text-xs bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1">
-        <span>✏️</span>
-        <span>我来回答</span>
-      </button>
-    </div>
-
-    <!-- 1. 顶部/中心：核心问题卡片 -->
-    <div id="center-node" class="bg-slate-900/95 border border-slate-700/90 rounded-2xl p-5 sm:p-6 shadow-xl"></div>
-
-    <!-- 2. 自然向下生长的已点亮分类框（无回答的分类自动隐形） -->
-    <div id="detail-branches-wrap" class="space-y-4">
-      <div id="detail-branches-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start"></div>
-    </div>
-
-    <!-- 3. 🔗 顺藤摸瓜（关联问题传送门卡片：含串联解说词 + 跳转链接） -->
-    <section id="detail-related-section" class="hidden space-y-2.5 pt-2">
-      <div class="text-xs font-bold text-indigo-300 flex items-center gap-1.5">
-        <span>🔗 顺藤摸瓜（前后关联的问题）</span>
-      </div>
-      <div id="detail-related-list" class="grid grid-cols-1 gap-3"></div>
-    </section>
-
-    <!-- 4. 底部原地回答区（告别弹窗，默认选中「💬 说人话」） -->
-    <section id="inline-answer-section" class="bg-slate-900/95 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-3.5">
-      <!-- 温和浅灰灵感提示（解决 0 回答或少回答空白冷场） -->
-      <div id="answer-inspiration-tip" class="text-xs text-slate-400 leading-relaxed bg-slate-950/60 border border-slate-800/80 rounded-xl px-3.5 py-2.5">
-        💡 试试这样帮大家理清：用大白话翻译 · 补齐隐藏背景 · 拿生活常识打比方 · 串联前后伏笔
-      </div>
-
-      <!-- 分类胶囊单选（默认选中 d1 💬 说人话） -->
-      <div class="flex flex-wrap items-center justify-between gap-2">
-        <div class="flex flex-wrap items-center gap-1.5" id="answer-dim-pills"></div>
-        <span id="char-count" class="text-xs text-slate-500">0 / 150 字</span>
-      </div>
-
-      <!-- 仅当选中「🪜 打比方」时才顺手展示的生活标签选择 -->
-      <div id="answer-metaphor-tags-wrap" class="hidden flex items-center flex-wrap gap-1.5 pt-0.5">
-        <span class="text-[11px] text-slate-400 mr-1">打比方场景（可选）：</span>
-        <div id="tag-selector" class="flex flex-wrap gap-1.5"></div>
-      </div>
-
-      <!-- 仅当选中「🔗 串前后」时展示的关联问题选择 -->
-      <div id="link-selector-wrap" class="hidden space-y-1">
-        <label class="text-xs text-indigo-300 font-medium">🔗 关联书里的另一个问题（选填，方便读者顺藤摸瓜）：</label>
-        <select id="link-node-select" class="w-full bg-slate-950 border border-indigo-500/40 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-400"></select>
-      </div>
-
-      <!-- 原地回答输入框 -->
-      <textarea id="note-input" rows="3" maxlength="150" oninput="updateCharCount()"
-        placeholder="写下你的理解，150字内..."
-        class="w-full bg-slate-950 border border-slate-700/90 rounded-xl p-3.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 transition"></textarea>
-
-      <div class="flex items-center justify-between gap-2">
-        <input id="author-input" type="text" placeholder="你的署名（选填，如：野生读者）"
-          class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 w-48 sm:w-56 focus:outline-none focus:border-amber-500">
-        <button onclick="submitNote()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-5 py-2.5 rounded-xl shadow transition">
-          发送回答
-        </button>
-      </div>
-    </section>
-
-  </main>
+    </form>
+  </dialog>
 
   <!-- ==================== 跨设备云端同步与数据备份弹窗（从顶栏 ··· 唤起） ==================== -->
   <div id="sync-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
@@ -365,143 +471,51 @@
       "🍳 做饭/生活", "🎮 游戏/娱乐", "💼 职场/商业", "💻 编程/科技", "🔬 科学/考据", "🎨 脑洞/直觉"
     ];
 
-    // 大白话四分类（彻底去除自造黑话）
+    // 四维角度定义（纯文字无花哨符号，砍掉多余标签）
     const DIMENSIONS = {
       d1: {
-        short: "💬 说人话",
-        bestLabel: "💬 最佳解释",
-        addLabel: "+ 我也用大白话讲讲",
-        title: "💬 说人话",
-        prompt: "用大白话直接说明白这段到底在讲什么..."
+        title: "直白真相",
+        prompt: "用一句话大白话点破这段到底在讲什么…"
       },
       d2: {
-        short: "🔦 补背景",
-        bestLabel: "🔦 最佳背景补充",
-        addLabel: "+ 我也补个背景",
-        title: "🔦 补背景",
-        prompt: "补齐作者默认你知道但没明说的科学前提、历史典故或人物动机..."
+        title: "幕后潜台词",
+        prompt: "补齐书里没明说的科学前提、背景设定或人物动机…"
       },
       d3: {
-        short: "🪜 打比方",
-        bestLabel: "💡 最佳打比方",
-        addLabel: "+ 我也打个比方",
-        title: "🪜 打比方",
-        prompt: "用做饭、打游戏、职场等日常生活常识打个比方，让人一秒听懂..."
+        title: "接地气比方",
+        prompt: "拿日常生活常识打个比方，让人一秒听懂…"
       },
       d4: {
-        short: "🔗 串前后",
-        bestLabel: "🔗 最佳前后关联",
-        addLabel: "+ 我来串个前后伏笔",
-        title: "🔗 串前后",
-        prompt: "写下这里填了前面哪里的坑，或者和后面哪个情节互相呼应..."
+        title: "前后文伏笔",
+        prompt: "点出这里填了前面哪里的坑，或和后面哪段情节呼应…"
       }
     };
 
-    // 初始演示数据
+    // 初始演示数据（含多维度榜一与第2、3名折叠块演示数据，以及问题间直接逻辑连线）
     const defaultData = [
-      {
-        id: "node-blind-1",
-        chapterId: "unlocated",
-        quote: "",
-        confusion: "三体人既然能造出锁死地球科学的智子，为什么不直接用智子暗杀罗辑，还要大费周章派水滴和ETO去杀他？",
-        sameAskCount: 312,
-        branches: {
-          d1: [
-            { id: 901, author: "微观物理课代表", coAuthors: [], tag: "🔬 科学/考据", text: "智子本质上只是两颗被二维展开后刻了电路的「质子」。它的质量只有10的负27次方克，撞在人身上连灰尘都不如，只能挡挡对撞机里的粒子或往视网膜投个影，根本没有宏观物理杀伤力。", votes: 142, downvotes: 0 }
-          ],
-          d2: [],
-          d3: [
-            { id: 902, author: "数码发烧友", coAuthors: [], tag: "💻 编程/科技", text: "智子就像一只自带4K激光投影仪的纳米蚊子——它能在你眼前晃出恐怖片字幕把你逼疯，但你让它去搬一块砖头砸死人，它根本使不上劲。", votes: 89, downvotes: 0 }
-          ],
-          d4: []
-        }
-      },
-      {
-        id: "node-blind-2",
-        chapterId: "unlocated",
-        quote: "",
-        confusion: "章北海明明是个坚定的胜利主义军人，为什么他一到太空就毫不犹豫开枪把老航天员全暗杀了？",
-        sameAskCount: 164,
-        branches: {
-          d1: [],
-          d2: [
-            { id: 903, author: "星舰史官", coAuthors: [], tag: "💼 职场/商业", text: "老航天派坚持研发「工质飞船（化学燃料）」，而星际逃亡必须用「无工质辐射驱动飞船」。不杀掉那几位泰斗，人类飞船永远飞不出太阳系，章北海是用恶魔手段为人类保住火种。", votes: 76, downvotes: 0 }
-          ],
-          d3: [],
-          d4: []
-        }
-      },
-      {
-        id: "node-ch1-1",
-        chapterId: "ch1",
-        quote: "一只褐蚁在墓碑上攀爬，搜寻着地面上的食物残渣，它对旁边刚刚发生的改变宇宙命运的对话一无所知。",
-        confusion: "开篇花了整整好几页写一只蚂蚁在墓碑上爬，这段描写跟主线有什么关系？",
-        sameAskCount: 128,
-        branches: {
-          d1: [],
-          d2: [
-            { id: 111, author: "文学拉片员", coAuthors: [], tag: "🎨 脑洞/直觉", text: "褐蚁在墓碑笔画的沟壑里爬行，只能看到眼前的局部线条，看不见整个墓志铭的文字——隐喻人类在更高维的宇宙规律面前，就像这只蚂蚁一样盲目。", votes: 63, downvotes: 0 }
-          ],
-          d3: [],
-          d4: [
-            { id: 112, author: "草蛇灰线控", coAuthors: [], tag: "🔬 科学/考据", text: "极致的对称闭环！全书第一页是叶文洁与罗辑在墓地旁对话，褐蚁在爬；全书最后一页是罗辑在同一个墓地用摇篮威慑三体，低头又看到了褐蚁。", votes: 91, downvotes: 0, linkTo: "node-ch4-2" }
-          ]
-        }
-      },
-      {
-        id: "node-ch2-1",
-        chapterId: "ch2",
-        quote: "面壁计划的核心在于：三体人虽然能通过智子监控人类的一切语言、文字和电脑数据，但唯独看不透人类的思维本身。",
-        confusion: "既然面壁者不能把真实计划写下来、也不能跟任何人说，那他怎么指挥下属去干活？下属岂不是全被蒙在鼓里？",
-        sameAskCount: 195,
-        branches: {
-          d1: [
-            { id: 211, author: "博弈论玩家", coAuthors: [], tag: "💼 职场/商业", text: "面壁者下达的每一个指令都是「真假掺半」的。比如表面上让下属造核弹去炸木星，实际上真正的战略意图藏在造核弹顺带研发的某种材料里。", votes: 54, downvotes: 0 }
-          ],
-          d2: [],
-          d3: [
-            { id: 212, author: "古装剧十级学者", coAuthors: [], tag: "🎮 游戏/娱乐", text: "就像诸葛亮让士兵每天去山上砍竹子扎稻草人，士兵和奸细都以为丞相疯了，直到大雾天把草船开到曹营借箭，大家才明白当初扎草人是干嘛的。", votes: 112, downvotes: 0 }
-          ],
-          d4: []
-        }
-      },
-      {
-        id: "node-ch3-1",
-        chapterId: "ch3",
-        quote: "水滴在三分钟内贯穿了联合舰队的一百艘恒星级战舰，它甚至没有发射任何能量武器，仅仅依靠最原始的撞击。",
-        confusion: "人类的恒星级战舰都能飞出15%光速了，为什么连一颗几米长的实心铁疙瘩都打不穿，反而像纸糊的一样被撞碎？",
-        sameAskCount: 276,
-        branches: {
-          d1: [],
-          d2: [
-            { id: 311, author: "材料学博士生", coAuthors: [], tag: "🔬 科学/考据", text: "人类战舰的装甲是由普通金属原子靠「电磁力」结合的；而水滴表面被力场锁死，原子间靠「强相互作用力」紧紧钉死，强度比太阳系任何物质高出一百倍，温度处于绝对零度。", votes: 134, downvotes: 0 }
-          ],
-          d3: [
-            { id: 312, author: "厨房破坏王", coAuthors: [], tag: "🍳 做饭/生活", text: "人类的战舰相当于是用「米饭粒」粘起来的航母模型，虽然看着巨大威猛；但水滴是一颗烧红的「实心钢珠」——钢珠穿米饭团，来一万个也是瞬间打穿。", votes: 188, downvotes: 0 }
-          ],
-          d4: []
-        }
-      },
       {
         id: "node-ch4-1",
         chapterId: "ch4",
         quote: "即使两个文明都是善意的，只要没有交流，猜疑链就会无限延伸，最终导致黑暗森林打击。",
         confusion: "既然两个外星文明都是善良的，为什么见面不能先打个招呼试探一下，非要直接开枪毁灭对方？",
         sameAskCount: 420,
+        links: ["node-ch4-2", "node-ch1-1", "node-ch4-3"],
         branches: {
           d1: [
-            { id: 401, author: "逻辑课代表", coAuthors: [], tag: "🔬 科学/考据", text: "哪怕我知道你是好人，你也知道我是好人，但我不知道「你相不相信我是好人」。为了防止你因为害怕我而先开枪，我只能抢先开枪。", votes: 82, downvotes: 0 },
-            { id: 402, author: "太空水手", coAuthors: [], tag: "💼 职场/商业", text: "善良在生存面前不值一提，猜疑链的本质是「信息不透明导致的博弈死局」，跟文明本身的道德水平毫无关系。", votes: 61, downvotes: 0 },
-            { id: 499, author: "鸡汤大师", coAuthors: [], tag: "🎨 脑洞/直觉", text: "太深刻了！人生也是这样，人与人之间总是充满猜忌，我们要多一点真诚少一点套路！打卡！", votes: 1, downvotes: 3 }
+            { id: 401, author: "逻辑课代表", text: "哪怕我知道你是好人，你也知道我是好人，但我不知道「你相不相信我是好人」。为了防止你因为害怕我而先开枪，我只能抢先开枪。", votes: 182, downvotes: 0 },
+            { id: 402, author: "太空水手", text: "善良在生存面前不值一提，猜疑链的本质是「信息不透明导致的博弈死局」，跟文明本身的道德水平毫无关系。", votes: 61, downvotes: 0 },
+            { id: 406, author: "夜航船", text: "在宇宙尺度上，打招呼等于同时递出自己的家庭住址和脖子，没人敢赌对方收到地址后是寄贺卡还是寄导弹。", votes: 39, downvotes: 0 }
           ],
           d2: [
-            { id: 403, author: "天体物理民工", coAuthors: [], tag: "🔬 科学/考据", text: "作者隐去了两个地球上没有的致命前提：1.宇宙通讯动辄耗时几百年；2.等你的「你好」传过去，对方可能已经发生「技术爆炸」造出灭世武器了。", votes: 115, downvotes: 0 }
+            { id: 403, author: "天体物理民工", text: "作者隐去了两个地球上没有的致命前提：一是宇宙通讯动辄耗时几百年；二是等你的「你好」传过去，对方可能已经发生「技术爆炸」造出灭世武器了。", votes: 115, downvotes: 0 },
+            { id: 407, author: "冬眠观察者", text: "宇宙总质量守恒但文明呈指数膨胀，长期看所有文明都是有限资源的潜在争夺者。", votes: 44, downvotes: 0 }
           ],
           d3: [
-            { id: 404, author: "吃鸡老玩家", coAuthors: ["战术大师"], tag: "🎮 游戏/娱乐", text: "就像决赛圈两个穿吉利服的人突然脸贴脸撞上，耳机还坏了没法开麦。哪怕你俩平时都是大善人，第一反应绝对是按死左键扫射，因为赌不起对方不开枪。", votes: 210, downvotes: 1 }
+            { id: 404, author: "吃鸡老玩家", text: "就像决赛圈两个穿吉利服的人突然脸贴脸撞上，耳机还坏了没法开麦。哪怕你俩平时都是大善人，第一反应绝对是按死左键扫射，因为赌不起对方不开枪。", votes: 210, downvotes: 0 },
+            { id: 408, author: "西部片迷", text: "好比两个蒙面牛仔在伸手不见五指的窄巷里撞见，谁先掏手电筒照对方，谁就先变成活靶子。", votes: 73, downvotes: 0 }
           ],
           d4: [
-            { id: 405, author: "面壁者罗辑", coAuthors: [], tag: "🔬 科学/考据", text: "这是全书最核心的底座！想通了「不是因为坏，而是因为怕」，就能看懂大结局里罗辑为什么能靠自杀式广播逼退三体舰队。", votes: 94, downvotes: 0, linkTo: "node-ch4-2" }
+            { id: 405, author: "面壁者罗辑", text: "这是全书最核心的底座。想通了「不是因为坏，而是因为怕」，就能看懂大结局里罗辑为什么能靠自杀式广播逼退三体舰队。", votes: 94, downvotes: 0, linkTo: "node-ch4-2" }
           ]
         }
       },
@@ -511,17 +525,110 @@
         quote: "罗辑举起手枪对准自己的心脏：如果我死，摇篮系统就会向宇宙广播三体星系的坐标。",
         confusion: "罗辑明明只有孤身一人，为什么三体人造出能摧毁千艘战舰的水滴，却被他一把老式手枪吓退了？",
         sameAskCount: 289,
+        links: ["node-ch4-1", "node-ch1-1", "node-blind-1"],
         branches: {
           d1: [
-            { id: 421, author: "逻辑观察员", coAuthors: [], tag: "🔬 科学/考据", text: "罗辑把自己的心跳绑在了「同归于尽发射器」上。三体人杀他很容易，但杀他的瞬间三体老家也会暴露并被宇宙第三方神级文明顺手碾碎。", votes: 73, downvotes: 0 }
+            { id: 421, author: "逻辑观察员", text: "罗辑把自己的心跳绑在了「同归于尽发射器」上。三体人杀他很容易，但杀他的瞬间三体老家也会暴露并被宇宙第三方高等文明顺手碾碎。", votes: 138, downvotes: 0 },
+            { id: 424, author: "雪地工程兵", text: "水滴能摧毁战舰，却来不及同时拔掉遍布太阳系边缘的几千颗核弹油膜信标。", votes: 52, downvotes: 0 }
           ],
-          d2: [],
+          d2: [
+            { id: 425, author: "威慑纪元史官", text: "三体舰队前锋已经切掉太阳的电磁放大功能，以为人类彻底失去了广播能力，没想到罗辑用三千颗氢弹包裹油膜在太阳轨道摆出了摩斯密码。", votes: 96, downvotes: 0 }
+          ],
           d3: [
-            { id: 422, author: "房东老王", coAuthors: [], tag: "🍳 做饭/生活", text: "恶霸拿着大砍刀闯进你家，打架你肯定秒躺，但你手里捏着打火机坐在煤气罐上——恶霸再猛也得跪下听你谈条件。", votes: 156, downvotes: 0 }
+            { id: 422, author: "房东老王", text: "恶霸拿着大砍刀闯进你家，打架你肯定秒躺，但你手里捏着打火机坐在煤气罐上——恶霸再猛也得跪下听你谈条件。", votes: 156, downvotes: 0 },
+            { id: 426, author: "博弈课代表", text: "就像劫匪拿枪指着你，你直接拔掉手榴弹保险栓握在手里：谁松手谁先死，主动权瞬间易手。", votes: 64, downvotes: 0 }
           ],
           d4: [
-            { id: 423, author: "执剑人观察员", coAuthors: [], tag: "🔬 科学/考据", text: "不仅实战应用了「猜疑链」，还首尾呼应了全书开篇第1章叶文洁在墓地给罗辑的启示！", votes: 68, downvotes: 0, linkTo: "node-ch4-1" }
+            { id: 423, author: "执剑人观察员", text: "前面全书几百页罗辑假装荒唐享乐、在木星背后偷偷炸核弹造油膜，全都是为了在墓地掏出手枪这一秒钟的底牌。", votes: 88, downvotes: 0, linkTo: "node-ch2-1" }
           ]
+        }
+      },
+      {
+        id: "node-blind-1",
+        chapterId: "unlocated",
+        quote: "",
+        confusion: "三体人既然能造出锁死地球科学的智子，为什么不直接用智子暗杀罗辑，还要大费周章派水滴和ETO去杀他？",
+        sameAskCount: 312,
+        links: ["node-ch4-2", "node-ch3-1", "node-ch2-1"],
+        branches: {
+          d1: [
+            { id: 901, author: "微观物理课代表", text: "智子本质上只是两颗被二维展开后刻了电路的「质子」。它的质量只有10的负27次方克，撞在人身上连灰尘都不如，只能挡挡对撞机里的粒子或往视网膜投个影，根本没有宏观物理杀伤力。", votes: 142, downvotes: 0 },
+            { id: 904, author: "高能物理狗", text: "一颗质子就算加速到接近光速，动能也顶多相当于蚊子扇一下翅膀，穿过人体连一个细胞都撞不坏。", votes: 58, downvotes: 0 }
+          ],
+          d2: [
+            { id: 905, author: "三体监听员", text: "智子一旦展开成二维巨膜虽然能遮天蔽日，但薄如蝉翼毫无强度，地球上一阵微风或一发防空导弹就能把它彻底撕碎，所以它不敢在地球大气层展开。", votes: 95, downvotes: 0 }
+          ],
+          d3: [
+            { id: 902, author: "数码发烧友", text: "智子就像一只自带4K激光投影仪的纳米蚊子——它能在你眼前晃出恐怖片字幕把你逼疯，但你让它去搬一块砖头砸死人，它根本使不上劲。", votes: 89, downvotes: 0 }
+          ],
+          d4: [
+            { id: 906, author: "破壁人三号", text: "正因为智子只能「偷看」不能「动手」，三体人才不得不扶植地球叛军 ETO 制造车祸和基因武器去刺杀罗辑。", votes: 67, downvotes: 0, linkTo: "node-ch2-1" }
+          ]
+        }
+      },
+      {
+        id: "node-ch3-1",
+        chapterId: "ch3",
+        quote: "水滴在三分钟内贯穿了联合舰队的一百艘恒星级战舰，它甚至没有发射任何能量武器，仅仅依靠最原始的撞击。",
+        confusion: "人类的恒星级战舰都能飞出15%光速了，为什么连一颗几米长的实心铁疙瘩都打不穿，反而像纸糊的一样被撞碎？",
+        sameAskCount: 276,
+        links: ["node-blind-1", "node-blind-2", "node-ch4-3"],
+        branches: {
+          d1: [
+            { id: 313, author: "舰队参谋", text: "人类以为自己造出了星际战舰，其实材料还停留在电磁力时代；水滴是强相互作用力材料，硬度根本不在同一个物理维度上。", votes: 112, downvotes: 0 }
+          ],
+          d2: [
+            { id: 311, author: "材料学博士生", text: "人类战舰的装甲是由普通金属原子靠「电磁力」结合的；而水滴表面被力场锁死，原子间靠「强相互作用力」紧紧钉死，强度比太阳系任何物质高出一百倍，温度处于绝对零度。", votes: 134, downvotes: 0 },
+            { id: 314, author: "丁仪助教", text: "智子锁死了高能物理，导致人类两百年间只会把发动机和舰体越造越大，基础材料科学其实原地踏步。", votes: 79, downvotes: 0 }
+          ],
+          d3: [
+            { id: 312, author: "厨房破坏王", text: "人类的战舰相当于是用「米饭粒」粘起来的航母模型，虽然看着巨大威猛；但水滴是一颗烧红的「实心钢珠」——钢珠穿米饭团，来一万个也是瞬间打穿。", votes: 188, downvotes: 0 }
+          ],
+          d4: [
+            { id: 315, author: "自然选择号", text: "正因为丁仪在抚摸水滴瞬间看穿了这层绝望代差，才大喊「傻孩子们，快跑」，直接引出了后面逃亡舰队的黑暗战役。", votes: 92, downvotes: 0, linkTo: "node-ch4-3" }
+          ]
+        }
+      },
+      {
+        id: "node-ch2-1",
+        chapterId: "ch2",
+        quote: "面壁计划的核心在于：三体人虽然能通过智子监控人类的一切语言、文字和电脑数据，但唯独看不透人类的思维本身。",
+        confusion: "既然面壁者不能把真实计划写下来、也不能跟任何人说，那他怎么指挥下属去干活？下属岂不是全被蒙在鼓里？",
+        sameAskCount: 195,
+        links: ["node-blind-1", "node-ch4-2"],
+        branches: {
+          d1: [
+            { id: 211, author: "博弈论玩家", text: "面壁者下达的每一个指令都是「真假掺半」的。比如表面上让下属造核弹去炸木星，实际上真正的战略意图藏在造核弹顺带研发的某种油膜材料里。", votes: 84, downvotes: 0 }
+          ],
+          d2: [
+            { id: 213, author: "PDC秘书", text: "联合国赋予了面壁者「无需解释即可调动战略资源」的最高特权，哪怕计划听起来再荒诞，下属也必须无条件执行。", votes: 62, downvotes: 0 }
+          ],
+          d3: [
+            { id: 212, author: "古装剧十级学者", text: "就像诸葛亮让士兵每天去山上砍竹子扎稻草人，士兵和奸细都以为丞相疯了，直到大雾天把草船开到曹营借箭，大家才明白当初扎草人是干嘛的。", votes: 112, downvotes: 0 }
+          ],
+          d4: [
+            { id: 214, author: "观星者", text: "雷迪亚兹假装造巨型氢弹防御水星，罗辑假装绘测星图——所有面壁者的表面工程全是障眼法，最终只有罗辑的障眼法瞒过了智子。", votes: 71, downvotes: 0, linkTo: "node-ch4-2" }
+          ]
+        }
+      },
+      {
+        id: "node-blind-2",
+        chapterId: "unlocated",
+        quote: "",
+        confusion: "章北海明明是个坚定的胜利主义军人，为什么他一到太空就毫不犹豫开枪把老航天员全暗杀了？",
+        sameAskCount: 164,
+        links: ["node-ch3-1", "node-ch4-3"],
+        branches: {
+          d1: [
+            { id: 907, author: "增援未来", text: "他表面上是必胜派，骨子里是最冷静的「失败主义逃亡派」。他知道太阳系守不住，必须逼人类造出能飞向深空的无工质飞船。", votes: 91, downvotes: 0 }
+          ],
+          d2: [
+            { id: 903, author: "星舰史官", text: "老航天派坚持研发「工质飞船（化学燃料）」，而星际逃亡必须用「无工质辐射驱动飞船」。不杀掉那几位泰斗，人类飞船永远飞不出太阳系，章北海是用恶魔手段为人类保住火种。", votes: 76, downvotes: 0 }
+          ],
+          d3: [
+            { id: 908, author: "航海家", text: "就像泰坦尼克号还没撞冰山前，全船长官都在忙着给船舱刷金漆，只有他偷偷把救生艇的木桨换成了柴油机。", votes: 68, downvotes: 0 }
+          ],
+          d4: []
         }
       },
       {
@@ -530,13 +637,38 @@
         quote: "黑暗战役爆发：星舰地球的战舰为了夺取其它战舰的核聚变燃料和零件，向昔日的战友发射了次声波氢弹。",
         confusion: "为什么逃亡的太空军不等到燃料耗尽再想办法，刚脱离太阳系没多久就立刻互相残杀？",
         sameAskCount: 150,
+        links: ["node-ch4-1", "node-ch3-1", "node-blind-2"],
         branches: {
-          d1: [],
+          d1: [
+            { id: 432, author: "深空舰长", text: "因为一旦进入深空加速巡航，战舰之间距离拉开就再也没法搜集残骸了；只有在刚启航还没拉开距离时动手，才能把别人的燃料和配件完整拆过来。", votes: 77, downvotes: 0 }
+          ],
           d2: [],
           d3: [
-            { id: 431, author: "荒岛求生狂", coAuthors: [], tag: "🍳 做饭/生活", text: "五个人困在救生艇上，剩下的淡水只够一个人活命。谁都知道迟早要动手，如果等大家都渴得没力气再抢就晚了，所以第一天晚上就会爆发流血冲突。", votes: 84, downvotes: 0 }
+            { id: 431, author: "荒岛求生狂", text: "五个人困在救生艇上，剩下的淡水只够一个人活命。谁都知道迟早要动手，如果等大家都渴得没力气再抢就晚了，所以第一天晚上就会爆发流血冲突。", votes: 84, downvotes: 0 }
           ],
-          d4: []
+          d4: [
+            { id: 433, author: "罗辑注视者", text: "黑暗战役是「宇宙黑暗森林法则」在人类舰队内部的第一次残酷预演：离开地球仅仅几天，人类战舰就已经异化成了宇宙新文明。", votes: 65, downvotes: 0, linkTo: "node-ch4-1" }
+          ]
+        }
+      },
+      {
+        id: "node-ch1-1",
+        chapterId: "ch1",
+        quote: "一只褐蚁在墓碑上攀爬，搜寻着地面上的食物残渣，它对旁边刚刚发生的改变宇宙命运的对话一无所知。",
+        confusion: "开篇花了整整好几页写一只蚂蚁在墓碑上爬，这段描写跟主线有什么关系？",
+        sameAskCount: 128,
+        links: ["node-ch4-1", "node-ch4-2"],
+        branches: {
+          d1: [
+            { id: 113, author: "读书笔记人", text: "用蚂蚁的视角烘托叶文洁向罗辑传授「宇宙社会学公理」这一历史瞬间：神明在头顶交换改天换地的秘密，脚下的弱小生物却毫无察觉。", votes: 59, downvotes: 0 }
+          ],
+          d2: [
+            { id: 111, author: "文学拉片员", text: "褐蚁在墓碑笔画的沟壑里爬行，只能看到眼前的局部线条，看不见整个墓志铭的文字——隐喻人类在更高维的宇宙规律面前，就像这只蚂蚁一样盲目。", votes: 63, downvotes: 0 }
+          ],
+          d3: [],
+          d4: [
+            { id: 112, author: "草蛇灰线控", text: "极致的对称闭环！全书第一页是叶文洁与罗辑在墓地旁对话，褐蚁在爬；全书最后一页是罗辑在同一个墓地用摇篮威慑三体，低头又看到了褐蚁。", votes: 91, downvotes: 0, linkTo: "node-ch4-2" }
+          ]
         }
       }
     ];
@@ -562,6 +694,555 @@
     // 本地已同问 / 已赞同即时状态（支持点击高亮 +1，再次点击取消）
     let likedQuestions = JSON.parse(localStorage.getItem("bookgraph_liked_questions") || "{}");
     let likedNotes = JSON.parse(localStorage.getItem("bookgraph_liked_notes") || "{}");
+
+    // 自动补齐旧缓存缺失的演示连线与四维/手风琴回答（保留用户新增内容）
+    function upgradeAndNormalizeData(list) {
+      if (!Array.isArray(list)) return JSON.parse(JSON.stringify(defaultData));
+      const byId = new Map(list.map(n => [n.id, n]));
+      defaultData.forEach(defNode => {
+        const cur = byId.get(defNode.id);
+        if (!cur) {
+          list.push(JSON.parse(JSON.stringify(defNode)));
+          return;
+        }
+        cur.links = Array.from(new Set([...(cur.links || []), ...(defNode.links || [])]));
+        cur.branches = cur.branches || { d1: [], d2: [], d3: [], d4: [] };
+        ["d1", "d2", "d3", "d4"].forEach(k => {
+          cur.branches[k] = cur.branches[k] || [];
+          const existingIds = new Set(cur.branches[k].map(x => x.id));
+          (defNode.branches[k] || []).forEach(dn => {
+            if (!existingIds.has(dn.id)) cur.branches[k].push(JSON.parse(JSON.stringify(dn)));
+          });
+        });
+      });
+      return list;
+    }
+    appData = upgradeAndNormalizeData(appData);
+
+    // ==================== 单点聚焦四维脑图状态与坐标计算 ====================
+    let subFocusTarget = null; // null | { type: 'dim' | 'acc', dimKey, noteId }
+    let expandedAccNotes = {}; // { "dimKey_noteId": true }
+
+    // 四个维度的四角辐射偏移（相对于中心问题坐标 cx, cy）
+    const DIM_SLOTS = {
+      d1: { dx: -330, dy: -155, side: "left" },
+      d2: { dx:  330, dy: -155, side: "right" },
+      d3: { dx: -330, dy:  155, side: "left" },
+      d4: { dx:  330, dy:  155, side: "right" }
+    };
+
+    function getDimSlot(dimKey, litDims) {
+      // 若只有 1 或 2 个维度有回答，保持左右对称舒展
+      if (litDims.length === 1) {
+        return { dx: 330, dy: 0, side: "right" };
+      }
+      if (litDims.length === 2) {
+        const idx = litDims.indexOf(dimKey);
+        return idx === 0
+          ? { dx: -330, dy: 0, side: "left" }
+          : { dx:  330, dy: 0, side: "right" };
+      }
+      return DIM_SLOTS[dimKey] || { dx: 330, dy: 0, side: "right" };
+    }
+
+    // 计算聚焦态下边缘“关联问题小节点”的环绕位置（放在上下边缘走廊，避免与左右四维框重叠）
+    function getFocusedNeighborPos(cx, cy, neighborId, neighborList) {
+      const idx = neighborList.indexOf(neighborId);
+      const count = neighborList.length;
+      if (idx === -1) return nodePositions[neighborId] || { x: cx, y: cy - 300 };
+      // 交替排布在上方与下方外缘
+      const isTop = idx % 2 === 0;
+      const rowIdx = Math.floor(idx / 2);
+      const rowTotal = Math.ceil(( isTop ? count : count - 1 ) / 2);
+      const spreadX = (rowIdx - (rowTotal - 1) / 2) * 190;
+      const py = isTop ? cy - 295 : cy + 295;
+      return { x: cx + spreadX, y: py };
+    }
+
+    function updateFocusNavBar() {
+      const bar = document.getElementById("focus-nav-bar");
+      const hint = document.getElementById("map-hint");
+      if (!bar) return;
+      if (!focusedNodeId) {
+        bar.classList.add("hidden");
+        if (hint) hint.textContent = "拖动平移 · 滚轮或双指缩放 · 点击圆点聚焦";
+        return;
+      }
+      bar.classList.remove("hidden");
+      const backCenterBtn = document.getElementById("btn-back-center");
+      if (backCenterBtn) {
+        backCenterBtn.classList.toggle("hidden", !subFocusTarget);
+      }
+      if (hint) {
+        hint.textContent = subFocusTarget
+          ? "点击空白处回到问题中心 · 再次点击空白处返回全局星图"
+          : "点击维度框或外侧折叠条自动移镜 · 点击空白处返回星图";
+      }
+    }
+
+    function renderMindmap() {
+      const mmLayer = document.getElementById("mindmap-layer");
+      const mmLinks = document.getElementById("mindmap-links");
+      if (!mmLayer || !mmLinks) return;
+
+      // 先恢复所有星图圆点的默认世界坐标与连线坐标
+      document.querySelectorAll("#nodes-layer .star").forEach(el => {
+        const p = nodePositions[el.dataset.id];
+        if (p) {
+          el.style.left = `${p.x}px`;
+          el.style.top = `${p.y}px`;
+        }
+      });
+      document.querySelectorAll("#links-layer .link").forEach(el => {
+        const a = nodePositions[el.dataset.a], b = nodePositions[el.dataset.b];
+        if (a && b) {
+          el.setAttribute("x1", a.x); el.setAttribute("y1", a.y);
+          el.setAttribute("x2", b.x); el.setAttribute("y2", b.y);
+        }
+      });
+
+      if (!focusedNodeId) {
+        mmLayer.innerHTML = "";
+        mmLinks.innerHTML = "";
+        updateFocusNavBar();
+        return;
+      }
+
+      const node = getNodeById(focusedNodeId);
+      const centerPos = nodePositions[focusedNodeId];
+      if (!node || !centerPos) {
+        mmLayer.innerHTML = "";
+        mmLinks.innerHTML = "";
+        updateFocusNavBar();
+        return;
+      }
+
+      const cx = centerPos.x, cy = centerPos.y;
+
+      // 1. 将与当前问题有连线的“关联问题小节点”移到上下边缘，并更新连接线直接连向中心问题
+      const neighborList = Array.from(getNeighborIds(focusedNodeId));
+      const neighborPosMap = {};
+      neighborList.forEach(nid => {
+        neighborPosMap[nid] = getFocusedNeighborPos(cx, cy, nid, neighborList);
+      });
+
+      document.querySelectorAll("#nodes-layer .star.is-neighbor").forEach(el => {
+        const np = neighborPosMap[el.dataset.id];
+        if (np) {
+          el.style.left = `${np.x}px`;
+          el.style.top = `${np.y}px`;
+        }
+      });
+
+      document.querySelectorAll("#links-layer .link.is-active").forEach(el => {
+        const aId = el.dataset.a, bId = el.dataset.b;
+        const pa = aId === focusedNodeId ? { x: cx, y: cy } : (neighborPosMap[aId] || nodePositions[aId]);
+        const pb = bId === focusedNodeId ? { x: cx, y: cy } : (neighborPosMap[bId] || nodePositions[bId]);
+        if (pa && pb) {
+          el.setAttribute("x1", pa.x); el.setAttribute("y1", pa.y);
+          el.setAttribute("x2", pb.x); el.setAttribute("y2", pb.y);
+        }
+      });
+
+      // 2. 筛选已有回答的维度（仅显示已有回答的维度）
+      const litDims = ["d1", "d2", "d3", "d4"].filter(k => getActiveNotes(node, k).length > 0);
+
+      // 3. 绘制中心问题到四个维度框的平滑辐射连线
+      const branchPaths = [];
+      litDims.forEach(dimKey => {
+        const slot = getDimSlot(dimKey, litDims);
+        const tx = cx + slot.dx, ty = cy + slot.dy;
+        const c1x = cx + slot.dx * 0.45, c1y = cy;
+        const c2x = cx + slot.dx * 0.55, c2y = ty;
+        branchPaths.push(`<path class="mm-branch-line" d="M ${cx} ${cy} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${tx} ${ty}" />`);
+      });
+      mmLinks.innerHTML = branchPaths.join("");
+
+      // 4. 渲染中心问题卡 + 四周辐射维度框 + 榜一框外侧短线挂接的竖向手风琴折叠块
+      const qLiked = isQuestionLiked(node.id);
+      const centerHtml = `
+        <div class="focus-center-card" onclick="onCenterCardClick(event)">
+          <div class="text-[15px] font-semibold text-white leading-snug">
+            ${escapeHtml(node.confusion)}
+          </div>
+          ${node.quote ? `
+            <div class="text-xs text-slate-400 mt-2 leading-relaxed border-l border-slate-700 pl-2.5">
+              ${escapeHtml(node.quote)}
+            </div>
+          ` : ""}
+          <div class="flex items-center justify-between gap-2 mt-3.5 pt-2.5 border-t border-slate-800/90 text-[11px] text-slate-400">
+            <button type="button" onclick="toggleSameAsk('${node.id}', event)"
+              class="px-2.5 py-1 rounded-lg border transition ${qLiked
+                ? 'bg-slate-200 text-slate-950 border-slate-200 font-semibold'
+                : 'bg-slate-900/90 hover:bg-slate-800 text-slate-300 border-slate-800'}">
+              同问 ${node.sameAskCount || 0}
+            </button>
+            <button type="button" onclick="openAnswerDialog(null, event)"
+              class="px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700/80 transition">
+              写回答
+            </button>
+          </div>
+        </div>
+      `;
+
+      const dimsHtml = litDims.map(dimKey => {
+        const meta = DIMENSIONS[dimKey];
+        const activeNotes = getActiveNotes(node, dimKey);
+        const king = activeNotes[0];
+        const others = activeNotes.slice(1);
+        const slot = getDimSlot(dimKey, litDims);
+        const tx = cx + slot.dx, ty = cy + slot.dy;
+        const kingLiked = isNoteLiked(king.id);
+        const isDimSubfocused = subFocusTarget?.type === "dim" && subFocusTarget?.dimKey === dimKey;
+
+        // 外侧竖向手风琴折叠块（如果该维度下还有第 2、3、4 名等其余答案）
+        let outerAccordionHtml = "";
+        if (others.length > 0) {
+          const stripsHtml = others.map((n, idx) => {
+            const key = `${dimKey}_${n.id}`;
+            const isOpen = Boolean(expandedAccNotes[key]);
+            const nLiked = isNoteLiked(n.id);
+            if (!isOpen) {
+              return `
+                <div class="acc-strip" onclick="onAccStripClick('${dimKey}', ${n.id}, event)" title="点击展开完整回答">
+                  <div class="flex items-center justify-between gap-2 text-xs">
+                    <span class="text-slate-300 truncate">${escapeHtml(n.text)}</span>
+                    <span class="text-[11px] text-slate-500 shrink-0">▲ ${n.votes || 0}</span>
+                  </div>
+                </div>
+              `;
+            }
+            return `
+              <div class="acc-strip is-open" onclick="onAccStripClick('${dimKey}', ${n.id}, event)">
+                <div class="text-[13px] text-slate-100 leading-relaxed">
+                  ${escapeHtml(n.text)}
+                </div>
+                <div class="flex items-center justify-between gap-2 mt-2.5 pt-2 border-t border-slate-800/80 text-[11px] text-slate-500">
+                  <span class="truncate">${escapeHtml(n.author || "书友")}</span>
+                  <button type="button" onclick="toggleVoteNote('${dimKey}', ${n.id}, event)"
+                    class="px-2 py-0.5 rounded border transition ${nLiked
+                      ? 'text-white border-slate-500 bg-slate-800'
+                      : 'text-slate-400 border-slate-800 hover:text-slate-200'}">
+                    ▲ ${n.votes || 0}
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join("");
+
+          outerAccordionHtml = `
+            <div class="dim-outer-wrap is-${slot.side}">
+              <div class="dim-short-line"></div>
+              <div class="dim-acc-col">
+                ${stripsHtml}
+              </div>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="dim-anchor" style="left:${tx}px; top:${ty}px;">
+            <div class="dim-king-card ${isDimSubfocused ? 'is-subfocused' : ''}" onclick="onDimCardClick('${dimKey}', event)">
+              <div class="flex items-center justify-between gap-2 mb-2">
+                <span class="text-xs font-medium tracking-wide text-slate-400">${escapeHtml(meta.title)}</span>
+                <button type="button" onclick="openAnswerDialog('${dimKey}', event)" title="补充一条${escapeHtml(meta.title)}"
+                  class="text-xs w-5 h-5 rounded-md text-slate-500 hover:text-slate-200 hover:bg-slate-800 flex items-center justify-center transition">
+                  +
+                </button>
+              </div>
+              <div class="text-[13.5px] text-slate-100 leading-relaxed">
+                ${escapeHtml(king.text)}
+              </div>
+              <div class="flex items-center justify-end gap-2.5 mt-3 pt-2 border-t border-slate-800/70 text-[11px] text-slate-500">
+                <span class="truncate max-w-[140px]">${escapeHtml(king.author || "书友")}</span>
+                <button type="button" onclick="toggleVoteNote('${dimKey}', ${king.id}, event)"
+                  class="px-2 py-0.5 rounded border transition ${kingLiked
+                    ? 'text-white border-slate-500 bg-slate-800'
+                    : 'text-slate-400 border-slate-800/90 hover:text-slate-200'}">
+                  ▲ ${king.votes || 0}
+                </button>
+              </div>
+            </div>
+            ${outerAccordionHtml}
+          </div>
+        `;
+      }).join("");
+
+      mmLayer.innerHTML = `<div style="position:absolute; left:${cx}px; top:${cy}px;">${centerHtml}</div>${dimsHtml}`;
+      updateFocusNavBar();
+    }
+
+    // ==================== 聚焦镜头控制：中心全景 vs Auto-Pan 支线移镜 ====================
+    function panToFocusOverview(animate = true) {
+      if (!focusedNodeId) return;
+      const p = nodePositions[focusedNodeId];
+      if (!p) return;
+      subFocusTarget = null;
+      renderMindmap();
+      const vw = window.innerWidth, vh = window.innerHeight;
+      // 桌面端将中心与四角维度框完整纳入视野；手机端保持四维辐射脑图结构并居中放大问题中心
+      let targetK;
+      if (vw < 640) {
+        targetK = Math.max(0.62, Math.min(0.76, vw / 540));
+      } else {
+        targetK = Math.max(0.72, Math.min(0.96, Math.min(vw / 1460, (vh - 90) / 680)));
+      }
+      centerOn(p.x, p.y, targetK, animate);
+    }
+
+    function onCenterCardClick(event) {
+      if (event) event.stopPropagation();
+      // 若当前镜头已经偏离到某个支线框，点中心卡先拉回问题中心；若已在中心，再次点击则收起回全局星图
+      if (subFocusTarget) {
+        panToFocusOverview(true);
+      } else {
+        resetView();
+      }
+    }
+
+    function onDimCardClick(dimKey, event) {
+      if (event) event.stopPropagation();
+      if (!focusedNodeId) return;
+      const node = getNodeById(focusedNodeId);
+      const p = nodePositions[focusedNodeId];
+      if (!node || !p) return;
+      const litDims = ["d1", "d2", "d3", "d4"].filter(k => getActiveNotes(node, k).length > 0);
+      const slot = getDimSlot(dimKey, litDims);
+      subFocusTarget = { type: "dim", dimKey };
+      renderMindmap();
+      const vw = window.innerWidth;
+      const targetK = vw < 640 ? Math.min(1.06, (vw - 36) / 300) : Math.max(camera.k, 1.05);
+      centerOn(p.x + slot.dx, p.y + slot.dy, targetK, true);
+    }
+
+    function onAccStripClick(dimKey, noteId, event) {
+      if (event) event.stopPropagation();
+      if (!focusedNodeId) return;
+      const key = `${dimKey}_${noteId}`;
+      expandedAccNotes[key] = !expandedAccNotes[key];
+      subFocusTarget = { type: "acc", dimKey, noteId };
+      renderMindmap();
+
+      // Auto-Pan 平滑移镜到外侧手风琴折叠列中心以便阅读
+      const node = getNodeById(focusedNodeId);
+      const p = nodePositions[focusedNodeId];
+      if (!node || !p) return;
+      const litDims = ["d1", "d2", "d3", "d4"].filter(k => getActiveNotes(node, k).length > 0);
+      const slot = getDimSlot(dimKey, litDims);
+      const sign = slot.side === "left" ? -1 : 1;
+      const accCenterX = p.x + slot.dx + sign * (145 + 22 + 115);
+      const accCenterY = p.y + slot.dy;
+      const vw = window.innerWidth;
+      const targetK = vw < 640 ? Math.min(1.08, (vw - 32) / 260) : Math.max(camera.k, 1.05);
+      centerOn(accCenterX, accCenterY, targetK, true);
+    }
+
+    // 点赞回答与同问（即时翻转并重绘脑图）
+    function toggleSameAsk(nodeId, event) {
+      if (event) event.stopPropagation();
+      const node = getNodeById(nodeId);
+      if (!node) return;
+      if (likedQuestions[nodeId]) {
+        delete likedQuestions[nodeId];
+        node.sameAskCount = Math.max(0, (node.sameAskCount || 1) - 1);
+      } else {
+        likedQuestions[nodeId] = true;
+        node.sameAskCount = (node.sameAskCount || 0) + 1;
+      }
+      saveLikesState();
+      saveData();
+      renderGraph();
+    }
+
+    function toggleVoteNote(dimKey, noteId, event) {
+      if (event) event.stopPropagation();
+      const node = getNodeById(focusedNodeId);
+      if (!node) return;
+      const target = (node.branches[dimKey] || []).find(n => n.id === noteId);
+      if (!target) return;
+      if (likedNotes[noteId]) {
+        delete likedNotes[noteId];
+        target.votes = Math.max(0, (target.votes || 1) - 1);
+      } else {
+        likedNotes[noteId] = true;
+        target.votes = (target.votes || 0) + 1;
+      }
+      saveLikesState();
+      saveData();
+      renderMindmap();
+    }
+
+    // ==================== 零负担写回答：直接写 + 自动分拣归类 + 顺竿爬免选 ====================
+    let answerDialogLockedDim = null; // 若从维度框右上角 + 点进，则锁定该维度；否则为 null（自动识别）
+    let answerDialogManualDim = null; // 用户点击右下角微调时的手动覆盖维度
+    let answerDialogAutoDim = "d1";
+
+    function detectDimensionFromText(text) {
+      const t = String(text || "").trim();
+      if (!t) return "d1";
+      if (/就像|好比|相当于|打个比方|好比说|如同|好似|像极了|比作|比喻|好比是/.test(t)) {
+        return "d3";
+      }
+      if (/伏笔|呼应|前面|后面|第一章|结局|埋线|闭环|首尾|铺垫|草蛇灰线|回旋镖|后面第|前面第/.test(t)) {
+        return "d4";
+      }
+      if (/背景|其实|原著设定|没明说|隐含|前提|历史上|定律|潜台词|暗指|隐喻|之所以|设定里/.test(t)) {
+        return "d2";
+      }
+      return "d1";
+    }
+
+    function updateAnswerDimBadge() {
+      const badge = document.getElementById("answer-dim-badge");
+      if (!badge) return;
+      if (answerDialogLockedDim) {
+        badge.textContent = `归入：${DIMENSIONS[answerDialogLockedDim].title}`;
+      } else if (answerDialogManualDim) {
+        badge.textContent = `已选：${DIMENSIONS[answerDialogManualDim].title} ▾`;
+      } else {
+        badge.textContent = `自动归入：${DIMENSIONS[answerDialogAutoDim].title} ▾`;
+      }
+    }
+
+    function handleAnswerTextInput(val) {
+      if (!answerDialogLockedDim && !answerDialogManualDim) {
+        answerDialogAutoDim = detectDimensionFromText(val);
+        updateAnswerDimBadge();
+      }
+    }
+
+    function cycleAnswerDimOverride() {
+      const order = ["d1", "d2", "d3", "d4"];
+      if (answerDialogLockedDim) {
+        const nextIdx = (order.indexOf(answerDialogLockedDim) + 1) % order.length;
+        answerDialogLockedDim = order[nextIdx];
+      } else {
+        const cur = answerDialogManualDim || answerDialogAutoDim || "d1";
+        const nextIdx = (order.indexOf(cur) + 1) % order.length;
+        answerDialogManualDim = order[nextIdx];
+      }
+      updateAnswerDimBadge();
+    }
+
+    function openAnswerDialog(preselectedDim = null, event = null) {
+      if (event) event.stopPropagation();
+      const node = getNodeById(focusedNodeId);
+      if (!node) return;
+      const dlg = document.getElementById("answer-dialog");
+      const titleEl = document.getElementById("answer-dialog-title");
+      const qEl = document.getElementById("answer-dialog-question");
+      const exBar = document.getElementById("answer-example-bar");
+      const inputEl = document.getElementById("answer-text-input");
+      if (!dlg || !inputEl) return;
+
+      answerDialogLockedDim = preselectedDim && DIMENSIONS[preselectedDim] ? preselectedDim : null;
+      answerDialogManualDim = null;
+      answerDialogAutoDim = "d1";
+
+      if (qEl) qEl.textContent = node.confusion;
+      inputEl.value = "";
+
+      if (answerDialogLockedDim) {
+        const meta = DIMENSIONS[answerDialogLockedDim];
+        if (titleEl) titleEl.textContent = `补充 · ${meta.title}`;
+        inputEl.placeholder = meta.prompt;
+        const active = getActiveNotes(node, answerDialogLockedDim);
+        if (exBar) {
+          if (active.length > 0) {
+            const sample = active[0].text.slice(0, 42) + (active[0].text.length > 42 ? "…" : "");
+            exBar.textContent = `参考当前榜一：“${sample}”`;
+            exBar.classList.remove("hidden");
+          } else {
+            exBar.classList.add("hidden");
+          }
+        }
+      } else {
+        if (titleEl) titleEl.textContent = "写下你的理解（无需选分类，发送自动归入四维）";
+        inputEl.placeholder = "写下你的理解…（比如：用一句话大白话点破 / 补齐书里没明说的背景设定 / 拿生活常识打个比方 / 点出和前后哪段情节呼应）";
+        if (exBar) exBar.classList.add("hidden");
+      }
+
+      updateAnswerDimBadge();
+      if (typeof dlg.showModal === "function") {
+        dlg.showModal();
+      } else {
+        dlg.setAttribute("open", "");
+      }
+      setTimeout(() => inputEl.focus(), 50);
+    }
+
+    function closeAnswerDialog() {
+      const dlg = document.getElementById("answer-dialog");
+      if (dlg && dlg.open) dlg.close();
+    }
+
+    function submitAnswerForm(event) {
+      event.preventDefault();
+      const node = getNodeById(focusedNodeId);
+      if (!node) return;
+      const inputEl = document.getElementById("answer-text-input");
+      const authorEl = document.getElementById("answer-author-input");
+      const text = (inputEl?.value || "").trim();
+      if (!text) return;
+      const author = (authorEl?.value || "").trim() || "书友";
+      const dimKey = answerDialogLockedDim || answerDialogManualDim || detectDimensionFromText(text);
+
+      const newNote = {
+        id: Date.now(),
+        author,
+        text,
+        votes: 1,
+        downvotes: 0
+      };
+      node.branches = node.branches || { d1: [], d2: [], d3: [], d4: [] };
+      node.branches[dimKey] = node.branches[dimKey] || [];
+      node.branches[dimKey].push(newNote);
+      likedNotes[newNote.id] = true;
+
+      // 若该维度已有更高赞榜一，新回答进入外侧手风琴并默认展开以便立刻看到
+      const sorted = getActiveNotes(node, dimKey);
+      if (sorted[0] && sorted[0].id !== newNote.id) {
+        expandedAccNotes[`${dimKey}_${newNote.id}`] = true;
+      }
+
+      saveLikesState();
+      saveData();
+      closeAnswerDialog();
+      renderMindmap();
+
+      // 发送后镜头平滑聚焦到该维度框
+      const p = nodePositions[node.id];
+      if (p) {
+        const litDims = ["d1", "d2", "d3", "d4"].filter(k => getActiveNotes(node, k).length > 0);
+        const slot = getDimSlot(dimKey, litDims);
+        subFocusTarget = { type: "dim", dimKey };
+        renderMindmap();
+        const vw = window.innerWidth;
+        const targetK = vw < 640 ? Math.min(1.06, (vw - 36) / 300) : Math.max(camera.k, 1.0);
+        centerOn(p.x + slot.dx, p.y + slot.dy, targetK, true);
+      }
+    }
+
+    // Fallback for browsers without native <dialog closedby="any"> support (e.g. Safari)
+    (function initAnswerDialogLightDismiss() {
+      const dialog = document.getElementById("answer-dialog");
+      if (!dialog) return;
+      if (!("closedBy" in HTMLDialogElement.prototype)) {
+        dialog.addEventListener("click", (event) => {
+          if (event.target !== dialog) return;
+          const rect = dialog.getBoundingClientRect();
+          const isDialogContent = (
+            rect.top <= event.clientY &&
+            event.clientY <= rect.top + rect.height &&
+            rect.left <= event.clientX &&
+            event.clientX <= rect.left + rect.width
+          );
+          if (isDialogContent) return;
+          dialog.close();
+        });
+      }
+    })();
+
 
     function saveData() {
       lastLocalUpdateAt = Date.now();
@@ -612,100 +1293,20 @@
       return CHAPTERS.find(c => c.id === chapterId) || { id: "unlocated", shortName: "", name: "未归类章节", pos: "" };
     }
 
-    // 获取某个问题获赞最高的一条回答作为列表卡片预览
-    function getBestPreviewNote(node) {
-      let all = [];
-      Object.keys(DIMENSIONS).forEach(k => {
-        getActiveNotes(node, k).forEach(n => all.push({
-          ...n,
-          dimKey: k,
-          dimShort: DIMENSIONS[k].short,
-          bestLabel: DIMENSIONS[k].bestLabel
-        }));
-      });
-      all.sort((a, b) => getNetScore(b) - getNetScore(a));
-      return all[0] || null;
-    }
-
-    // 顶栏 ··· 菜单控制
+    // ==================== 顶栏 ··· 菜单控制 ====================
     function toggleHeaderMoreMenu(event) {
       if (event) event.stopPropagation();
-      const menu = document.getElementById("header-more-menu");
-      if (menu) menu.classList.toggle("hidden");
+      document.getElementById("header-more-menu")?.classList.toggle("hidden");
     }
 
     function hideHeaderMoreMenu() {
-      const menu = document.getElementById("header-more-menu");
-      if (menu) menu.classList.add("hidden");
+      document.getElementById("header-more-menu")?.classList.add("hidden");
     }
 
-    document.addEventListener("click", () => {
-      hideHeaderMoreMenu();
-      document.querySelectorAll(".card-more-menu").forEach(el => el.classList.add("hidden"));
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest("#header-more-wrap")) hideHeaderMoreMenu();
     });
 
-    // ==================== 视图切换：列表页 vs 问题详情页（含浏览器历史与返回上一题） ====================
-    function switchToMacro(pushState = true) {
-      document.getElementById("macro-view").classList.remove("hidden");
-      document.getElementById("micro-view").classList.add("hidden");
-      nodeHistoryStack = [];
-      if (pushState && history.state?.view === "micro") {
-        history.pushState({ view: "macro" }, "");
-      }
-      renderMacroView();
-    }
-
-    function openMicroNode(nodeId, fromRelated = false, pushState = true) {
-      if (fromRelated && currentNodeId && currentNodeId !== nodeId) {
-        nodeHistoryStack.push(currentNodeId);
-      } else if (!fromRelated) {
-        nodeHistoryStack = [];
-      }
-      currentNodeId = nodeId;
-      selectedAnswerDim = "d1"; // 每次进详情页默认选中「💬 说人话」
-      document.getElementById("macro-view").classList.add("hidden");
-      document.getElementById("micro-view").classList.remove("hidden");
-
-      const backPrevBtn = document.getElementById("back-prev-node-btn");
-      if (backPrevBtn) {
-        backPrevBtn.classList.toggle("hidden", nodeHistoryStack.length === 0);
-      }
-
-      if (pushState) {
-        history.pushState({ view: "micro", nodeId, stack: [...nodeHistoryStack] }, "");
-      }
-      renderMicroView();
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-
-    function goBackPrevNode() {
-      if (nodeHistoryStack.length === 0) {
-        switchToMacro();
-        return;
-      }
-      const prevNodeId = nodeHistoryStack.pop();
-      currentNodeId = prevNodeId;
-      const backPrevBtn = document.getElementById("back-prev-node-btn");
-      if (backPrevBtn) {
-        backPrevBtn.classList.toggle("hidden", nodeHistoryStack.length === 0);
-      }
-      renderMicroView();
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-
-    window.addEventListener("popstate", (event) => {
-      const state = event.state;
-      if (state && state.view === "micro" && state.nodeId && getNodeById(state.nodeId)) {
-        nodeHistoryStack = Array.isArray(state.stack) ? state.stack : [];
-        openMicroNode(state.nodeId, false, false);
-        const backPrevBtn = document.getElementById("back-prev-node-btn");
-        if (backPrevBtn) backPrevBtn.classList.toggle("hidden", nodeHistoryStack.length === 0);
-      } else {
-        switchToMacro(false);
-      }
-    });
-
-    // ==================== 页面一：书籍主页（搜问合一 + 章节筛选 + 极简问题卡片流） ====================
     function escapeHtml(str) {
       return String(str || "")
         .replace(/&/g, "&amp;")
@@ -714,809 +1315,472 @@
         .replace(/"/g, "&quot;");
     }
 
-    function highlightSearch(text, query) {
-      const safe = escapeHtml(text);
-      if (!query) return safe;
-      const escapedQ = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      return safe.replace(new RegExp(`(${escapedQ})`, "gi"), `<mark class="bg-amber-500/30 text-amber-200 px-0.5 rounded">$1</mark>`);
-    }
-
-    function handleSearchOrAskInput(val) {
-      searchQuery = (val || "").trim();
-      const clearBtn = document.getElementById("clear-search-btn");
-      const quickAskBar = document.getElementById("quick-ask-bar");
-      const previewEl = document.getElementById("quick-ask-preview");
-
-      if (clearBtn) clearBtn.classList.toggle("hidden", !val);
-
-      if (searchQuery.length > 0) {
-        if (quickAskBar) quickAskBar.classList.remove("hidden");
-        if (previewEl) previewEl.innerText = `「${searchQuery.slice(0, 36)}${searchQuery.length > 36 ? "..." : ""}」`;
-      } else {
-        if (quickAskBar) quickAskBar.classList.add("hidden");
-      }
-
-      renderMacroView();
-    }
-
-    function handleSearchInputKeydown(event) {
-      if (event.key === "Enter" && !event.isComposing) {
-        const val = document.getElementById("unified-search-input")?.value.trim();
-        if (val) {
-          event.preventDefault();
-          submitQuickAsk();
-        }
-      }
-    }
-
-    function clearSearchAndAsk() {
-      const input = document.getElementById("unified-search-input");
-      if (input) input.value = "";
-      searchQuery = "";
-      document.getElementById("clear-search-btn")?.classList.add("hidden");
-      document.getElementById("quick-ask-bar")?.classList.add("hidden");
-      document.getElementById("quick-ask-extras")?.classList.add("hidden");
-      renderMacroView();
-    }
-
-    function focusAskInput() {
-      if (document.getElementById("macro-view").classList.contains("hidden")) {
-        switchToMacro();
-      }
-      const input = document.getElementById("unified-search-input");
-      const quickAskBar = document.getElementById("quick-ask-bar");
-      const previewEl = document.getElementById("quick-ask-preview");
-      if (input) {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        input.focus();
-        if (!input.value.trim()) {
-          if (quickAskBar) quickAskBar.classList.remove("hidden");
-          if (previewEl) previewEl.innerText = "「你在上方输入的疑问」";
-        }
-      }
-    }
-
-    function toggleQuickAskExtras() {
-      const extras = document.getElementById("quick-ask-extras");
-      if (!extras) return;
-      const isHidden = extras.classList.contains("hidden");
-      if (isHidden) {
-        const askChSelect = document.getElementById("ask-chapter");
-        if (askChSelect && selectedChapterFilter !== "all") {
-          askChSelect.value = selectedChapterFilter;
-        }
-        extras.classList.remove("hidden");
-      } else {
-        extras.classList.add("hidden");
-      }
-    }
-
-    function submitQuickAsk() {
-      const input = document.getElementById("unified-search-input");
-      const confusion = (input?.value || "").trim();
-      if (!confusion) {
-        input?.focus();
-        return;
-      }
-
-      const extrasOpen = !document.getElementById("quick-ask-extras")?.classList.contains("hidden");
-      let chapterId = "unlocated";
-      if (extrasOpen) {
-        chapterId = document.getElementById("ask-chapter")?.value || "unlocated";
-      } else if (selectedChapterFilter !== "all") {
-        chapterId = selectedChapterFilter;
-      }
-      const quote = extrasOpen ? (document.getElementById("ask-quote")?.value || "").trim() : "";
-
-      const newNode = {
-        id: "node-" + Date.now(),
-        chapterId,
-        quote,
-        confusion,
-        sameAskCount: 1,
-        branches: { d1: [], d2: [], d3: [], d4: [] }
-      };
-
-      appData.unshift(newNode);
-      likedQuestions[newNode.id] = true;
-      saveLikesState();
-      saveData();
-
-      // 重置搜索与提问栏并直接进入新问题详情页
-      if (input) input.value = "";
-      if (document.getElementById("ask-quote")) document.getElementById("ask-quote").value = "";
-      searchQuery = "";
-      document.getElementById("clear-search-btn")?.classList.add("hidden");
-      document.getElementById("quick-ask-bar")?.classList.add("hidden");
-      document.getElementById("quick-ask-extras")?.classList.add("hidden");
-
-      openMicroNode(newNode.id);
-    }
-
-    function setChapterFilter(filterId) {
-      selectedChapterFilter = filterId;
-      renderMacroView();
-    }
-
     function nodeMatchesSearch(node, q) {
       if (!q) return true;
       const lower = q.toLowerCase();
       if ((node.confusion || "").toLowerCase().includes(lower)) return true;
       if ((node.quote || "").toLowerCase().includes(lower)) return true;
       for (const dimKey of Object.keys(DIMENSIONS)) {
-        const notes = getActiveNotes(node, dimKey);
-        if (notes.some(n => (n.text || "").toLowerCase().includes(lower) || (n.author || "").toLowerCase().includes(lower))) {
-          return true;
-        }
+        if (getActiveNotes(node, dimKey).some(n => (n.text || "").toLowerCase().includes(lower))) return true;
       }
       return false;
     }
 
-    function toggleCardMoreMenu(menuId, event) {
-      if (event) event.stopPropagation();
-      const target = document.getElementById(menuId);
-      document.querySelectorAll(".card-more-menu").forEach(el => {
-        if (el.id !== menuId) el.classList.add("hidden");
-      });
-      if (target) target.classList.toggle("hidden");
+    // ==================== 星图：数据 → 节点与连线 ====================
+    // 圆点下方的简短问题文字（长问题截断，完整文字放在悬停提示里）
+    function shortLabel(text, max = 16) {
+      const t = String(text || "").replace(/\s+/g, "");
+      return t.length > max ? t.slice(0, max) + "…" : t;
     }
 
-    function renderMacroView() {
-      // 1. 渲染章节横滑胶囊栏
-      const pills = [
-        { id: "all", label: "全部" },
-        ...CHAPTERS.map(c => ({ id: c.id, label: c.shortName })),
-        { id: "unlocated", label: "未归类" }
-      ];
-
-      const pillsContainer = document.getElementById("chapter-pills");
-      if (pillsContainer) {
-        pillsContainer.innerHTML = `
-          <span class="text-xs text-slate-500 shrink-0 mr-1">章节筛选：</span>
-          ${pills.map(p => {
-            const active = selectedChapterFilter === p.id;
-            return `
-              <button onclick="setChapterFilter('${p.id}')"
-                class="text-xs px-3 py-1.5 rounded-full border shrink-0 transition ${active
-                  ? 'bg-amber-500 text-slate-950 font-bold border-amber-400 shadow-sm'
-                  : 'bg-slate-900/90 text-slate-300 border-slate-800 hover:border-slate-600 hover:text-white'}">
-                ${p.label}
-              </button>
-            `;
-          }).join('')}
-        `;
-      }
-
-      // 2. 筛选并排序问题列表
-      const filteredNodes = appData
-        .filter(node => {
-          if (selectedChapterFilter !== "all" && node.chapterId !== selectedChapterFilter) return false;
-          return nodeMatchesSearch(node, searchQuery);
-        })
-        .sort((a, b) => b.sameAskCount - a.sameAskCount);
-
-      const feedContainer = document.getElementById("question-feed");
-      if (!feedContainer) return;
-
-      if (filteredNodes.length === 0) {
-        feedContainer.innerHTML = `
-          <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-8 text-center space-y-3">
-            <div class="text-sm text-slate-300 font-medium">
-              ${searchQuery ? `没有找到包含「${escapeHtml(searchQuery)}」的已有问题` : '该章节下暂时还没有问题'}
-            </div>
-            ${searchQuery ? `
-              <button onclick="submitQuickAsk()" class="text-xs px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold transition shadow">
-                💬 直接把「${escapeHtml(searchQuery.slice(0, 24))}」作为新问题发出 →
-              </button>
-            ` : ''}
-          </div>
-        `;
-        return;
-      }
-
-      // 3. 渲染极简问题卡片流（每张卡片仅展示：1.疑问标题 2.最高赞回答预览 3.同问按钮与低调···菜单）
-      feedContainer.innerHTML = filteredNodes.map(node => {
-        const best = getBestPreviewNote(node);
-        const ch = getChapterMeta(node.chapterId);
-        const hasChapter = node.chapterId && node.chapterId !== "unlocated" && ch.shortName;
-        const liked = isQuestionLiked(node.id);
-        const menuId = `q-more-${node.id}`;
-
-        return `
-          <article onclick="openMicroNode('${node.id}')"
-            class="cursor-pointer bg-slate-900/90 hover:bg-slate-900 border border-slate-800/90 hover:border-slate-600 rounded-2xl p-5 shadow-lg transition group">
-            
-            <!-- 标题行 + 右上角低调 ··· 菜单 -->
-            <div class="flex items-start justify-between gap-3">
-              <h2 class="text-base sm:text-lg font-bold text-white group-hover:text-amber-300 transition leading-snug">
-                ❓ ${highlightSearch(node.confusion, searchQuery)}
-              </h2>
-
-              <!-- 卡片右上角不起眼的 ··· 菜单（收纳章节归位功能） -->
-              <div class="relative shrink-0" onclick="event.stopPropagation()">
-                <button onclick="toggleCardMoreMenu('${menuId}', event)" title="更多操作"
-                  class="text-xs px-2 py-1 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-slate-800/80 transition font-bold">
-                  ···
-                </button>
-                <div id="${menuId}" class="card-more-menu hidden absolute right-0 mt-1 w-44 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-40 text-xs space-y-1">
-                  <div class="text-[11px] text-slate-400 px-1.5 py-0.5">📍 归位/调整所属章节：</div>
-                  ${CHAPTERS.map(c => `
-                    <button onclick="assignChapter('${node.id}', '${c.id}')"
-                      class="w-full text-left px-2 py-1.5 rounded-lg hover:bg-slate-800 transition ${node.chapterId === c.id ? 'text-amber-400 font-bold' : 'text-slate-300'}">
-                      ${c.shortName} · ${c.name.split('·')[1] || c.name}
-                    </button>
-                  `).join('')}
-                  ${node.chapterId !== 'unlocated' ? `
-                    <button onclick="assignChapter('${node.id}', 'unlocated')"
-                      class="w-full text-left px-2 py-1.5 rounded-lg hover:bg-slate-800 text-slate-400 transition">
-                      设为未归类
-                    </button>
-                  ` : ''}
-                </div>
-              </div>
-            </div>
-
-            <!-- 章节小灰字（无章节则不显示） + 同问按钮（支持已同问高亮切换） -->
-            <div class="flex items-center justify-between gap-2 mt-2.5 mb-3">
-              <div class="text-xs text-slate-400">
-                ${hasChapter ? `<span>📍 ${ch.shortName}</span>` : ''}
-              </div>
-              <button onclick="voteSameAsk('${node.id}', event)"
-                class="text-xs px-3 py-1 rounded-full border transition font-semibold flex items-center gap-1 ${liked
-                  ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
-                  : 'bg-slate-950/80 hover:bg-slate-800 text-slate-300 border-slate-700/80'}">
-                <span>🙋</span>
-                <span>${liked ? '已同问' : '同问'} ${node.sameAskCount}</span>
-              </button>
-            </div>
-
-            <!-- 获赞最高的那 1 条神仙回答预览 -->
-            ${best ? `
-              <div class="bg-slate-950/75 border border-slate-800/80 rounded-xl p-3.5 text-xs sm:text-sm text-slate-200 leading-relaxed">
-                <div class="text-xs text-amber-400/90 font-semibold mb-1">
-                  ${best.bestLabel} (${formatAuthor(best)})：
-                </div>
-                <p class="line-clamp-2 text-slate-200">
-                  “${highlightSearch(best.text, searchQuery)}”
-                </p>
-              </div>
-            ` : `
-              <div class="bg-slate-950/40 border border-dashed border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-400">
-                🌱 还没有人回答，点进来写下第一条解释吧 →
-              </div>
-            `}
-          </article>
-        `;
-      }).join('');
+    // 圆点半径：按“同问人数”缩放
+    function nodeRadius(node) {
+      const r = 5 + Math.sqrt(Math.max(0, node.sameAskCount || 0)) * 0.9;
+      return Math.max(6, Math.min(22, r));
     }
 
-    // 帮问题归位章节（收纳在卡片右上角 ··· 菜单中）
-    function assignChapter(nodeId, newChapterId) {
-      if (!newChapterId) return;
-      const node = getNodeById(nodeId);
-      if (node) {
-        node.chapterId = newChapterId;
-        saveData();
-        if (!document.getElementById("micro-view").classList.contains("hidden")) {
-          renderMicroView();
-        } else {
-          renderMacroView();
-        }
-      }
-    }
-
-    // 同问即时切换（点一下变亮 +1，再点一下取消 -1）
-    function voteSameAsk(nodeId, event) {
-      if (event) event.stopPropagation();
-      const node = getNodeById(nodeId);
-      if (!node) return;
-
-      if (likedQuestions[nodeId]) {
-        delete likedQuestions[nodeId];
-        node.sameAskCount = Math.max(0, (node.sameAskCount || 1) - 1);
-      } else {
-        likedQuestions[nodeId] = true;
-        node.sameAskCount = (node.sameAskCount || 0) + 1;
-      }
-      saveLikesState();
-      saveData();
-
-      if (!document.getElementById("micro-view").classList.contains("hidden")) {
-        renderMicroView();
-      } else {
-        renderMacroView();
-      }
-    }
-
-    // ==================== 页面二：问题详情页（中心带分支卡片树 + 原地展开 + 顺藤摸瓜 + 原地回答） ====================
-    function renderNoteItemHtml(node, dimKey, note, isKing, foldedNotes = []) {
-      const liked = isNoteLiked(note.id);
-      const menuId = `note-more-${dimKey}-${note.id}`;
-      const showTag = dimKey === "d3" && note.tag;
-
-      return `
-        <div class="${isKing ? '' : 'pt-3.5 mt-3.5 border-t border-slate-800/80'} space-y-2">
-          <div class="flex items-center justify-between gap-2">
-            <div class="flex items-center flex-wrap gap-1.5 text-xs">
-              <span class="font-bold ${isKing ? 'text-amber-300' : 'text-slate-300'}">${formatAuthor(note)}</span>
-              ${showTag ? `<span class="text-[11px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">${escapeHtml(note.tag)}</span>` : ''}
-            </div>
-
-            <!-- 右下/右上低调 ··· 菜单（收纳合并共创、水贴踩与折叠区） -->
-            <div class="relative shrink-0" onclick="event.stopPropagation()">
-              <button onclick="toggleCardMoreMenu('${menuId}', event)" title="更多操作"
-                class="text-xs px-2 py-0.5 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-slate-800 transition font-bold">
-                ···
-              </button>
-              <div id="${menuId}" class="card-more-menu hidden absolute right-0 mt-1 w-52 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-1.5 z-40 text-xs space-y-1">
-                ${!isKing ? `
-                  <button onclick="mergeIntoKing('${dimKey}', ${note.id})"
-                    class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-purple-300 transition flex items-center gap-1.5">
-                    <span>🔗 吸纳并入榜首回答 (共创)</span>
-                  </button>
-                ` : ''}
-                <button onclick="downvoteNote('${dimKey}', ${note.id})"
-                  class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-rose-400 transition flex items-center justify-between">
-                  <span>▼ 觉得没帮助 / 折叠水贴</span>
-                  <span class="text-[11px] text-slate-500">(${note.downvotes || 0})</span>
-                </button>
-                ${isKing && foldedNotes.length > 0 ? `
-                  <details class="border-t border-slate-800 pt-1 mt-1 px-2 py-1">
-                    <summary class="text-[11px] text-slate-500 cursor-pointer hover:text-slate-400">
-                      🗑️ 已折叠低分回答 (${foldedNotes.length}条)
-                    </summary>
-                    <div class="space-y-1.5 mt-1.5 pt-1.5 border-t border-slate-900 max-h-32 overflow-y-auto">
-                      ${foldedNotes.map(fn => `<div class="text-[11px] text-slate-500 leading-snug">@${escapeHtml(fn.author)}：${escapeHtml(fn.text)}</div>`).join('')}
-                    </div>
-                  </details>
-                ` : ''}
-              </div>
-            </div>
-          </div>
-
-          <p class="text-sm text-slate-100 leading-relaxed bg-slate-950/70 p-3 rounded-xl border border-slate-800/80">
-            “${escapeHtml(note.text)}”
-          </p>
-
-          <div class="flex items-center justify-between pt-0.5 text-xs">
-            <button onclick="echoNote('${dimKey}', ${note.id})"
-              class="px-3 py-1 rounded-full border transition font-semibold flex items-center gap-1 ${liked
-                ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
-                : 'bg-slate-950/90 hover:bg-slate-800 text-slate-300 border-slate-700/80'}">
-              <span>👍</span>
-              <span>${liked ? '已赞同' : '赞同'} ${note.votes}</span>
-            </button>
-          </div>
-        </div>
-      `;
-    }
-
-    function toggleExpandBranch(dimKey) {
-      const key = `${currentNodeId}_${dimKey}`;
-      expandedBranches[key] = !expandedBranches[key];
-      renderMicroView();
-    }
-
-    function quickSelectAnswerDim(dimKey) {
-      selectedAnswerDim = dimKey;
-      renderInlineAnswerControls();
-      scrollToAnswerBox();
-    }
-
-    function scrollToAnswerBox() {
-      const section = document.getElementById("inline-answer-section");
-      const input = document.getElementById("note-input");
-      if (section) {
-        section.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-      if (input) {
-        setTimeout(() => input.focus(), 220);
-      }
-    }
-
-    function renderMicroView() {
-      const node = getNodeById(currentNodeId);
-      if (!node) return;
-      const ch = getChapterMeta(node.chapterId);
-      const hasChapter = node.chapterId && node.chapterId !== "unlocated" && ch.shortName;
-      const qLiked = isQuestionLiked(node.id);
-      const qMenuId = `detail-q-more-${node.id}`;
-
-      // 统计是否有任何回答（用于垂直连接线与 0 回答破冰判断）
-      const mainDimKeys = ["d1", "d2", "d3"];
-      const litMainDims = mainDimKeys.filter(dimKey => getActiveNotes(node, dimKey).length > 0);
-      const d4Notes = getActiveNotes(node, "d4");
-      const backlinkItems = [];
-      appData.forEach(other => {
-        if (other.id !== node.id) {
-          getActiveNotes(other, "d4").forEach(n => {
-            if (n.linkTo === node.id) {
-              backlinkItems.push({ note: n, sourceNode: other });
-            }
-          });
-        }
-      });
-      const totalAnswersCount = litMainDims.reduce((acc, k) => acc + getActiveNotes(node, k).length, 0) + d4Notes.length;
-
-      // 1. 渲染顶部/中心问题卡片（有原文用浅色小字附在下面，没有就不显示）
-      document.getElementById("center-node").innerHTML = `
-        <div class="flex items-start justify-between gap-3">
-          <h1 class="text-lg sm:text-xl font-bold text-white leading-snug">
-            ❓ ${escapeHtml(node.confusion)}
-          </h1>
-
-          <!-- 右上角低调 ··· 菜单（收纳章节归位） -->
-          <div class="relative shrink-0" onclick="event.stopPropagation()">
-            <button onclick="toggleCardMoreMenu('${qMenuId}', event)" title="更多操作"
-              class="text-xs px-2 py-1 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-slate-800 transition font-bold">
-              ···
-            </button>
-            <div id="${qMenuId}" class="card-more-menu hidden absolute right-0 mt-1 w-44 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-2 z-40 text-xs space-y-1">
-              <div class="text-[11px] text-slate-400 px-1.5 py-0.5">📍 归位/调整所属章节：</div>
-              ${CHAPTERS.map(c => `
-                <button onclick="assignChapter('${node.id}', '${c.id}')"
-                  class="w-full text-left px-2 py-1.5 rounded-lg hover:bg-slate-800 transition ${node.chapterId === c.id ? 'text-amber-400 font-bold' : 'text-slate-300'}">
-                  ${c.shortName} · ${c.name.split('·')[1] || c.name}
-                </button>
-              `).join('')}
-              ${node.chapterId !== 'unlocated' ? `
-                <button onclick="assignChapter('${node.id}', 'unlocated')"
-                  class="w-full text-left px-2 py-1.5 rounded-lg hover:bg-slate-800 text-slate-400 transition">
-                  设为未归类
-                </button>
-              ` : ''}
-            </div>
-          </div>
-        </div>
-
-        ${node.quote ? `
-          <p class="text-xs sm:text-sm text-slate-400 italic mt-2.5 leading-relaxed">
-            “${escapeHtml(node.quote)}”
-          </p>
-        ` : ''}
-
-        <div class="flex items-center justify-between gap-2 mt-4 pt-3 border-t border-slate-800/80 text-xs">
-          <div class="text-slate-400">
-            ${hasChapter ? `<span>📍 ${ch.shortName}（${ch.name.split('·')[1]?.trim() || ch.name}）</span>` : ''}
-          </div>
-          <button onclick="voteSameAsk('${node.id}', event)"
-            class="px-3 py-1 rounded-full border transition font-semibold flex items-center gap-1 ${qLiked
-              ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
-              : 'bg-slate-950 hover:bg-slate-800 text-slate-300 border-slate-700'}">
-            <span>🙋</span>
-            <span>${qLiked ? '已同问' : '同问'} ${node.sameAskCount}</span>
-          </button>
-        </div>
-      `;
-
-      // 2. 渲染向下生长的分类卡片树（没人回答的分类直接隐形）
-      const branchesGrid = document.getElementById("detail-branches-grid");
-      if (litMainDims.length === 0 && d4Notes.length === 0 && backlinkItems.length === 0) {
-        // 0 回答新问题破冰提示
-        branchesGrid.className = "grid grid-cols-1 gap-4";
-        branchesGrid.innerHTML = `
-          <div class="bg-slate-900/60 border border-dashed border-slate-800 rounded-2xl p-6 text-center space-y-1.5">
-            <div class="text-sm text-slate-300 font-semibold">🌱 这个问题刚刚提出，还在等第一个破冰回答</div>
-            <div class="text-xs text-slate-400">不用有压力，在下方输入框用大白话写两句你的直觉理解就可以！</div>
-          </div>
-        `;
-      } else {
-        branchesGrid.className = `grid grid-cols-1 ${litMainDims.length === 1 ? 'md:grid-cols-1' : 'md:grid-cols-2'} gap-4 items-start`;
-        branchesGrid.innerHTML = litMainDims.map(dimKey => {
-          const meta = DIMENSIONS[dimKey];
-          const allNotes = node.branches[dimKey] || [];
-          const activeNotes = getActiveNotes(node, dimKey);
-          const foldedNotes = allNotes.filter(n => isFolded(n));
-          const king = activeNotes[0];
-          const others = activeNotes.slice(1);
-          const isExpanded = Boolean(expandedBranches[`${node.id}_${dimKey}`]);
-
-          return `
-            <div class="bg-slate-900/95 border border-slate-800 rounded-2xl p-5 shadow-lg space-y-3">
-              <!-- 分类框顶部标题 -->
-              <div class="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
-                <span class="text-sm font-bold text-amber-400">${meta.short} (${activeNotes.length}条)</span>
-              </div>
-
-              <!-- 默认展示赞数第 1 的回答 -->
-              ${renderNoteItemHtml(node, dimKey, king, true, foldedNotes)}
-
-              <!-- 原地展开的其余回答 -->
-              ${isExpanded && others.length > 0 ? `
-                <div class="space-y-3">
-                  ${others.map(n => renderNoteItemHtml(node, dimKey, n, false, [])).join('')}
-                </div>
-              ` : ''}
-
-              <!-- 框底操作栏：左边展开其余 N 条，右边 [+ 我也打个比方/说人话] 顺手补充 -->
-              <div class="flex items-center justify-between pt-2.5 border-t border-slate-800/80 text-xs">
-                <div>
-                  ${others.length > 0 ? `
-                    <button onclick="toggleExpandBranch('${dimKey}')" class="text-slate-300 hover:text-white font-semibold transition">
-                      ${isExpanded ? `收起其余 ${others.length} 条回答 ▴` : `展开其余 ${others.length} 条回答 ▾`}
-                    </button>
-                  ` : `<span class="text-slate-600 text-[11px]">共 1 条回答</span>`}
-                </div>
-                <button onclick="quickSelectAnswerDim('${dimKey}')" class="text-amber-400/90 hover:text-amber-300 font-semibold transition">
-                  [${meta.addLabel}]
-                </button>
-              </div>
-            </div>
-          `;
-        }).join('');
-      }
-
-      // 3. 渲染 🔗 顺藤摸瓜（关联问题轻量卡片：上面展示串联解说词，下面紧跟关联问题跳转链接）
-      const relatedSection = document.getElementById("detail-related-section");
-      const relatedList = document.getElementById("detail-related-list");
-      const hasRelated = d4Notes.length > 0 || backlinkItems.length > 0;
-
-      if (!hasRelated) {
-        relatedSection.classList.add("hidden");
-        relatedList.innerHTML = "";
-      } else {
-        relatedSection.classList.remove("hidden");
-        const forwardCardsHtml = d4Notes.map(n => {
-          const targetNode = n.linkTo ? getNodeById(n.linkTo) : null;
-          const targetCh = targetNode ? getChapterMeta(targetNode.chapterId) : null;
-          const targetChLabel = targetCh && targetCh.shortName ? `[${targetCh.shortName}] ` : "";
-          const liked = isNoteLiked(n.id);
-          const menuId = `d4-more-${n.id}`;
-
-          return `
-            <div class="bg-slate-900/95 border border-indigo-500/35 rounded-2xl p-4 shadow-lg space-y-2.5">
-              <div class="flex items-center justify-between gap-2 text-xs">
-                <span class="font-bold text-indigo-300">${formatAuthor(n)} 串联了前后伏笔：</span>
-                <div class="flex items-center gap-2">
-                  <button onclick="echoNote('d4', ${n.id})"
-                    class="px-2.5 py-0.5 rounded-full border transition font-semibold ${liked
-                      ? 'bg-amber-500 text-slate-950 border-amber-400'
-                      : 'bg-slate-950 text-slate-300 border-slate-700 hover:bg-slate-800'}">
-                    👍 ${liked ? '已赞同' : '赞同'} ${n.votes}
-                  </button>
-                  <div class="relative" onclick="event.stopPropagation()">
-                    <button onclick="toggleCardMoreMenu('${menuId}', event)" class="px-1.5 py-0.5 rounded text-slate-500 hover:text-slate-300 font-bold">···</button>
-                    <div id="${menuId}" class="card-more-menu hidden absolute right-0 mt-1 w-44 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-1.5 z-40 text-xs">
-                      <button onclick="downvoteNote('d4', ${n.id})" class="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-rose-400">
-                        ▼ 觉得没帮助 / 折叠 (${n.downvotes || 0})
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 精彩的串联解说词 -->
-              <p class="text-sm text-slate-100 leading-relaxed bg-slate-950/70 p-3 rounded-xl border border-slate-800/80">
-                “${escapeHtml(n.text)}”
-              </p>
-
-              <!-- 紧跟可点击跳转的关联问题 -->
-              ${targetNode ? `
-                <button onclick="openMicroNode('${targetNode.id}', true)"
-                  class="w-full text-left bg-indigo-950/50 hover:bg-indigo-900/60 border border-indigo-500/40 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-indigo-200 hover:text-amber-300 font-semibold transition flex items-center justify-between gap-2">
-                  <span class="truncate">👉 关联问题：${targetChLabel}${escapeHtml(targetNode.confusion)}</span>
-                  <span class="shrink-0 text-xs text-indigo-300">去看这题 →</span>
-                </button>
-              ` : ''}
-            </div>
-          `;
-        }).join('');
-
-        // 反向被其他问题串联过来的卡片（避免重复展示已经正向连过去的同一题）
-        const forwardTargetIds = new Set(d4Notes.map(n => n.linkTo).filter(Boolean));
-        const backlinkCardsHtml = backlinkItems
-          .filter(item => !forwardTargetIds.has(item.sourceNode.id))
-          .map(({ note: bNote, sourceNode }) => {
-            const sourceCh = getChapterMeta(sourceNode.chapterId);
-            const sourceChLabel = sourceCh && sourceCh.shortName ? `[${sourceCh.shortName}] ` : "";
-            return `
-              <div class="bg-slate-900/95 border border-indigo-500/35 rounded-2xl p-4 shadow-lg space-y-2.5">
-                <div class="text-xs font-bold text-indigo-300">
-                  ${formatAuthor(bNote)} 从另一处关联到了这里：
-                </div>
-                <p class="text-sm text-slate-100 leading-relaxed bg-slate-950/70 p-3 rounded-xl border border-slate-800/80">
-                  “${escapeHtml(bNote.text)}”
-                </p>
-                <button onclick="openMicroNode('${sourceNode.id}', true)"
-                  class="w-full text-left bg-indigo-950/50 hover:bg-indigo-900/60 border border-indigo-500/40 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-indigo-200 hover:text-amber-300 font-semibold transition flex items-center justify-between gap-2">
-                  <span class="truncate">👉 关联问题：${sourceChLabel}${escapeHtml(sourceNode.confusion)}</span>
-                  <span class="shrink-0 text-xs text-indigo-300">去看这题 →</span>
-                </button>
-              </div>
-            `;
-          }).join('');
-
-        relatedList.innerHTML = forwardCardsHtml + backlinkCardsHtml;
-      }
-
-      // 4. 渲染底部原地回答输入栏的分类胶囊与选项
-      renderInlineAnswerControls();
-
-      // 如果是 0 回答的新问题，自动聚焦到底部回答输入框邀请破冰
-      if (totalAnswersCount === 0) {
-        setTimeout(() => {
-          const input = document.getElementById("note-input");
-          if (input && document.activeElement !== input) input.focus();
-        }, 150);
-      }
-    }
-
-    function renderInlineAnswerControls() {
-      const pillsEl = document.getElementById("answer-dim-pills");
-      if (pillsEl) {
-        pillsEl.innerHTML = Object.keys(DIMENSIONS).map(dimKey => {
-          const active = selectedAnswerDim === dimKey;
-          return `
-            <button type="button" onclick="selectAnswerDim('${dimKey}')"
-              class="text-xs px-3 py-1.5 rounded-full border transition ${active
-                ? 'bg-amber-500 text-slate-950 font-bold border-amber-400 shadow-sm'
-                : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-600'}">
-              ${DIMENSIONS[dimKey].short}
-            </button>
-          `;
-        }).join('');
-      }
-
-      const noteInput = document.getElementById("note-input");
-      if (noteInput && DIMENSIONS[selectedAnswerDim]) {
-        noteInput.placeholder = DIMENSIONS[selectedAnswerDim].prompt + "（150字内）";
-      }
-
-      // 仅在选中「🪜 打比方」(d3) 时才显示生活标签选择
-      const metaphorWrap = document.getElementById("answer-metaphor-tags-wrap");
-      if (metaphorWrap) {
-        metaphorWrap.classList.toggle("hidden", selectedAnswerDim !== "d3");
-        if (selectedAnswerDim === "d3") {
-          renderTagSelector();
-        }
-      }
-
-      // 仅在选中「🔗 串前后」(d4) 时才显示关联问题下拉框
-      const linkWrap = document.getElementById("link-selector-wrap");
-      if (linkWrap) {
-        if (selectedAnswerDim === "d4") {
-          linkWrap.classList.remove("hidden");
-          const selectEl = document.getElementById("link-node-select");
-          if (selectEl) {
-            selectEl.innerHTML = `<option value="">-- 可选：不绑定具体题目，仅文字说明前后呼应 --</option>` +
-              appData.filter(n => n.id !== currentNodeId).map(n => {
-                const ch = getChapterMeta(n.chapterId);
-                const chPrefix = ch.shortName ? `[${ch.shortName}] ` : "";
-                return `<option value="${n.id}">${chPrefix}${escapeHtml(n.confusion.slice(0, 38))}</option>`;
-              }).join('');
-          }
-        } else {
-          linkWrap.classList.add("hidden");
-        }
-      }
-    }
-
-    function selectAnswerDim(dimKey) {
-      selectedAnswerDim = dimKey;
-      renderInlineAnswerControls();
-    }
-
-    function selectSubmitTag(tag) {
-      selectedSubmitTag = tag;
-      renderTagSelector();
-    }
-
-    function renderTagSelector() {
-      const el = document.getElementById("tag-selector");
-      if (!el) return;
-      el.innerHTML = PERSPECTIVE_TAGS.map(tag => `
-        <button type="button" onclick="selectSubmitTag('${tag}')"
-          class="text-xs px-2.5 py-1 rounded-full border transition ${selectedSubmitTag === tag
-            ? 'bg-amber-500/25 text-amber-300 font-bold border-amber-400/60'
-            : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-600'}">
-          ${tag}
-        </button>
-      `).join('');
-    }
-
-    // ==================== 回答互动：赞同高亮切换、水贴折叠、榜首共创合并、原地提交 ====================
-    function echoNote(dimKey, noteId) {
-      const node = getNodeById(currentNodeId);
-      if (!node) return;
-      const target = (node.branches[dimKey] || []).find(n => n.id === noteId);
-      if (!target) return;
-
-      if (likedNotes[noteId]) {
-        delete likedNotes[noteId];
-        target.votes = Math.max(0, (target.votes || 1) - 1);
-      } else {
-        likedNotes[noteId] = true;
-        target.votes = (target.votes || 0) + 1;
-      }
-      saveLikesState();
-      saveData();
-      renderMicroView();
-    }
-
-    function downvoteNote(dimKey, noteId) {
-      const node = getNodeById(currentNodeId);
-      if (!node) return;
-      const target = (node.branches[dimKey] || []).find(n => n.id === noteId);
-      if (target) {
-        target.downvotes = (target.downvotes || 0) + 1;
-        saveData();
-        renderMicroView();
-      }
-    }
-
-    function mergeIntoKing(dimKey, candidateId) {
-      const node = getNodeById(currentNodeId);
-      if (!node) return;
-      const activeNotes = getActiveNotes(node, dimKey);
-      if (activeNotes.length < 2) return;
-
-      const king = activeNotes[0];
-      const candidate = node.branches[dimKey].find(n => n.id === candidateId);
-      if (!candidate || king.id === candidate.id) return;
-
-      const suggested = `${king.text}（补充：${candidate.text}）`.slice(0, 150);
-      const merged = prompt(
-        `【🔗 合并共创回答】\n将 @${candidate.author} 的补充并入第一条回答（限150字内），双方共享署名且赞同数累加：`,
-        suggested
-      );
-
-      if (merged && merged.trim()) {
-        king.text = merged.trim().slice(0, 150);
-        king.coAuthors = king.coAuthors || [];
-        if (!king.coAuthors.includes(candidate.author)) {
-          king.coAuthors.push(candidate.author);
-        }
-        king.votes += candidate.votes;
-        node.branches[dimKey] = node.branches[dimKey].filter(n => n.id !== candidateId);
-        saveData();
-        renderMicroView();
-      }
-    }
-
-    function updateCharCount() {
-      const len = document.getElementById("note-input")?.value.length || 0;
-      const countEl = document.getElementById("char-count");
-      if (countEl) countEl.innerText = `${len} / 150 字`;
-    }
-
-    function submitNote() {
-      const inputEl = document.getElementById("note-input");
-      const text = (inputEl?.value || "").trim();
-      const author = (document.getElementById("author-input")?.value || "").trim() || "热心书友";
-      const linkTo = document.getElementById("link-node-select")?.value || "";
-
-      if (!text) {
-        inputEl?.focus();
-        return;
-      }
-
-      const node = getNodeById(currentNodeId);
-      if (!node) return;
-      const dimKey = selectedAnswerDim || "d1";
-
-      const newNote = {
-        id: Date.now(),
-        author,
-        coAuthors: [],
-        tag: dimKey === "d3" ? selectedSubmitTag : "",
-        text,
-        votes: 1,
-        downvotes: 0
+    // 关联连线：来自回答里的 linkTo，以及节点自带的 links 数组（无向去重）
+    function getGraphLinks() {
+      const ids = new Set(appData.map(n => n.id));
+      const seen = new Set();
+      const links = [];
+      const add = (a, b) => {
+        if (!a || !b || a === b || !ids.has(a) || !ids.has(b)) return;
+        const key = a < b ? `${a}|${b}` : `${b}|${a}`;
+        if (seen.has(key)) return;
+        seen.add(key);
+        links.push({ source: a, target: b });
       };
-      if (dimKey === "d4" && linkTo) {
-        newNote.linkTo = linkTo;
-      }
+      appData.forEach(node => {
+        (node.links || []).forEach(t => add(node.id, t));
+        Object.keys(node.branches || {}).forEach(k => {
+          (node.branches[k] || []).forEach(note => add(node.id, note.linkTo));
+        });
+      });
+      return links;
+    }
 
-      node.branches[dimKey] = node.branches[dimKey] || [];
-      node.branches[dimKey].push(newNote);
-      likedNotes[newNote.id] = true;
-      expandedBranches[`${node.id}_${dimKey}`] = true;
+    function getNeighborIds(nodeId) {
+      const set = new Set();
+      getGraphLinks().forEach(l => {
+        if (l.source === nodeId) set.add(l.target);
+        if (l.target === nodeId) set.add(l.source);
+      });
+      return set;
+    }
+
+    // ==================== 星图：力导向布局（位置只存在内存，不写入同步数据） ====================
+    const nodePositions = {}; // { nodeId: {x, y} }
+
+    function layoutGraph() {
+      const nodes = appData;
+      const links = getGraphLinks();
+      const hasCache = nodes.some(n => nodePositions[n.id]);
+      const fresh = new Set();
+
+      // 新节点播种：有关联邻居就落在邻居附近，否则按黄金角螺旋散开
+      nodes.forEach((node, i) => {
+        if (nodePositions[node.id]) return;
+        fresh.add(node.id);
+        const neighbor = links
+          .map(l => (l.source === node.id ? l.target : l.target === node.id ? l.source : null))
+          .find(id => id && nodePositions[id]);
+        if (neighbor) {
+          const p = nodePositions[neighbor];
+          const a = Math.random() * Math.PI * 2;
+          nodePositions[node.id] = { x: p.x + Math.cos(a) * 120, y: p.y + Math.sin(a) * 120 };
+        } else {
+          const a = i * 2.39996;
+          const rr = 60 + 55 * Math.sqrt(i + 1);
+          nodePositions[node.id] = { x: Math.cos(a) * rr, y: Math.sin(a) * rr };
+        }
+      });
+
+      // 已有布局时只移动新节点，避免整张星图跳动
+      const movable = id => !hasCache || fresh.has(id);
+      if (hasCache && fresh.size === 0) return;
+
+      const iterations = 260;
+      for (let it = 0; it < iterations; it++) {
+        const cool = 1 - it / iterations;
+        const disp = {};
+        nodes.forEach(n => (disp[n.id] = { x: 0, y: 0 }));
+
+        // 斥力：防止圆点和文字互相重叠
+        for (let i = 0; i < nodes.length; i++) {
+          for (let j = i + 1; j < nodes.length; j++) {
+            const a = nodePositions[nodes[i].id], b = nodePositions[nodes[j].id];
+            let dx = a.x - b.x, dy = a.y - b.y;
+            let d2 = dx * dx + dy * dy;
+            if (d2 < 1) { dx = Math.random() - 0.5; dy = Math.random() - 0.5; d2 = 1; }
+            const d = Math.sqrt(d2);
+            const f = 60000 / d2;
+            disp[nodes[i].id].x += (dx / d) * f; disp[nodes[i].id].y += (dy / d) * f;
+            disp[nodes[j].id].x -= (dx / d) * f; disp[nodes[j].id].y -= (dy / d) * f;
+          }
+        }
+        // 引力：有关联的问题彼此靠近
+        links.forEach(l => {
+          const a = nodePositions[l.source], b = nodePositions[l.target];
+          const dx = a.x - b.x, dy = a.y - b.y;
+          const d = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+          const f = (d - 170) * 0.06;
+          disp[l.source].x -= (dx / d) * f; disp[l.source].y -= (dy / d) * f;
+          disp[l.target].x += (dx / d) * f; disp[l.target].y += (dy / d) * f;
+        });
+        // 向心力：整体不要飘散
+        nodes.forEach(n => {
+          const p = nodePositions[n.id];
+          disp[n.id].x -= p.x * 0.012; disp[n.id].y -= p.y * 0.012;
+        });
+
+        const maxStep = 30 * cool + 1;
+        nodes.forEach(n => {
+          if (!movable(n.id)) return;
+          const d = disp[n.id];
+          const len = Math.sqrt(d.x * d.x + d.y * d.y) || 1;
+          const step = Math.min(len, maxStep);
+          nodePositions[n.id].x += (d.x / len) * step;
+          nodePositions[n.id].y += (d.y / len) * step;
+        });
+      }
+    }
+
+    // ==================== 星图：渲染 ====================
+    let focusedNodeId = null;
+
+    function renderGraph() {
+      // 清理已删除节点的位置缓存
+      const ids = new Set(appData.map(n => n.id));
+      Object.keys(nodePositions).forEach(id => { if (!ids.has(id)) delete nodePositions[id]; });
+      if (focusedNodeId && !ids.has(focusedNodeId)) focusedNodeId = null;
+
+      layoutGraph();
+
+      const linksLayer = document.getElementById("links-layer");
+      const nodesLayer = document.getElementById("nodes-layer");
+      if (!linksLayer || !nodesLayer) return;
+
+      linksLayer.innerHTML = getGraphLinks().map(l => {
+        const a = nodePositions[l.source], b = nodePositions[l.target];
+        return `<line class="link" data-a="${l.source}" data-b="${l.target}" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"></line>`;
+      }).join("");
+
+      nodesLayer.innerHTML = appData.map(node => {
+        const p = nodePositions[node.id];
+        const r = nodeRadius(node);
+        return `
+          <button type="button" class="star" data-id="${node.id}"
+            style="left:${p.x}px; top:${p.y}px; --r:${r}px"
+            title="${escapeHtml(node.confusion)}"
+            aria-label="${escapeHtml(node.confusion)}（${node.sameAskCount || 0} 人同问）">
+            <span class="star-dot"></span>
+            <span class="star-label">${escapeHtml(shortLabel(node.confusion))}</span>
+          </button>
+        `;
+      }).join("");
+
+      applyGraphState();
+      renderMindmap();
+    }
+
+    // 根据「聚焦 / 搜索」状态给节点和连线加淡出、高亮样式
+    function applyGraphState() {
+      const neighbors = focusedNodeId ? getNeighborIds(focusedNodeId) : new Set();
+      const q = searchQuery;
+      let matchCount = 0;
+
+      document.querySelectorAll("#nodes-layer .star").forEach(el => {
+        const id = el.dataset.id;
+        const node = getNodeById(id);
+        el.classList.remove("is-focus", "is-neighbor", "is-hidden", "is-match", "is-faint");
+        if (focusedNodeId) {
+          if (id === focusedNodeId) el.classList.add("is-focus");
+          else if (neighbors.has(id)) el.classList.add("is-neighbor");
+          else el.classList.add("is-hidden");
+        } else if (q) {
+          if (node && nodeMatchesSearch(node, q)) { el.classList.add("is-match"); matchCount++; }
+          else el.classList.add("is-faint");
+        }
+      });
+
+      document.querySelectorAll("#links-layer .link").forEach(el => {
+        el.classList.remove("is-active", "is-hidden", "is-faint");
+        if (focusedNodeId) {
+          const touches = el.dataset.a === focusedNodeId || el.dataset.b === focusedNodeId;
+          el.classList.add(touches ? "is-active" : "is-hidden");
+        } else if (q) {
+          el.classList.add("is-faint");
+        }
+      });
+
+      document.getElementById("stage")?.classList.toggle("has-focus", Boolean(focusedNodeId));
+      return matchCount;
+    }
+
+    // ==================== 镜头：平移 / 缩放 / 平滑聚焦 ====================
+    const camera = { x: 0, y: 0, k: 1 };
+    const MIN_K = 0.25, MAX_K = 3;
+
+    function applyCamera(animate = false) {
+      const world = document.getElementById("world");
+      if (!world) return;
+      world.classList.toggle("animating", animate);
+      world.style.transform = `translate(${camera.x}px, ${camera.y}px) scale(${camera.k})`;
+      if (animate) {
+        clearTimeout(applyCamera._t);
+        applyCamera._t = setTimeout(() => world.classList.remove("animating"), 650);
+      }
+    }
+
+    function clampK(k) { return Math.max(MIN_K, Math.min(MAX_K, k)); }
+
+    // 把世界坐标 (wx, wy) 放到屏幕中心，缩放到 k
+    function centerOn(wx, wy, k, animate = true) {
+      const vw = window.innerWidth, vh = window.innerHeight;
+      const topOffset = 32; // 顶部悬浮栏占位，视觉中心略往下
+      camera.k = clampK(k);
+      camera.x = vw / 2 - wx * camera.k;
+      camera.y = (vh + topOffset) / 2 - wy * camera.k;
+      applyCamera(animate);
+    }
+
+    function zoomAt(sx, sy, factor, animate = false) {
+      const k = clampK(camera.k * factor);
+      const wx = (sx - camera.x) / camera.k, wy = (sy - camera.y) / camera.k;
+      camera.k = k;
+      camera.x = sx - wx * k;
+      camera.y = sy - wy * k;
+      applyCamera(animate);
+    }
+
+    function zoomBy(factor) {
+      zoomAt(window.innerWidth / 2, window.innerHeight / 2, factor, true);
+    }
+
+    // 全景：把所有节点装进屏幕
+    function fitAll(animate = true) {
+      const pts = appData.map(n => nodePositions[n.id]).filter(Boolean);
+      if (pts.length === 0) { centerOn(0, 0, 1, animate); return; }
+      const xs = pts.map(p => p.x), ys = pts.map(p => p.y);
+      const minX = Math.min(...xs) - 90, maxX = Math.max(...xs) + 90;
+      const minY = Math.min(...ys) - 60, maxY = Math.max(...ys) + 90;
+      const vw = window.innerWidth, vh = window.innerHeight - 80;
+      const k = Math.min(vw / (maxX - minX), vh / (maxY - minY), 1.3);
+      centerOn((minX + maxX) / 2, (minY + maxY) / 2, k, animate);
+    }
+
+    // 回到全局星图：收起聚焦 + 全景
+    function resetView() {
+      focusedNodeId = null;
+      subFocusTarget = null;
+      expandedAccNotes = {};
+      applyGraphState();
+      renderMindmap();
+      fitAll(true);
+    }
+
+    // ==================== 单点聚焦（全场唯一展开） ====================
+    function focusNode(nodeId) {
+      if (!getNodeById(nodeId)) return;
+      focusedNodeId = nodeId;
+      subFocusTarget = null;
+      expandedAccNotes = {};
+      applyGraphState();
+      panToFocusOverview(true);
+    }
+
+    function onStarClick(nodeId) {
+      if (Date.now() - (window.__lastDragEnd || 0) < 120) return;
+      if (focusedNodeId === nodeId) {
+        resetView(); // 再次点击同一个问题 → 收起，回到全局星图
+      } else {
+        focusNode(nodeId);
+      }
+    }
+
+    // ==================== 画布手势：拖拽平移、滚轮缩放、双指缩放、两段式返回判定 ====================
+    function initStageGestures() {
+      const stage = document.getElementById("stage");
+      if (!stage) return;
+      const pointers = new Map();
+      let dragMoved = false;
+      let downTarget = null;
+      let lastPinchDist = 0;
+
+      stage.addEventListener("pointerdown", (e) => {
+        if (e.button !== 0 && e.pointerType === "mouse") return;
+        pointers.set(e.pointerId, { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, captured: false });
+        if (pointers.size === 1) {
+          dragMoved = false;
+          downTarget = e.target;
+        }
+        if (pointers.size === 2) {
+          const [a, b] = [...pointers.values()];
+          lastPinchDist = Math.hypot(a.x - b.x, a.y - b.y);
+          dragMoved = true;
+        }
+      });
+
+      stage.addEventListener("pointermove", (e) => {
+        const p = pointers.get(e.pointerId);
+        if (!p) return;
+        const dx = e.clientX - p.x, dy = e.clientY - p.y;
+        p.x = e.clientX; p.y = e.clientY;
+
+        if (pointers.size === 1) {
+          if (Math.hypot(e.clientX - p.sx, e.clientY - p.sy) > 5) {
+            dragMoved = true;
+            stage.classList.add("dragging");
+            if (!p.captured) {
+              try { stage.setPointerCapture(e.pointerId); p.captured = true; } catch (_) {}
+            }
+          }
+          if (dragMoved) {
+            camera.x += dx; camera.y += dy;
+            applyCamera(false);
+          }
+        } else if (pointers.size === 2) {
+          const [a, b] = [...pointers.values()];
+          const dist = Math.hypot(a.x - b.x, a.y - b.y);
+          if (lastPinchDist > 0) {
+            zoomAt((a.x + b.x) / 2, (a.y + b.y) / 2, dist / lastPinchDist, false);
+          }
+          lastPinchDist = dist;
+        }
+      });
+
+      const endPointer = (e) => {
+        if (!pointers.has(e.pointerId)) return;
+        pointers.delete(e.pointerId);
+        if (pointers.size < 2) lastPinchDist = 0;
+        if (pointers.size === 0) {
+          stage.classList.remove("dragging");
+          if (dragMoved) {
+            window.__lastDragEnd = Date.now();
+          } else if (e.type === "pointerup" && downTarget) {
+            const starEl = downTarget.closest?.(".star");
+            const inMindmapCard = downTarget.closest?.(".focus-center-card, .dim-king-card, .acc-strip");
+            if (starEl) {
+              onStarClick(starEl.dataset.id);
+            } else if (!inMindmapCard && focusedNodeId) {
+              // 两段式防迷路返回：若已 Auto-Pan 偏离中心，先拉回问题中心；否则退回全局星图
+              if (subFocusTarget) {
+                panToFocusOverview(true);
+              } else {
+                resetView();
+              }
+            }
+          }
+          downTarget = null;
+        }
+      };
+      stage.addEventListener("pointerup", endPointer);
+      stage.addEventListener("pointercancel", endPointer);
+
+      stage.addEventListener("wheel", (e) => {
+        e.preventDefault();
+        const factor = Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0015));
+        zoomAt(e.clientX, e.clientY, factor, false);
+      }, { passive: false });
+
+      // 键盘：Tab 到圆点后回车/空格也能聚焦
+      stage.addEventListener("keydown", (e) => {
+        const star = e.target.closest?.(".star");
+        if (star && (e.key === "Enter" || e.key === " ")) {
+          e.preventDefault();
+          onStarClick(star.dataset.id);
+        }
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && focusedNodeId && !document.querySelector("dialog[open]")) resetView();
+      });
+
+      window.addEventListener("resize", () => {
+        clearTimeout(initStageGestures._r);
+        initStageGestures._r = setTimeout(() => {
+          if (focusedNodeId) focusNode(focusedNodeId); else fitAll(false);
+        }, 150);
+      });
+    }
+
+    // ==================== 顶部搜索框：星图高亮联动 + 回车直接提问 ====================
+    function handleSearchInput(val) {
+      searchQuery = (val || "").trim();
+      if (searchQuery && focusedNodeId) { focusedNodeId = null; subFocusTarget = null; renderMindmap(); }
+      const count = applyGraphState();
+      const hint = document.getElementById("search-hint");
+      if (!hint) return;
+      if (!searchQuery) {
+        hint.classList.add("hidden");
+        return;
+      }
+      hint.classList.remove("hidden");
+      hint.textContent = count > 0
+        ? `星图里有 ${count} 个相关问题已高亮 · 没找到想要的？按回车直接提问`
+        : `还没人问过 · 按回车或点「提问」把它发出来`;
+    }
+
+    function handleSearchKeydown(event) {
+      if (event.key === "Enter" && !event.isComposing) {
+        event.preventDefault();
+        submitNewQuestion();
+      } else if (event.key === "Escape") {
+        clearSearch();
+        event.target.blur();
+      }
+    }
+
+    function clearSearch() {
+      const input = document.getElementById("unified-search-input");
+      if (input) input.value = "";
+      handleSearchInput("");
+    }
+
+    function onAskButton() {
+      const input = document.getElementById("unified-search-input");
+      if (input && input.value.trim()) {
+        submitNewQuestion();
+      } else if (input) {
+        input.focus();
+        const hint = document.getElementById("search-hint");
+        if (hint) {
+          hint.classList.remove("hidden");
+          hint.textContent = "在这里写下你的问题，回车即可发出";
+        }
+      }
+    }
+
+    // 直接在画布上生成一颗新的问题圆点并立即聚焦
+    function submitNewQuestion() {
+      const input = document.getElementById("unified-search-input");
+      const confusion = (input?.value || "").trim();
+      if (!confusion) { input?.focus(); return; }
+
+      const newNode = {
+        id: "node-" + Date.now(),
+        chapterId: "unlocated",
+        quote: "",
+        confusion,
+        sameAskCount: 1,
+        branches: { d1: [], d2: [], d3: [], d4: [] }
+      };
+      appData.unshift(newNode);
+      likedQuestions[newNode.id] = true;
       saveLikesState();
       saveData();
 
-      if (inputEl) inputEl.value = "";
-      updateCharCount();
-      renderMicroView();
+      // 新圆点落在当前屏幕中心附近
+      const wx = (window.innerWidth / 2 - camera.x) / camera.k;
+      const wy = (window.innerHeight / 2 - camera.y) / camera.k;
+      nodePositions[newNode.id] = { x: wx + (Math.random() - 0.5) * 40, y: wy + (Math.random() - 0.5) * 40 };
+
+      if (input) { input.value = ""; input.blur(); }
+      searchQuery = "";
+      document.getElementById("search-hint")?.classList.add("hidden");
+      renderGraph();
+      focusNode(newNode.id);
     }
 
     function resetDemoData() {
@@ -1527,8 +1791,10 @@
       likedQuestions = {};
       likedNotes = {};
       appData = JSON.parse(JSON.stringify(defaultData));
+      Object.keys(nodePositions).forEach(id => delete nodePositions[id]);
       saveData();
-      switchToMacro();
+      renderGraph();
+      resetView();
     }
 
     // ==================== 跨设备云端实时同步 & 备份逻辑 ====================
@@ -1554,14 +1820,7 @@
     }
 
     function refreshCurrentView() {
-      if (!document.getElementById("micro-view").classList.contains("hidden")) {
-        if (!getNodeById(currentNodeId) && appData.length > 0) {
-          currentNodeId = appData[0].id;
-        }
-        renderMicroView();
-      } else {
-        renderMacroView();
-      }
+      renderGraph();
     }
 
     async function pullFromCloud(manual = false) {
@@ -1573,7 +1832,7 @@
           if (localRes.ok) {
             const payload = await localRes.json();
             if (Array.isArray(payload?.nodes) && payload.nodes.length > 0) {
-              appData = payload.nodes;
+              appData = upgradeAndNormalizeData(payload.nodes);
               lastLocalUpdateAt = Number(payload.updatedAt || Date.now());
               localStorage.setItem("bookgraph_v1_0", JSON.stringify(appData));
               localStorage.setItem("bookgraph_updated_at", String(lastLocalUpdateAt));
@@ -1598,7 +1857,7 @@
 
         if (Array.isArray(remoteNodes) && remoteNodes.length > 0) {
           if (manual || remoteUpdatedAt >= lastLocalUpdateAt || !localStorage.getItem("bookgraph_v1_0")) {
-            appData = remoteNodes;
+            appData = upgradeAndNormalizeData(remoteNodes);
             lastLocalUpdateAt = remoteUpdatedAt || Date.now();
             localStorage.setItem("bookgraph_v1_0", JSON.stringify(appData));
             localStorage.setItem("bookgraph_updated_at", String(lastLocalUpdateAt));
@@ -1742,7 +2001,9 @@
     }
 
     window.addEventListener("load", () => {
-      switchToMacro();
+      initStageGestures();
+      renderGraph();
+      fitAll(false);
       pullFromCloud(false);
       // 切回标签页或手机唤醒时自动拉取最新云端数据
       document.addEventListener("visibilitychange", () => {
