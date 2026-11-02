@@ -184,7 +184,8 @@
     .star.is-neighbor .star-label {
       color: #cbd5e1;
     }
-    dialog#answer-dialog {
+    dialog#answer-dialog,
+    dialog#quote-dialog {
       background: transparent;
       border: 0;
       padding: 0;
@@ -192,9 +193,36 @@
       width: 100%;
       color: #f8fafc;
     }
-    dialog#answer-dialog::backdrop {
+    dialog#answer-dialog::backdrop,
+    dialog#quote-dialog::backdrop {
       background-color: rgba(2, 6, 23, 0.68);
       backdrop-filter: blur(4px);
+    }
+
+    /* ===== 回答卡片内已知词条虚线高亮 & 自由划词选择支持 ===== */
+    .note-body-text {
+      user-select: text;
+      -webkit-user-select: text;
+      cursor: text;
+    }
+    .term-inline {
+      border-bottom: 1.5px dashed rgba(52, 211, 153, 0.85);
+      color: #6ee7b7;
+      padding: 0 2px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      display: inline;
+    }
+    .term-inline:hover {
+      background: rgba(16, 185, 129, 0.18);
+      color: #a7f3d0;
+    }
+    .term-check {
+      font-size: 9px;
+      margin-left: 1px;
+      color: #34d399;
+      font-weight: 700;
     }
 
     ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -288,49 +316,116 @@
     })();
   </script>
 
-  <!-- ==================== 顶部悬浮栏：书名 + 搜索框 + 提问按钮 ==================== -->
-  <header id="top-bar" class="fixed top-3 left-1/2 -translate-x-1/2 z-30 w-[min(96vw,760px)] glass border border-slate-800/80 rounded-2xl px-2.5 py-2 flex items-center gap-2 shadow-2xl">
-    <button onclick="resetView()" title="回到全景" class="shrink-0 text-sm font-semibold text-slate-200 hover:text-white px-1.5 transition">
-      <span class="hidden sm:inline">《三体 II：黑暗森林》</span><span class="sm:hidden">三体 II</span>
-    </button>
-
-    <div class="relative flex-1 min-w-0">
-      <input id="unified-search-input" type="search" autocomplete="off" enterkeyhint="send"
-        oninput="handleSearchInput(this.value)"
-        onkeydown="handleSearchKeydown(event)"
-        placeholder="搜索或直接提问…"
-        aria-label="搜索问题，或直接输入新问题"
-        class="w-full min-w-0 bg-slate-950/70 border border-slate-800 focus:border-slate-500 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none transition">
-      <div id="search-hint" class="hidden absolute left-0 right-0 top-full mt-2 text-xs text-slate-400 bg-slate-950/95 border border-slate-800 rounded-xl px-3 py-2 shadow-xl"></div>
+  <!-- ==================== 顶部悬浮栏：三大平行宇宙 Tab + 搜索提问合一 + 更多设置 ==================== -->
+  <header id="top-bar" class="fixed top-3 left-1/2 -translate-x-1/2 z-30 w-[min(96vw,820px)] glass border border-slate-800/80 rounded-2xl p-2 flex flex-col gap-2 shadow-2xl">
+    <!-- 第一行：三大平行宇宙（3个模式Tab）一键切换 + 全景复位 -->
+    <div class="flex items-center justify-between gap-1.5 px-0.5">
+      <div id="mode-tabs" class="flex items-center gap-1 bg-slate-950/80 border border-slate-800/90 rounded-xl p-1 overflow-x-auto no-scrollbar">
+        <button type="button" data-mode="book" onclick="switchMode('book')"
+          class="mode-tab shrink-0 text-xs px-3 py-1.5 rounded-lg font-semibold transition bg-slate-200 text-slate-950 shadow">
+          📖 神作破壁
+        </button>
+        <button type="button" data-mode="cross" onclick="switchMode('cross')"
+          class="mode-tab shrink-0 text-xs px-3 py-1.5 rounded-lg font-medium transition text-slate-400 hover:text-slate-200">
+          ⚡ 跨界暴论
+        </button>
+        <button type="button" data-mode="idea" onclick="switchMode('idea')"
+          class="mode-tab shrink-0 text-xs px-3 py-1.5 rounded-lg font-medium transition text-slate-400 hover:text-slate-200">
+          🧠 脑洞孵化器
+        </button>
+      </div>
+      <button onclick="resetView()" title="回到当前星图全景" id="top-mode-subtitle"
+        class="shrink-0 text-xs font-medium text-slate-400 hover:text-slate-200 px-2 py-1 rounded-lg hover:bg-slate-800/60 transition hidden sm:inline-flex items-center gap-1">
+        <span>《三体 II：黑暗森林》</span>
+      </button>
     </div>
 
-    <button onclick="onAskButton()" class="shrink-0 text-xs bg-slate-100 hover:bg-white text-slate-950 font-semibold px-3.5 py-2 rounded-xl transition">
-      提问
-    </button>
+    <!-- 第二行：搜问合一输入框 + 提问按钮 + ··· 更多菜单 -->
+    <div class="flex items-center gap-2">
+      <div class="relative flex-1 min-w-0">
+        <input id="unified-search-input" type="search" autocomplete="off" enterkeyhint="send"
+          oninput="handleSearchInput(this.value)"
+          onkeydown="handleSearchKeydown(event)"
+          placeholder="搜索《三体 II》问题，或直接输入新困惑回车提问…"
+          aria-label="搜索问题，或直接输入新问题"
+          class="w-full min-w-0 bg-slate-950/70 border border-slate-800 focus:border-slate-500 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none transition">
+        <div id="search-hint" class="hidden absolute left-0 right-0 top-full mt-2 text-xs text-slate-400 bg-slate-950/95 border border-slate-800 rounded-xl px-3 py-2 shadow-xl z-40"></div>
+      </div>
 
-    <!-- 低调 ··· 更多菜单（收纳云端同步、重置与重新上锁） -->
-    <div class="relative shrink-0" id="header-more-wrap">
-      <button onclick="toggleHeaderMoreMenu(event)" title="更多设置" class="text-xs px-2.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 transition font-bold">
-        ···
+      <button onclick="onAskButton()" id="top-ask-btn" class="shrink-0 text-xs bg-slate-100 hover:bg-white text-slate-950 font-semibold px-3.5 py-2 rounded-xl transition">
+        提问
       </button>
-      <div id="header-more-menu" class="hidden absolute right-0 mt-2 w-48 bg-slate-900 border border-slate-700/90 rounded-xl shadow-2xl py-1.5 z-50 text-xs">
-        <button onclick="openSyncModal(); hideHeaderMoreMenu();" class="w-full px-3.5 py-2 text-left text-slate-200 hover:bg-slate-800 flex items-center justify-between">
-          <span>云端同步与备份</span>
-          <span class="flex items-center gap-1 text-[11px] text-emerald-400">
-            <span id="cloud-status-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>
-            <span id="cloud-status-text">已连</span>
-          </span>
+
+      <!-- 低调 ··· 更多菜单（收纳云端同步、AI配置、重置与重新上锁） -->
+      <div class="relative shrink-0" id="header-more-wrap">
+        <button onclick="toggleHeaderMoreMenu(event)" title="更多设置" class="text-xs px-2.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 transition font-bold">
+          ···
         </button>
-        <button onclick="lockPageAgain(); hideHeaderMoreMenu();" class="w-full px-3.5 py-2 text-left text-slate-300 hover:bg-slate-800">
-          锁定当前设备访问
-        </button>
-        <div class="border-t border-slate-800 my-1"></div>
-        <button onclick="resetDemoData(); hideHeaderMoreMenu();" class="w-full px-3.5 py-2 text-left text-rose-400 hover:bg-slate-800">
-          重置初始演示数据
-        </button>
+        <div id="header-more-menu" class="hidden absolute right-0 mt-2 w-52 bg-slate-900 border border-slate-700/90 rounded-xl shadow-2xl py-1.5 z-50 text-xs">
+          <button onclick="openSyncModal(); hideHeaderMoreMenu();" class="w-full px-3.5 py-2 text-left text-slate-200 hover:bg-slate-800 flex items-center justify-between">
+            <span>云端同步与 AI 设置</span>
+            <span class="flex items-center gap-1 text-[11px] text-emerald-400">
+              <span id="cloud-status-dot" class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span>
+              <span id="cloud-status-text">已连</span>
+            </span>
+          </button>
+          <button onclick="lockPageAgain(); hideHeaderMoreMenu();" class="w-full px-3.5 py-2 text-left text-slate-300 hover:bg-slate-800">
+            锁定当前设备访问
+          </button>
+          <div class="border-t border-slate-800 my-1"></div>
+          <button onclick="resetDemoData(); hideHeaderMoreMenu();" class="w-full px-3.5 py-2 text-left text-rose-400 hover:bg-slate-800">
+            重置初始演示数据
+          </button>
+        </div>
       </div>
     </div>
   </header>
+
+  <!-- 轻提示 Toast -->
+  <div id="app-toast" class="hidden fixed top-24 left-1/2 -translate-x-1/2 z-50 max-w-md w-[90vw] glass border border-slate-700/90 text-slate-100 text-xs px-4 py-2.5 rounded-xl shadow-2xl text-center pointer-events-none transition-opacity duration-300"></div>
+
+  <!-- ==================== 回答卡片内：划词 AI 速解 / 虚线注释小浮窗（Inline Popover） ==================== -->
+  <div id="term-popover" class="hidden fixed z-50 w-[min(92vw,310px)] glass border border-emerald-500/45 rounded-2xl p-3.5 shadow-2xl space-y-2.5 text-xs text-slate-100"
+    onclick="event.stopPropagation()">
+    <div class="flex items-center justify-between gap-2">
+      <div class="flex items-center gap-1.5 min-w-0">
+        <span id="term-pop-title" class="font-bold text-emerald-300 text-sm truncate">词条</span>
+        <span id="term-pop-badge" class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shrink-0">语境速解</span>
+      </div>
+      <button type="button" onclick="closeTermPopover()" aria-label="关闭速解浮窗" class="text-slate-400 hover:text-white text-base leading-none px-1">&times;</button>
+    </div>
+
+    <!-- 已钉词条展示视图 -->
+    <div id="term-pop-explain-view" class="text-xs text-slate-200 leading-relaxed bg-slate-950/75 border border-slate-800/90 rounded-xl px-3 py-2"></div>
+
+    <!-- 划词新建/编辑解释输入框（40字语境速解） -->
+    <div id="term-pop-edit-wrap" class="hidden space-y-1.5">
+      <textarea id="term-pop-explain-input" rows="2" maxlength="65"
+        placeholder="一句话大白话解释（40字内，结合当前语境秒懂）…"
+        class="w-full bg-slate-950 border border-slate-700 focus:border-emerald-400 rounded-xl px-2.5 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none leading-relaxed"></textarea>
+    </div>
+
+    <div class="flex flex-wrap items-center justify-between gap-1.5 pt-0.5">
+      <div class="flex items-center gap-1.5">
+        <button type="button" id="term-pop-like-btn" onclick="likeCurrentTerm(event)"
+          class="px-2.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/35 font-semibold transition">
+          ✓ 秒懂 (+1)
+        </button>
+        <button type="button" id="term-pop-pin-btn" onclick="pinCurrentTermAnnotation(event)"
+          class="hidden px-2.5 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold transition shadow">
+          📌 钉成虚线注
+        </button>
+        <button type="button" id="term-pop-ai-btn" onclick="regenerateCurrentTermAi(event)"
+          class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 transition">
+          ✨ AI 速解
+        </button>
+      </div>
+      <a id="term-pop-search-link" href="#" target="_blank" rel="noopener noreferrer"
+        class="text-[11px] text-slate-400 hover:text-slate-200 underline shrink-0">
+        🔍 搜百科/看图 ↗
+      </a>
+    </div>
+  </div>
 
   <!-- ==================== 全屏无边界星图画布（拖拽平移 + 滚轮/双指缩放） ==================== -->
   <div id="stage" aria-label="问题星图">
@@ -364,7 +459,7 @@
     拖动平移 · 滚轮或双指缩放 · 点击圆点聚焦
   </div>
 
-  <!-- ==================== 零负担写回答弹窗（直接写 + 自动识别四维归类 + 浅灰例子启发） ==================== -->
+  <!-- ==================== 零负担写回答弹窗（直接写 + 自动识别四维归类 + 关联星点 linkTo） ==================== -->
   <dialog id="answer-dialog" closedby="any" aria-labelledby="answer-dialog-title" class="rounded-2xl">
     <form onsubmit="submitAnswerForm(event)" class="bg-slate-900/95 border border-slate-700/90 rounded-2xl p-5 shadow-2xl space-y-3.5 text-left">
       <div class="flex items-start justify-between gap-3">
@@ -383,14 +478,30 @@
         placeholder="写下你的理解…（比如：用一句话大白话点破 / 补齐书里没明说的背景设定 / 拿生活常识打个比方 / 点出和前后哪段情节呼应）"
         class="w-full bg-slate-950 border border-slate-800 focus:border-slate-500 rounded-xl p-3.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none leading-relaxed transition"></textarea>
 
+      <!-- 🔗 关联其它星点（linkTo）选择器：当归类为 d4 或手动点击「🔗 关联星点」时展开 -->
+      <div id="answer-linkto-wrap" class="hidden bg-slate-950/80 border border-slate-800/90 rounded-xl p-2.5 space-y-1.5">
+        <div class="flex items-center justify-between text-[11px] text-slate-400">
+          <span>🔗 关联另一颗星点（提交后自动建立双向星图连线）</span>
+          <button type="button" onclick="clearAnswerLinkTo()" class="text-slate-500 hover:text-slate-300">不关联</button>
+        </div>
+        <select id="answer-linkto-select"
+          class="w-full bg-slate-900 border border-slate-700/80 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
+          <option value="">— 选择要呼应/连线的星点（选填）—</option>
+        </select>
+      </div>
+
       <div class="flex flex-wrap items-center justify-between gap-2 pt-0.5">
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-1.5">
           <input id="answer-author-input" type="text" maxlength="20" placeholder="署名（选填）"
-            class="bg-slate-950 border border-slate-800 focus:border-slate-600 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 placeholder-slate-600 w-28 focus:outline-none">
+            class="bg-slate-950 border border-slate-800 focus:border-slate-600 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 placeholder-slate-600 w-24 focus:outline-none">
           <!-- 低调自动归类提示（默认无需操作，点击可顺手微调） -->
           <button type="button" id="answer-dim-badge" onclick="cycleAnswerDimOverride()" title="点击可手动切换归类维度"
             class="text-[11px] px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-600 transition">
             自动归入：直白真相
+          </button>
+          <button type="button" id="answer-linkto-toggle-btn" onclick="toggleAnswerLinkToBox()" title="关联画布上的另一颗问题星点"
+            class="text-[11px] px-2 py-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-400 hover:text-amber-300 hover:border-amber-500/40 transition">
+            🔗 关联星点
           </button>
         </div>
 
@@ -401,15 +512,89 @@
     </form>
   </dialog>
 
-  <!-- ==================== 跨设备云端同步与数据备份弹窗（从顶栏 ··· 唤起） ==================== -->
-  <div id="sync-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+  <!-- ==================== 中心问题卡：补充/编辑引文（quote）与修改标题弹窗 ==================== -->
+  <dialog id="quote-dialog" closedby="any" aria-labelledby="quote-dialog-title" class="rounded-2xl">
+    <form onsubmit="submitQuoteForm(event)" class="bg-slate-900/95 border border-slate-700/90 rounded-2xl p-5 shadow-2xl space-y-3.5 text-left">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <h2 id="quote-dialog-title" class="text-xs font-medium text-slate-400">📝 补充原著引文 / 编辑问题背景</h2>
+          <p class="text-[11px] text-slate-500 mt-0.5">为中心卡片补上关键原句、暴论靶子或场景背景</p>
+        </div>
+        <button type="button" onclick="closeQuoteDialog()" aria-label="关闭" class="text-slate-500 hover:text-slate-200 text-lg leading-none px-1">&times;</button>
+      </div>
+
+      <div>
+        <label class="block text-[11px] text-slate-400 mb-1">核心问题 / 脑洞议题</label>
+        <input id="quote-confusion-input" type="text" maxlength="120" required
+          class="w-full bg-slate-950 border border-slate-800 focus:border-slate-500 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none">
+      </div>
+
+      <div>
+        <label class="block text-[11px] text-slate-400 mb-1">原著引文 / 现实痛点场景补充（quote）</label>
+        <textarea id="quote-text-input" rows="3" maxlength="240"
+          placeholder="例如：“宇宙就是一座黑暗森林，每个文明都是带枪的猎人……” 或补充具体的使用痛点场景"
+          class="w-full bg-slate-950 border border-slate-800 focus:border-slate-500 rounded-xl p-3 text-xs text-slate-200 placeholder-slate-600 focus:outline-none leading-relaxed"></textarea>
+      </div>
+
+      <div class="flex items-center justify-between gap-2 pt-1">
+        <span class="text-[11px] text-slate-500">清空引文框即可移除引文展示</span>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="closeQuoteDialog()" class="text-xs text-slate-400 hover:text-slate-200 px-3 py-1.5">取消</button>
+          <button type="submit" class="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold px-4 py-1.5 rounded-xl transition">
+            保存修改
+          </button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- ==================== 跨设备云端同步、AI 破壁引擎配置与数据备份弹窗（从顶栏 ··· 唤起） ==================== -->
+  <div id="sync-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center z-50 p-4 overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-4 my-auto max-h-[92vh] overflow-y-auto">
       <div class="flex justify-between items-center border-b border-slate-800 pb-3">
         <div>
-          <h3 class="text-base font-bold text-white">☁️ 跨设备云端实时同步</h3>
-          <p class="text-xs text-slate-400 mt-0.5">手机在外网新增的问答，回家在电脑打开自动互通</p>
+          <h3 class="text-base font-bold text-white">⚙️ 云端同步与 AI 破壁引擎设置</h3>
+          <p class="text-xs text-slate-400 mt-0.5">跨设备实时互通问答 · 本机私密配置大模型 Key</p>
         </div>
         <button onclick="closeSyncModal()" class="text-slate-400 hover:text-white text-2xl leading-none">&times;</button>
+      </div>
+
+      <!-- AI API 配置区块（仅存本机 localStorage，绝不上传云端） -->
+      <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-3.5 space-y-2.5">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-xs font-semibold text-amber-300">✨ AI 四维破壁 / 划词速解引擎（可选）</span>
+          <span id="ai-config-status" class="text-[11px] text-slate-400">当前：内置零配置启发引擎</span>
+        </div>
+        <p class="text-[11px] text-slate-400 leading-relaxed">
+          填入 API Key 后，点击「✨ AI 四维破壁」或划词速解将实时调用大模型；Key 仅保存在当前浏览器本地缓存，绝不上传云端房间。
+        </p>
+        <div class="flex items-center gap-1.5 text-[11px]">
+          <span class="text-slate-500">快捷预设：</span>
+          <button type="button" onclick="applyAiPreset('deepseek')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">DeepSeek</button>
+          <button type="button" onclick="applyAiPreset('gemini')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">Gemini</button>
+          <button type="button" onclick="applyAiPreset('openai')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">OpenAI兼容</button>
+        </div>
+        <div class="space-y-2">
+          <input id="ai-api-key-input" type="password" autocomplete="off"
+            placeholder="API Key（如 sk-... 或 Gemini AIza...，留空则用内置引擎）"
+            class="w-full bg-slate-900 border border-slate-700/90 rounded-lg px-3 py-1.5 text-xs text-slate-100 font-mono focus:outline-none focus:border-amber-500">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <input id="ai-base-url-input" type="text"
+              placeholder="Base URL (如 https://api.deepseek.com/v1)"
+              class="w-full bg-slate-900 border border-slate-700/90 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-amber-500">
+            <input id="ai-model-input" type="text"
+              placeholder="Model (如 deepseek-chat)"
+              class="w-full bg-slate-900 border border-slate-700/90 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 font-mono focus:outline-none focus:border-amber-500">
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-1">
+          <button type="button" onclick="clearAiConfig()" class="text-xs px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 transition">
+            清空 Key
+          </button>
+          <button type="button" onclick="saveAiConfigFromModal()" class="text-xs px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold transition">
+            保存 AI 配置
+          </button>
+        </div>
       </div>
 
       <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3.5 space-y-2">
@@ -460,42 +645,89 @@
   </div>
 
   <script>
-    const CHAPTERS = [
-      { id: "ch1", shortName: "第1章", name: "第 1 章 · 序幕与科学边界", pos: "约全书 8%" },
-      { id: "ch2", shortName: "第2章", name: "第 2 章 · 面壁计划启动", pos: "约全书 32%" },
-      { id: "ch3", shortName: "第3章", name: "第 3 章 · 咒语与末日之战", pos: "约全书 65%" },
-      { id: "ch4", shortName: "第4章", name: "第 4 章 · 黑暗森林与雪地威慑", pos: "约全书 92%" }
-    ];
-
-    const PERSPECTIVE_TAGS = [
-      "🍳 做饭/生活", "🎮 游戏/娱乐", "💼 职场/商业", "💻 编程/科技", "🔬 科学/考据", "🎨 脑洞/直觉"
-    ];
-
-    // 四维角度定义（纯文字无花哨符号，砍掉多余标签）
-    const DIMENSIONS = {
-      d1: {
-        title: "直白真相",
-        prompt: "用一句话大白话点破这段到底在讲什么…"
+    // ==================== 三大平行宇宙（3个模式Tab）配置与四维定义 ====================
+    const MODES_CONFIG = {
+      book: {
+        id: "book",
+        name: "📖 神作破壁",
+        subtitle: "《三体 II：黑暗森林》",
+        searchPlaceholder: "搜索《三体 II》问题，或直接输入新困惑回车提问…",
+        askButtonText: "提问",
+        dimensions: {
+          d1: {
+            title: "直白真相",
+            prompt: "用一句话大白话点破这段到底在讲什么…"
+          },
+          d2: {
+            title: "幕后潜台词",
+            prompt: "补齐书里没明说的科学前提、背景设定或人物动机…"
+          },
+          d3: {
+            title: "接地气比方",
+            prompt: "拿日常生活常识打个比方，让人一秒听懂…"
+          },
+          d4: {
+            title: "前后文伏笔",
+            prompt: "点出这里填了前面哪里的坑，或和后面哪段情节呼应…"
+          }
+        }
       },
-      d2: {
-        title: "幕后潜台词",
-        prompt: "补齐书里没明说的科学前提、背景设定或人物动机…"
+      cross: {
+        id: "cross",
+        name: "⚡ 跨界暴论",
+        subtitle: "用野生生活经验 · 暴力拆解高冷认知",
+        searchPlaceholder: "搜索概念，或输入任何听不懂的专业黑话/人生难题回车扒皮…",
+        askButtonText: "求扒皮",
+        dimensions: {
+          d1: {
+            title: "🔨 人话扒皮",
+            prompt: "撕掉装腔作势的专业黑话，一句话讲透本质…"
+          },
+          d2: {
+            title: "🔦 老江湖潜台词",
+            prompt: "这事在现实社会/人性博弈里到底意味着什么…"
+          },
+          d3: {
+            title: "🪜 野生行家比方",
+            prompt: "宝妈/修车工/厨师/老玩家用肉身经验打的绝妙比方…"
+          },
+          d4: {
+            title: "🔗 跨界通感",
+            prompt: "它和另一个领域的哪个现象底层逻辑一模一样…"
+          }
+        }
       },
-      d3: {
-        title: "接地气比方",
-        prompt: "拿日常生活常识打个比方，让人一秒听懂…"
-      },
-      d4: {
-        title: "前后文伏笔",
-        prompt: "点出这里填了前面哪里的坑，或和后面哪段情节呼应…"
+      idea: {
+        id: "idea",
+        name: "🧠 脑洞孵化器",
+        subtitle: "非线性结构化头脑风暴工作台",
+        searchPlaceholder: "搜索点子，或输入新脑洞/棘手问题回车开启四维孵化…",
+        askButtonText: "立项脑暴",
+        dimensions: {
+          d1: {
+            title: "🎯 直击本质痛点",
+            prompt: "剥离表面伪需求，最核心的物理或人性痛点是什么…"
+          },
+          d2: {
+            title: "🔪 反面毒舌挑刺",
+            prompt: "如果这个点子死掉，最可能死在哪3个致命盲区…"
+          },
+          d3: {
+            title: "💡 跨界借招灵感",
+            prompt: "游戏界/餐饮界/大自然是怎么聪明解决类似问题的…"
+          },
+          d4: {
+            title: "🚀 下一步最小验证",
+            prompt: "今天花最小代价能直接动手验证的一步是什么…"
+          }
+        }
       }
     };
 
-    // 初始演示数据（含多维度榜一与第2、3名折叠块演示数据，以及问题间直接逻辑连线）
-    const defaultData = [
+    // Tab 1 默认数据：《三体 II：黑暗森林》神作破壁
+    const defaultBookData = [
       {
         id: "node-ch4-1",
-        chapterId: "ch4",
         quote: "即使两个文明都是善意的，只要没有交流，猜疑链就会无限延伸，最终导致黑暗森林打击。",
         confusion: "既然两个外星文明都是善良的，为什么见面不能先打个招呼试探一下，非要直接开枪毁灭对方？",
         sameAskCount: 420,
@@ -521,7 +753,6 @@
       },
       {
         id: "node-ch4-2",
-        chapterId: "ch4",
         quote: "罗辑举起手枪对准自己的心脏：如果我死，摇篮系统就会向宇宙广播三体星系的坐标。",
         confusion: "罗辑明明只有孤身一人，为什么三体人造出能摧毁千艘战舰的水滴，却被他一把老式手枪吓退了？",
         sameAskCount: 289,
@@ -545,7 +776,6 @@
       },
       {
         id: "node-blind-1",
-        chapterId: "unlocated",
         quote: "",
         confusion: "三体人既然能造出锁死地球科学的智子，为什么不直接用智子暗杀罗辑，还要大费周章派水滴和ETO去杀他？",
         sameAskCount: 312,
@@ -568,7 +798,6 @@
       },
       {
         id: "node-ch3-1",
-        chapterId: "ch3",
         quote: "水滴在三分钟内贯穿了联合舰队的一百艘恒星级战舰，它甚至没有发射任何能量武器，仅仅依靠最原始的撞击。",
         confusion: "人类的恒星级战舰都能飞出15%光速了，为什么连一颗几米长的实心铁疙瘩都打不穿，反而像纸糊的一样被撞碎？",
         sameAskCount: 276,
@@ -591,7 +820,6 @@
       },
       {
         id: "node-ch2-1",
-        chapterId: "ch2",
         quote: "面壁计划的核心在于：三体人虽然能通过智子监控人类的一切语言、文字和电脑数据，但唯独看不透人类的思维本身。",
         confusion: "既然面壁者不能把真实计划写下来、也不能跟任何人说，那他怎么指挥下属去干活？下属岂不是全被蒙在鼓里？",
         sameAskCount: 195,
@@ -613,7 +841,6 @@
       },
       {
         id: "node-blind-2",
-        chapterId: "unlocated",
         quote: "",
         confusion: "章北海明明是个坚定的胜利主义军人，为什么他一到太空就毫不犹豫开枪把老航天员全暗杀了？",
         sameAskCount: 164,
@@ -633,7 +860,6 @@
       },
       {
         id: "node-ch4-3",
-        chapterId: "ch4",
         quote: "黑暗战役爆发：星舰地球的战舰为了夺取其它战舰的核聚变燃料和零件，向昔日的战友发射了次声波氢弹。",
         confusion: "为什么逃亡的太空军不等到燃料耗尽再想办法，刚脱离太阳系没多久就立刻互相残杀？",
         sameAskCount: 150,
@@ -653,7 +879,6 @@
       },
       {
         id: "node-ch1-1",
-        chapterId: "ch1",
         quote: "一只褐蚁在墓碑上攀爬，搜寻着地面上的食物残渣，它对旁边刚刚发生的改变宇宙命运的对话一无所知。",
         confusion: "开篇花了整整好几页写一只蚂蚁在墓碑上爬，这段描写跟主线有什么关系？",
         sameAskCount: 128,
@@ -665,7 +890,9 @@
           d2: [
             { id: 111, author: "文学拉片员", text: "褐蚁在墓碑笔画的沟壑里爬行，只能看到眼前的局部线条，看不见整个墓志铭的文字——隐喻人类在更高维的宇宙规律面前，就像这只蚂蚁一样盲目。", votes: 63, downvotes: 0 }
           ],
-          d3: [],
+          d3: [
+            { id: 114, author: "AI 破壁底稿", text: "就像两个千亿巨头老板在路边咖啡馆敲定收购整条街，桌角一只蚂蚁正忙着搬运半颗方糖，完全不知道头顶的空气震动已经改写了整座大厦的命运。", votes: 12, downvotes: 0, isAiDraft: true }
+          ],
           d4: [
             { id: 112, author: "草蛇灰线控", text: "极致的对称闭环！全书第一页是叶文洁与罗辑在墓地旁对话，褐蚁在爬；全书最后一页是罗辑在同一个墓地用摇篮威慑三体，低头又看到了褐蚁。", votes: 91, downvotes: 0, linkTo: "node-ch4-2" }
           ]
@@ -673,33 +900,229 @@
       }
     ];
 
+    // Tab 2 默认数据：⚡ 跨界暴论（用一个人的生活经验，暴力破解另一个人的技术/认知难题）
+    const defaultCrossData = [
+      {
+        id: "cross-1",
+        quote: "风会熄灭蜡烛，却能使火越烧越旺。对随机性、不确定性和混沌也是一样：你要利用它们，而不是躲避它们。",
+        confusion: "什么是「反脆弱（Antifragile）」？它和坚强、韧性到底有什么本质区别？",
+        sameAskCount: 386,
+        links: ["cross-2", "cross-3"],
+        branches: {
+          d1: [
+            { id: 2001, author: "人话翻译机", text: "撕掉金融圈黑话：「坚强」是挨揍不碎（比如铁球），「反脆弱」是越挨揍越长肉（比如人体骨骼和免疫系统）——不仅不怕意外折腾，反而靠吸收小混乱来升级。", votes: 194, downvotes: 0 },
+            { id: 2002, author: "塔勒布书僮", text: "脆弱怕波动，坚强抗波动，反脆弱吃波动长身体。", votes: 68, downvotes: 0 }
+          ],
+          d2: [
+            { id: 2003, author: "十年猎头老李", text: "在职场和生意场里，追求100%稳定（铁饭碗、温室养娃、零出错KPI）等于慢性自杀；平时没吃过小亏、没经历过现金流波动的人，遇到一次裁员黑天鹅直接归零。", votes: 145, downvotes: 0 }
+          ],
+          d3: [
+            { id: 2004, author: "二胎宝妈阿珍", text: "就像带娃的免疫力和半夜喂奶生物钟：全屋消毒、一点风都不让吹的温室宝宝，一上幼儿园就进ICU；反而是地上打滚、偶尔小感冒的皮实娃，免疫系统越练越猛。", votes: 238, downvotes: 0 },
+            { id: 2005, author: "山东老面馒头王", text: "好比发面团：死面团你越捶它越死硬；但揣了酵母的老面团，你越是狠狠揉揣排气，它二次醒发时涨得越蓬松暄软！", votes: 112, downvotes: 0 }
+          ],
+          d4: [
+            { id: 2006, author: "健身房常客", text: "这跟健身撸铁的「超量恢复」底层逻辑一模一样：大重量先把肌纤维拉出微小撕裂，身体觉得危险就会超额修补，结果肌肉越练越粗。", votes: 89, downvotes: 0, linkTo: "cross-2" }
+          ]
+        }
+      },
+      {
+        id: "cross-2",
+        quote: "认知停留在神经突触的浅层电信号，从未转化为肌肉记忆与现实利益闭环。",
+        confusion: "为什么懂了那么多道理，看完了无数干货，却依然过不好这一生？",
+        sameAskCount: 452,
+        links: ["cross-1", "cross-3"],
+        branches: {
+          d1: [
+            { id: 2011, author: "戒断收藏夹", text: "因为你所谓的「懂了」只是大脑皮层分泌了一滴多巴胺爽了一下；而「过好一生」需要肉身在现实摩擦里挨耳光、改动作。把收藏夹当练功房，是现代人最大的幻觉。", votes: 265, downvotes: 0 }
+          ],
+          d2: [
+            { id: 2012, author: "知识付费操盘手", text: "绝大多数干货博主赚的是你「缓解焦虑的止痛药钱」。只有让你产生“5分钟看懂=我已经学会了”的错觉，你才会爽快下单；没人敢告诉你真正的改变全是反人性的枯燥重复。", votes: 178, downvotes: 0 }
+          ],
+          d3: [
+            { id: 2013, author: "游泳馆刘教练", text: "就像学游泳：你在岸上把《自由泳换气流体力学》背一万遍、姿势分解图画得再标准，只要不下水呛三口洗脚水，推下泳池照样像秤砣一样沉底。", votes: 310, downvotes: 0 },
+            { id: 2014, author: "驾校王师傅", text: "科目二倒车入库视频你看十个通宵，不如坐上破捷达踩半小时离合器找半联动抖动点。", votes: 95, downvotes: 0 }
+          ],
+          d4: [
+            { id: 2015, author: "全栈老码农", text: "跟学编程只看架构图不敲代码永远跑不通编译、以及「反脆弱」里没有真实压力输入就无法触发进化，完全是同一个死结。", votes: 104, downvotes: 0, linkTo: "cross-1" }
+          ]
+        }
+      },
+      {
+        id: "cross-3",
+        quote: "在未被测量之前，微观粒子处于所有可能状态的叠加；一旦观测发生，波函数瞬间坍缩。",
+        confusion: "「量子纠缠」与「观察者效应」到底在讲什么？真的跟人的意念或心灵感应有关吗？",
+        sameAskCount: 319,
+        links: ["cross-1", "cross-2"],
+        branches: {
+          d1: [
+            { id: 2021, author: "物理系暴躁学长", text: "别被玄学营销号骗了！「观察者效应」根本不是人眼用意念改变世界，而是电子太小了，你必须发射光子撞它才能测位置——就像拿铅球去测气球在哪，一测必然把气球撞飞。", votes: 208, downvotes: 0 }
+          ],
+          d2: [
+            { id: 2022, author: "防诈中心编外", text: "凡是拿量子力学给你推销能量水、灵魂伴侣心电感应、财富吸引力法则的，100%是欺负你不看薛定谔方程的割韭菜话术。", votes: 152, downvotes: 0 }
+          ],
+          d3: [
+            { id: 2023, author: "盲盒端盒玩家", text: "量子纠缠就像把一双鞋的左右脚随机塞进两个黑盒，一个寄北京一个寄上海。你在北京拆开看到是「左脚」的瞬间，立刻100%确定上海那盒是「右脚」，但你没法靠掰弯左脚给上海传摩斯密码。", votes: 246, downvotes: 0 },
+            { id: 2024, author: "AI 破壁底稿", text: "观察者效应好比你在全黑房间里拿高压水枪去「摸」一只肥皂泡在哪——水柱碰到泡泡的瞬间你就知道位置了，但泡泡也同时被水柱冲破了。", votes: 41, downvotes: 0, isAiDraft: true }
+          ],
+          d4: [
+            { id: 2025, author: "量化交易员", text: "社会学里的「霍桑效应」与股市里的「索罗斯反身性」如出一辙：当领导宣布紧盯某个KPI指标考核时，员工的行为就会立刻围绕指标造假，测量行为本身改变了被测对象。", votes: 87, downvotes: 0, linkTo: "cross-2" }
+          ]
+        }
+      }
+    ];
+
+    // Tab 3 默认数据：🧠 脑洞孵化器（非线性结构化头脑风暴工作台）
+    const defaultIdeaData = [
+      {
+        id: "idea-1",
+        quote: "场景背景：少儿球类与体能培训中，前20分钟基本功重复训练（颠球/运球）枯燥乏味，孩子觉得像受罚，家长在场边干着急。",
+        confusion: "如何让 4-8 岁小孩练球枯燥的基本功，变得像打游戏一样上瘾？",
+        sameAskCount: 268,
+        links: ["idea-2", "idea-3"],
+        branches: {
+          d1: [
+            { id: 3001, author: "游戏化产品狗", text: "小孩不是讨厌流汗，而是讨厌「延迟反馈」。游戏每0.5秒就有清脆音效、暴击数字和进度条，而传统教练只会喊“再来50个”，孩子大脑的多巴胺回路完全断路了。", votes: 164, downvotes: 0 },
+            { id: 3002, author: "少儿篮球馆长", text: "另一个隐形痛点是「场边家长的攀比焦虑」——家长看不懂基本功进步，只看到娃在傻拍球，急需可视化闯关战报。", votes: 57, downvotes: 0 }
+          ],
+          d2: [
+            { id: 3003, author: "硬件踩坑老兵", text: "致命盲区1：如果做成紧盯iPad屏幕的AR游戏，会彻底毁掉孩子打球时的「抬头观察视野」习惯；盲区2：智能球硬件太贵且易踢坏；盲区3：撤掉外在贴纸奖励后孩子更不愿练。", votes: 129, downvotes: 0 }
+          ],
+          d3: [
+            { id: 3004, author: "街机厅音游党", text: "借鉴《太鼓达人》与回转寿司扭蛋机：不看屏幕只靠「卡点节奏鼓点 + 触球声光节拍器」，连续拍在节拍上触发Combo连击语音；攒满100连击球场边的扭蛋机直接掉一颗盲盒球星卡！", votes: 185, downvotes: 0 }
+          ],
+          d4: [
+            { id: 3005, author: "精益创业狂", text: "零代码验证：今天下午直接拎一个蓝牙音箱去球场，放120BPM《孤勇者》鼓点伴奏，教练拿激光笔在地上投射移动光斑当「打地鼠踩点」，找4个孩子实测15分钟看留存率。", votes: 118, downvotes: 0, linkTo: "idea-3" }
+          ]
+        }
+      },
+      {
+        id: "idea-2",
+        quote: "场景背景：长发女生夏天洗完头举着吹风机15分钟手酸、满脖子汗，传统落地懒人支架又占地且角度死板。",
+        confusion: "设计一款「不吹脖子、解放双手」的挂脖多孔吹风机，能切中长发女生痛点吗？",
+        sameAskCount: 215,
+        links: ["idea-1", "idea-3"],
+        branches: {
+          d1: [
+            { id: 3011, author: "长发及腰受害者", text: "真痛点不是「手举着累」这么简单，而是「发根内部扒不开吹不干 + 吹头发时没法低头刷手机/涂护肤品 + 热风烘得后背全是汗」。", votes: 142, downvotes: 0 }
+          ],
+          d2: [
+            { id: 3012, author: "小家电结构工程师", text: "三个死穴：1. 高速电机+发热丝挂脖子上超过400克就会压迫颈椎；2. 湿长发垂在肩颈极易被挂脖进风口卷入引发事故；3. 多孔分流后风压暴跌，干发时间翻倍沦为吃灰废物。", votes: 176, downvotes: 0 }
+          ],
+          d3: [
+            { id: 3013, author: "医疗器械跨界客", text: "借鉴「吸尘器分体软管」与「美甲烤灯拱廊」：把笨重发热的电机主机做成沙发靠背夹持式，脖子上只戴一个80克重的硅胶微孔导风圈，或者直接做成沙发头枕式立体风罩！", votes: 134, downvotes: 0 }
+          ],
+          d4: [
+            { id: 3014, author: "华强北打样王", text: "花50块钱买一个旧挂脖风扇拆空电机，用波纹软管接上家里的戴森吹风机出风口，请3位长发女生坐沙发上边刷剧边实测20分钟，看发根能不能干透。", votes: 93, downvotes: 0, linkTo: "idea-1" }
+          ]
+        }
+      },
+      {
+        id: "idea-3",
+        quote: "场景背景：知识社区要么沦为装腔作势的论文搬运，要么变成抖机灵水贴，缺少真正让人一秒顿悟的接地气拆解。",
+        confusion: "做一个「反黑话、纯野生比方」的跨界破壁星图工具，怎么冷启动第一批高粘性用户？",
+        sameAskCount: 340,
+        links: ["idea-1", "idea-2"],
+        branches: {
+          d1: [
+            { id: 3021, author: "产品解剖室", text: "普通人遇到硬核神作或陌生概念时，缺的不是一万字综述，而是卡壳瞬间那一句「拿做饭/打游戏/修车打比方」的窗户纸点破。", votes: 156, downvotes: 0 }
+          ],
+          d2: [
+            { id: 3022, author: "社区运营老狗", text: "最容易死在「新问题发出来一片空白没人答」以及「发帖要先选分类标签太麻烦」。一旦用户面对空白输入框超过5秒，90%会直接划走。", votes: 121, downvotes: 0 }
+          ],
+          d3: [
+            { id: 3023, author: "AI 破壁底稿", text: "借鉴街机厅的「擂台挑战赛」：任何新问题先由 AI 秒出60分底稿垫底，并挂出醒目的「🤖 AI底稿·悬赏活人神比喻攻擂」招牌，用胜负欲激发各行各业野生行家出手。", votes: 88, downvotes: 0, isAiDraft: true }
+          ],
+          d4: [
+            { id: 3024, author: "增长黑客", text: "把神作破壁、跨界暴论、脑洞孵化三个平行宇宙合进同一个免登录单页星图，发给5个不同行业的资深朋友体验，看他们最忍不住在哪张卡片上点「+」写比方。", votes: 110, downvotes: 0, linkTo: "idea-1" }
+          ]
+        }
+      }
+    ];
+
+    // 预置术语虚线注释词典（模块三 Inline Popover 复用）
+    const defaultTermAnnotations = {
+      "猜疑链": {
+        term: "猜疑链",
+        explain: "就算双方都善良，也猜不透「对方是否相信我善良」，为防被秒只能抢先开枪的死局。",
+        likes: 64
+      },
+      "技术爆炸": {
+        term: "技术爆炸",
+        explain: "弱小文明可能在短短几百年内实现科技指数级跃迁，瞬间反超原本强大的文明。",
+        likes: 49
+      },
+      "吉利服": {
+        term: "吉利服",
+        explain: "吃鸡游戏和狙击手穿的全身伪装草服，趴在草丛里肉眼几乎无法发现。",
+        likes: 82
+      },
+      "强相互作用力": {
+        term: "强相互作用力",
+        explain: "把原子核紧紧捆在一起的宇宙最强基本力，比普通金属靠的电磁力坚硬上百倍。",
+        likes: 53
+      },
+      "纳什均衡": {
+        term: "纳什均衡",
+        explain: "博弈中谁单方面改变策略都会吃亏的僵局——哪怕合作更好，各自算计后仍停在最差结果。",
+        likes: 58
+      },
+      "反脆弱": {
+        term: "反脆弱",
+        explain: "超越坚强与韧性：系统不仅不怕混乱和冲击，反而能靠吸收小挫折越长越强。",
+        likes: 71
+      },
+      "超量恢复": {
+        term: "超量恢复",
+        explain: "肌肉或系统受适度破坏后，身体为防下次再受伤而超额修补，结果比原来更强壮。",
+        likes: 42
+      },
+      "观察者效应": {
+        term: "观察者效应",
+        explain: "微观粒子太小，探测它的光子一撞上去就会改变它的状态，并非人眼意念有超能力。",
+        likes: 67
+      },
+      "波函数瞬间坍缩": {
+        term: "波函数瞬间坍缩",
+        explain: "微观粒子原本像雾一样同时出现在多处，被仪器探测的瞬间突然变成一个固定点。",
+        likes: 38
+      },
+      "霍桑效应": {
+        term: "霍桑效应",
+        explain: "当人们意识到自己正在被观察或考核时，会刻意改变原本自然行为的心理现象。",
+        likes: 45
+      },
+      "索罗斯反身性": {
+        term: "索罗斯反身性",
+        explain: "市场参与者的偏见会改变市场基本面，而改变后的市场又反过来强化偏见的死循环。",
+        likes: 39
+      },
+      "多巴胺回路": {
+        term: "多巴胺回路",
+        explain: "大脑对「即时奖励与惊喜」产生渴望和上瘾的神经反馈机制，一旦反馈太慢就会断路。",
+        likes: 51
+      }
+    };
+
     const DEFAULT_CLOUD_ROOM_ID = "ff808181a09d98f701a16b4c481373c3";
     const CLOUD_API_BASE = "https://api.restful-api.dev/objects";
     let cloudRoomId = localStorage.getItem("bookgraph_cloud_room_id") || DEFAULT_CLOUD_ROOM_ID;
     let lastLocalUpdateAt = Number(localStorage.getItem("bookgraph_updated_at") || 0);
 
-    let appData = JSON.parse(localStorage.getItem("bookgraph_v1_0")) || JSON.parse(JSON.stringify(defaultData));
-    let currentNodeId = "node-ch4-1";
+    let currentMode = localStorage.getItem("bookgraph_current_mode") || "book";
+    if (!MODES_CONFIG[currentMode]) currentMode = "book";
+    let DIMENSIONS = MODES_CONFIG[currentMode].dimensions;
 
-    // 页面一（搜问合一 & 章节胶囊筛选）状态
     let searchQuery = "";
-    let selectedChapterFilter = "all";
 
-    // 页面二（原地展开 & 原地回答 & 历史返回栈）状态
-    let selectedAnswerDim = "d1"; // 默认替用户选中「💬 说人话」
-    let selectedSubmitTag = PERSPECTIVE_TAGS[0];
-    let expandedBranches = {}; // { "nodeId_dimKey": true }
-    let nodeHistoryStack = []; // 顺藤摸瓜连续跳转返回栈
-
-    // 本地已同问 / 已赞同即时状态（支持点击高亮 +1，再次点击取消）
+    // 本地已同问 / 已赞同 / 已踩状态
     let likedQuestions = JSON.parse(localStorage.getItem("bookgraph_liked_questions") || "{}");
     let likedNotes = JSON.parse(localStorage.getItem("bookgraph_liked_notes") || "{}");
+    let dislikedNotes = JSON.parse(localStorage.getItem("bookgraph_disliked_notes") || "{}");
 
-    // 自动补齐旧缓存缺失的演示连线与四维/手风琴回答（保留用户新增内容）
-    function upgradeAndNormalizeData(list) {
-      if (!Array.isArray(list)) return JSON.parse(JSON.stringify(defaultData));
+    function normalizeNodeList(list, defList) {
+      if (!Array.isArray(list)) return JSON.parse(JSON.stringify(defList));
       const byId = new Map(list.map(n => [n.id, n]));
-      defaultData.forEach(defNode => {
+      defList.forEach(defNode => {
         const cur = byId.get(defNode.id);
         if (!cur) {
           list.push(JSON.parse(JSON.stringify(defNode)));
@@ -717,11 +1140,104 @@
       });
       return list;
     }
-    appData = upgradeAndNormalizeData(appData);
+
+    // 兼容旧版单数组（v1.0）与新版三大平行宇宙 + 术语词典（v2.0）
+    function upgradeAndNormalizeData(raw) {
+      let store = {
+        modes: {
+          book: null,
+          cross: null,
+          idea: null
+        },
+        termAnnotations: {}
+      };
+      if (Array.isArray(raw)) {
+        store.modes.book = raw;
+      } else if (raw && typeof raw === "object") {
+        if (raw.modes && typeof raw.modes === "object") {
+          store.modes.book = raw.modes.book;
+          store.modes.cross = raw.modes.cross;
+          store.modes.idea = raw.modes.idea;
+        } else if (Array.isArray(raw.nodes)) {
+          store.modes.book = raw.nodes;
+        }
+        if (raw.termAnnotations && typeof raw.termAnnotations === "object") {
+          store.termAnnotations = { ...raw.termAnnotations };
+        }
+      }
+      store.modes.book = normalizeNodeList(store.modes.book, defaultBookData);
+      store.modes.cross = normalizeNodeList(store.modes.cross, defaultCrossData);
+      store.modes.idea = normalizeNodeList(store.modes.idea, defaultIdeaData);
+      store.termAnnotations = {
+        ...JSON.parse(JSON.stringify(defaultTermAnnotations)),
+        ...store.termAnnotations
+      };
+      return store;
+    }
+
+    let rawSavedStore = null;
+    try {
+      rawSavedStore = JSON.parse(localStorage.getItem("bookgraph_v2_0") || localStorage.getItem("bookgraph_v1_0") || "null");
+    } catch (_) {}
+    let appStore = upgradeAndNormalizeData(rawSavedStore);
+    let appData = appStore.modes[currentMode];
+
+    function syncModeUI() {
+      const cfg = MODES_CONFIG[currentMode] || MODES_CONFIG.book;
+      DIMENSIONS = cfg.dimensions;
+      appData = appStore.modes[currentMode];
+
+      document.querySelectorAll("#mode-tabs .mode-tab").forEach(btn => {
+        const isActive = btn.dataset.mode === currentMode;
+        btn.className = isActive
+          ? "mode-tab shrink-0 text-xs px-3 py-1.5 rounded-lg font-semibold transition bg-slate-200 text-slate-950 shadow"
+          : "mode-tab shrink-0 text-xs px-3 py-1.5 rounded-lg font-medium transition text-slate-400 hover:text-slate-200";
+      });
+
+      const subEl = document.getElementById("top-mode-subtitle");
+      if (subEl) subEl.innerHTML = `<span>${escapeHtml(cfg.subtitle)}</span>`;
+
+      const searchEl = document.getElementById("unified-search-input");
+      if (searchEl) searchEl.placeholder = cfg.searchPlaceholder;
+
+      const askBtn = document.getElementById("top-ask-btn");
+      if (askBtn) askBtn.textContent = cfg.askButtonText;
+
+      updateAnswerDimBadge();
+    }
+
+    function switchMode(modeKey) {
+      if (!MODES_CONFIG[modeKey]) return;
+      currentMode = modeKey;
+      localStorage.setItem("bookgraph_current_mode", currentMode);
+      focusedNodeId = null;
+      subFocusTarget = null;
+      expandedAccNotes = {};
+      searchQuery = "";
+      const searchEl = document.getElementById("unified-search-input");
+      if (searchEl) searchEl.value = "";
+      document.getElementById("search-hint")?.classList.add("hidden");
+      Object.keys(nodePositions).forEach(id => delete nodePositions[id]);
+      syncModeUI();
+      renderGraph();
+      fitAll(true);
+    }
 
     // ==================== 单点聚焦四维脑图状态与坐标计算 ====================
     let subFocusTarget = null; // null | { type: 'dim' | 'acc', dimKey, noteId }
     let expandedAccNotes = {}; // { "dimKey_noteId": true }
+    let aiGeneratingNodeId = null;
+
+    function showToast(msg, duration = 3600) {
+      const el = document.getElementById("app-toast");
+      if (!el) return;
+      el.textContent = msg;
+      el.classList.remove("hidden");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => {
+        el.classList.add("hidden");
+      }, duration);
+    }
 
     // 四个维度的四角辐射偏移（相对于中心问题坐标 cx, cy）
     const DIM_SLOTS = {
@@ -860,34 +1376,107 @@
 
       // 4. 渲染中心问题卡 + 四周辐射维度框 + 榜一框外侧短线挂接的竖向手风琴折叠块
       const qLiked = isQuestionLiked(node.id);
+      const isAiBusy = aiGeneratingNodeId === node.id;
+      const aiBtnLabel = isAiBusy
+        ? "⏳ AI 推演中…"
+        : (currentMode === "idea" ? "✨ AI 四维脑暴" : "✨ AI 四维破壁");
+      const emptyDimsHintHtml = litDims.length === 0
+        ? `<div class="mt-2.5 px-2.5 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/25 text-[11px] text-amber-300 leading-relaxed">
+             当前尚无四维拆解 · 点下方「${escapeHtml(aiBtnLabel)}」秒出四维底稿，或直接写回答
+           </div>`
+        : "";
+      const quoteEditBtnLabel = node.quote ? "✎ 编辑引文" : "+ 补原文/编辑";
       const centerHtml = `
         <div class="focus-center-card" onclick="onCenterCardClick(event)">
-          <div class="text-[15px] font-semibold text-white leading-snug">
-            ${escapeHtml(node.confusion)}
+          <div class="flex items-start justify-between gap-2">
+            <div class="text-[15px] font-semibold text-white leading-snug flex-1">
+              ${escapeHtml(node.confusion)}
+            </div>
+            <button type="button" onclick="openQuoteDialog('${node.id}', event)" title="补充原著引文或修改问题表述"
+              class="shrink-0 text-[10px] px-2 py-0.5 rounded-md bg-slate-900/90 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 transition">
+              ${quoteEditBtnLabel}
+            </button>
           </div>
           ${node.quote ? `
             <div class="text-xs text-slate-400 mt-2 leading-relaxed border-l border-slate-700 pl-2.5">
               ${escapeHtml(node.quote)}
             </div>
           ` : ""}
-          <div class="flex items-center justify-between gap-2 mt-3.5 pt-2.5 border-t border-slate-800/90 text-[11px] text-slate-400">
+          ${emptyDimsHintHtml}
+          <div class="flex flex-wrap items-center justify-between gap-1.5 mt-3.5 pt-2.5 border-t border-slate-800/90 text-[11px] text-slate-400">
             <button type="button" onclick="toggleSameAsk('${node.id}', event)"
-              class="px-2.5 py-1 rounded-lg border transition ${qLiked
+              class="px-2 py-1 rounded-lg border transition ${qLiked
                 ? 'bg-slate-200 text-slate-950 border-slate-200 font-semibold'
                 : 'bg-slate-900/90 hover:bg-slate-800 text-slate-300 border-slate-800'}">
               同问 ${node.sameAskCount || 0}
             </button>
-            <button type="button" onclick="openAnswerDialog(null, event)"
-              class="px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700/80 transition">
-              写回答
-            </button>
+            <div class="flex items-center gap-1.5">
+              <button type="button" onclick="triggerAiFourDim('${node.id}', event)" ${isAiBusy ? "disabled" : ""}
+                title="一键生成四维破壁/脑暴卡片（不覆盖已有高赞人类榜一）"
+                class="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/35 font-semibold transition ${isAiBusy ? 'animate-pulse opacity-70' : ''}">
+                ${escapeHtml(aiBtnLabel)}
+              </button>
+              <button type="button" onclick="openAnswerDialog(null, event)"
+                class="px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700/80 transition">
+                写回答
+              </button>
+            </div>
           </div>
         </div>
       `;
 
+      const renderLinkToPill = (noteObj) => {
+        if (!noteObj.linkTo) return "";
+        const targetNode = getNodeById(noteObj.linkTo);
+        if (!targetNode) return "";
+        return `
+          <div class="mt-2">
+            <button type="button" onclick="event.stopPropagation(); focusNode('${targetNode.id}')"
+              title="点击跳转到关联星点"
+              class="inline-flex items-center gap-1 max-w-full text-[11px] px-2 py-0.5 rounded-md bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 transition truncate">
+              <span>🔗 关联星点：${escapeHtml(shortLabel(targetNode.confusion, 18))}</span>
+              <span>↗</span>
+            </button>
+          </div>
+        `;
+      };
+
+      const renderNoteMoreMenu = (dimKey, noteObj, isKing) => {
+        const menuKey = `${dimKey}_${noteObj.id}`;
+        const isMenuOpen = openNoteMenuKey === menuKey;
+        const net = getNetScore(noteObj);
+        return `
+          <div class="relative inline-block">
+            <button type="button" onclick="toggleNoteMoreMenu('${dimKey}', ${noteObj.id}, event)"
+              title="更多自治操作（共创合并 / 踩水贴折叠）"
+              class="px-1.5 py-0.5 rounded text-slate-500 hover:text-slate-200 hover:bg-slate-800/90 transition leading-none">
+              ···
+            </button>
+            ${isMenuOpen ? `
+              <div onclick="event.stopPropagation()"
+                class="absolute right-0 bottom-7 z-40 w-44 bg-slate-950/98 border border-slate-700/90 rounded-xl shadow-2xl p-1 text-[11px] space-y-0.5">
+                ${!isKing ? `
+                  <button type="button" onclick="mergeNoteWithKing('${dimKey}', ${noteObj.id}, event)"
+                    class="w-full text-left px-2.5 py-1.5 rounded-lg text-amber-300 hover:bg-slate-800/90 transition flex items-center justify-between">
+                    <span>👑 与榜一合并共创</span>
+                  </button>
+                ` : ""}
+                <button type="button" onclick="downvoteNote('${dimKey}', ${noteObj.id}, event)"
+                  class="w-full text-left px-2.5 py-1.5 rounded-lg text-slate-300 hover:bg-rose-950/50 hover:text-rose-300 transition flex items-center justify-between">
+                  <span>▼ 踩水贴/跑题</span>
+                  <span class="text-[10px] text-slate-500">净分 ${net}</span>
+                </button>
+              </div>
+            ` : ""}
+          </div>
+        `;
+      };
+
       const dimsHtml = litDims.map(dimKey => {
         const meta = DIMENSIONS[dimKey];
         const activeNotes = getActiveNotes(node, dimKey);
+        const totalAllNotes = (node.branches[dimKey] || []).length;
+        const foldedCount = Math.max(0, totalAllNotes - activeNotes.length);
         const king = activeNotes[0];
         const others = activeNotes.slice(1);
         const slot = getDimSlot(dimKey, litDims);
@@ -914,17 +1503,21 @@
             }
             return `
               <div class="acc-strip is-open" onclick="onAccStripClick('${dimKey}', ${n.id}, event)">
-                <div class="text-[13px] text-slate-100 leading-relaxed">
-                  ${escapeHtml(n.text)}
+                <div class="note-body-text text-[13px] text-slate-100 leading-relaxed" data-context="${escapeHtml(n.text)}">
+                  ${renderAnnotatedText(n.text)}
                 </div>
+                ${renderLinkToPill(n)}
                 <div class="flex items-center justify-between gap-2 mt-2.5 pt-2 border-t border-slate-800/80 text-[11px] text-slate-500">
-                  <span class="truncate">${escapeHtml(n.author || "书友")}</span>
-                  <button type="button" onclick="toggleVoteNote('${dimKey}', ${n.id}, event)"
-                    class="px-2 py-0.5 rounded border transition ${nLiked
-                      ? 'text-white border-slate-500 bg-slate-800'
-                      : 'text-slate-400 border-slate-800 hover:text-slate-200'}">
-                    ▲ ${n.votes || 0}
-                  </button>
+                  <span class="truncate">${escapeHtml(formatAuthor(n))}</span>
+                  <div class="flex items-center gap-1.5 shrink-0">
+                    <button type="button" onclick="toggleVoteNote('${dimKey}', ${n.id}, event)"
+                      class="px-2 py-0.5 rounded border transition ${nLiked
+                        ? 'text-white border-slate-500 bg-slate-800'
+                        : 'text-slate-400 border-slate-800 hover:text-slate-200'}">
+                      ▲ ${n.votes || 0}
+                    </button>
+                    ${renderNoteMoreMenu(dimKey, n, false)}
+                  </div>
                 </div>
               </div>
             `;
@@ -940,28 +1533,47 @@
           `;
         }
 
+        const aiDraftBadgeHtml = king.isAiDraft
+          ? `<button type="button" onclick="openAnswerDialog('${dimKey}', event)" title="点击用你的真实生活比方替换AI底稿"
+               class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/40 font-semibold transition shrink-0">
+               🤖 AI底稿·悬赏活人神比喻攻擂
+             </button>`
+          : `<button type="button" onclick="openAnswerDialog('${dimKey}', event)" title="补充一条${escapeHtml(meta.title)}"
+               class="text-xs w-5 h-5 rounded-md text-slate-500 hover:text-slate-200 hover:bg-slate-800 flex items-center justify-center transition shrink-0">
+               +
+             </button>`;
+
+        const foldedHintHtml = foldedCount > 0
+          ? `<div class="mt-1.5 text-[10px] text-slate-600 flex items-center justify-between">
+               <span>已自动沉底折叠 ${foldedCount} 条低分水贴</span>
+               <button type="button" onclick="restoreFoldedNotes('${dimKey}', event)" class="hover:text-slate-400 underline">恢复查看</button>
+             </div>`
+          : "";
+
         return `
           <div class="dim-anchor" style="left:${tx}px; top:${ty}px;">
             <div class="dim-king-card ${isDimSubfocused ? 'is-subfocused' : ''}" onclick="onDimCardClick('${dimKey}', event)">
               <div class="flex items-center justify-between gap-2 mb-2">
-                <span class="text-xs font-medium tracking-wide text-slate-400">${escapeHtml(meta.title)}</span>
-                <button type="button" onclick="openAnswerDialog('${dimKey}', event)" title="补充一条${escapeHtml(meta.title)}"
-                  class="text-xs w-5 h-5 rounded-md text-slate-500 hover:text-slate-200 hover:bg-slate-800 flex items-center justify-center transition">
-                  +
-                </button>
+                <span class="text-xs font-medium tracking-wide text-slate-400 truncate">${escapeHtml(meta.title)}</span>
+                ${aiDraftBadgeHtml}
               </div>
-              <div class="text-[13.5px] text-slate-100 leading-relaxed">
-                ${escapeHtml(king.text)}
+              <div class="note-body-text text-[13.5px] text-slate-100 leading-relaxed" data-context="${escapeHtml(king.text)}">
+                ${renderAnnotatedText(king.text)}
               </div>
-              <div class="flex items-center justify-end gap-2.5 mt-3 pt-2 border-t border-slate-800/70 text-[11px] text-slate-500">
-                <span class="truncate max-w-[140px]">${escapeHtml(king.author || "书友")}</span>
-                <button type="button" onclick="toggleVoteNote('${dimKey}', ${king.id}, event)"
-                  class="px-2 py-0.5 rounded border transition ${kingLiked
-                    ? 'text-white border-slate-500 bg-slate-800'
-                    : 'text-slate-400 border-slate-800/90 hover:text-slate-200'}">
-                  ▲ ${king.votes || 0}
-                </button>
+              ${renderLinkToPill(king)}
+              <div class="flex items-center justify-between gap-2 mt-3 pt-2 border-t border-slate-800/70 text-[11px] text-slate-500">
+                <span class="truncate max-w-[140px]">${escapeHtml(formatAuthor(king))}</span>
+                <div class="flex items-center gap-1.5 shrink-0">
+                  <button type="button" onclick="toggleVoteNote('${dimKey}', ${king.id}, event)"
+                    class="px-2 py-0.5 rounded border transition ${kingLiked
+                      ? 'text-white border-slate-500 bg-slate-800'
+                      : 'text-slate-400 border-slate-800/90 hover:text-slate-200'}">
+                    ▲ ${king.votes || 0}
+                  </button>
+                  ${renderNoteMoreMenu(dimKey, king, true)}
+                </div>
               </div>
+              ${foldedHintHtml}
             </div>
             ${outerAccordionHtml}
           </div>
@@ -970,6 +1582,280 @@
 
       mmLayer.innerHTML = `<div style="position:absolute; left:${cx}px; top:${cy}px;">${centerHtml}</div>${dimsHtml}`;
       updateFocusNavBar();
+    }
+
+    // ==================== 回答卡片内：已知词条虚线高亮 + 自由划词即查即钉浮窗（Inline Popover） ====================
+    let activePopoverTerm = "";
+    let activePopoverContext = "";
+    let likedTerms = JSON.parse(localStorage.getItem("bookgraph_liked_terms") || "{}");
+
+    function escapeRegExp(str) {
+      return String(str || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }
+
+    function renderAnnotatedText(rawText) {
+      const text = String(rawText || "");
+      if (!text) return "";
+      const dict = appStore?.termAnnotations || {};
+      const terms = Object.keys(dict)
+        .map(k => k.trim())
+        .filter(k => k.length >= 2)
+        .sort((a, b) => b.length - a.length);
+
+      if (terms.length === 0) return escapeHtml(text);
+
+      const pattern = new RegExp(`(${terms.map(escapeRegExp).join("|")})`, "g");
+      const parts = text.split(pattern);
+      return parts.map(part => {
+        if (dict[part]) {
+          const safeTerm = escapeHtml(part);
+          return `<span class="term-inline" data-term="${safeTerm}" onclick="onAnnotatedTermClick(this.dataset.term, event)" title="点击查看语境速解">${safeTerm}<sup class="term-check">✓</sup></span>`;
+        }
+        return escapeHtml(part);
+      }).join("");
+    }
+
+    function positionTermPopover(anchorX, anchorY) {
+      const pop = document.getElementById("term-popover");
+      if (!pop) return;
+      pop.classList.remove("hidden");
+      const vw = window.innerWidth, vh = window.innerHeight;
+      const rect = pop.getBoundingClientRect();
+      const pw = rect.width || 300;
+      const ph = rect.height || 150;
+
+      let left = anchorX - pw / 2;
+      left = Math.max(12, Math.min(vw - pw - 12, left));
+
+      let top = anchorY - ph - 12;
+      if (top < 16) {
+        top = Math.min(vh - ph - 12, anchorY + 22);
+      }
+      pop.style.left = `${Math.round(left)}px`;
+      pop.style.top = `${Math.round(top)}px`;
+    }
+
+    function closeTermPopover() {
+      document.getElementById("term-popover")?.classList.add("hidden");
+      activePopoverTerm = "";
+      activePopoverContext = "";
+    }
+
+    function onAnnotatedTermClick(term, event) {
+      if (event) event.stopPropagation();
+      const cleanTerm = String(term || "").trim();
+      if (!cleanTerm) return;
+      const entry = appStore.termAnnotations?.[cleanTerm];
+      if (!entry) return;
+
+      activePopoverTerm = cleanTerm;
+      activePopoverContext = event?.target?.closest?.(".note-body-text")?.dataset?.context || "";
+
+      const titleEl = document.getElementById("term-pop-title");
+      const badgeEl = document.getElementById("term-pop-badge");
+      const viewEl = document.getElementById("term-pop-explain-view");
+      const editWrap = document.getElementById("term-pop-edit-wrap");
+      const inputEl = document.getElementById("term-pop-explain-input");
+      const likeBtn = document.getElementById("term-pop-like-btn");
+      const pinBtn = document.getElementById("term-pop-pin-btn");
+      const searchLink = document.getElementById("term-pop-search-link");
+
+      if (titleEl) titleEl.textContent = cleanTerm;
+      if (badgeEl) {
+        badgeEl.textContent = "已钉虚线注";
+        badgeEl.className = "text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shrink-0";
+      }
+      if (viewEl) {
+        viewEl.textContent = entry.explain;
+        viewEl.classList.remove("hidden");
+      }
+      if (editWrap) editWrap.classList.add("hidden");
+      if (inputEl) inputEl.value = entry.explain;
+
+      if (likeBtn) {
+        const isLiked = Boolean(likedTerms[cleanTerm]);
+        likeBtn.classList.remove("hidden");
+        likeBtn.textContent = `✓ 秒懂 (${entry.likes || 1})`;
+        likeBtn.className = isLiked
+          ? "px-2.5 py-1 rounded-lg bg-emerald-400 text-slate-950 font-bold transition"
+          : "px-2.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/35 font-semibold transition";
+      }
+      if (pinBtn) pinBtn.classList.add("hidden");
+      if (searchLink) {
+        searchLink.href = `https://www.bing.com/search?q=${encodeURIComponent(cleanTerm + " 通俗解释 是什么意思")}`;
+      }
+
+      const targetRect = event?.target?.getBoundingClientRect?.() || { left: window.innerWidth / 2, width: 0, top: window.innerHeight / 2 };
+      positionTermPopover(targetRect.left + targetRect.width / 2, targetRect.top);
+    }
+
+    function generateFallbackTermExplain(term, contextText) {
+      const existing = appStore.termAnnotations?.[term];
+      if (existing?.explain) return existing.explain;
+      const ctx = String(contextText || "").trim();
+      if (ctx) {
+        const shortCtx = ctx.length > 26 ? ctx.slice(0, 26) + "…" : ctx;
+        return `在这句话里指「${term}」的核心机制（结合语境“${shortCtx}”，通俗说就是打破常规认知的关键支点）。`;
+      }
+      return `「${term}」的大白话速解：撕掉表面专业包装，本质上是该场景下最核心的底层规律或比喻载体。`;
+    }
+
+    async function openSelectionTermPopover(term, contextText, rect) {
+      const cleanTerm = String(term || "").trim();
+      if (!cleanTerm) return;
+      activePopoverTerm = cleanTerm;
+      activePopoverContext = contextText || "";
+
+      const existing = appStore.termAnnotations?.[cleanTerm];
+      if (existing) {
+        onAnnotatedTermClick(cleanTerm, {
+          stopPropagation() {},
+          target: {
+            getBoundingClientRect: () => rect,
+            closest: () => ({ dataset: { context: contextText } })
+          }
+        });
+        return;
+      }
+
+      const titleEl = document.getElementById("term-pop-title");
+      const badgeEl = document.getElementById("term-pop-badge");
+      const viewEl = document.getElementById("term-pop-explain-view");
+      const editWrap = document.getElementById("term-pop-edit-wrap");
+      const inputEl = document.getElementById("term-pop-explain-input");
+      const likeBtn = document.getElementById("term-pop-like-btn");
+      const pinBtn = document.getElementById("term-pop-pin-btn");
+      const searchLink = document.getElementById("term-pop-search-link");
+
+      if (titleEl) titleEl.textContent = `“${cleanTerm}”`;
+      if (badgeEl) {
+        badgeEl.textContent = "划词速解 · 可钉注";
+        badgeEl.className = "text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 shrink-0";
+      }
+      if (viewEl) viewEl.classList.add("hidden");
+      if (editWrap) editWrap.classList.remove("hidden");
+      if (likeBtn) likeBtn.classList.add("hidden");
+      if (pinBtn) pinBtn.classList.remove("hidden");
+      if (searchLink) {
+        searchLink.href = `https://www.bing.com/search?q=${encodeURIComponent(cleanTerm + " 通俗解释 是什么意思")}`;
+      }
+
+      if (inputEl) {
+        inputEl.value = generateFallbackTermExplain(cleanTerm, contextText);
+      }
+      positionTermPopover(rect.left + rect.width / 2, rect.top);
+
+      // 若已配置真 AI Key，自动触发结合语境 40 字速解
+      const cfg = getAiConfig();
+      if (cfg.apiKey) {
+        await regenerateCurrentTermAi(null);
+      }
+    }
+
+    async function regenerateCurrentTermAi(event) {
+      if (event) event.stopPropagation();
+      if (!activePopoverTerm) return;
+      const term = activePopoverTerm;
+      const ctx = activePopoverContext;
+      const viewEl = document.getElementById("term-pop-explain-view");
+      const editWrap = document.getElementById("term-pop-edit-wrap");
+      const inputEl = document.getElementById("term-pop-explain-input");
+      const pinBtn = document.getElementById("term-pop-pin-btn");
+      const aiBtn = document.getElementById("term-pop-ai-btn");
+
+      if (viewEl) viewEl.classList.add("hidden");
+      if (editWrap) editWrap.classList.remove("hidden");
+      if (pinBtn) pinBtn.classList.remove("hidden");
+      if (aiBtn) aiBtn.textContent = "⏳ 速解中…";
+
+      const cfg = getAiConfig();
+      let explained = "";
+      if (cfg.apiKey) {
+        try {
+          const sys = "你是一个跨界人话翻译官。请结合句子语境，用最接地气的大白话解释用户划选的词条，严格控制在 42 字以内，直接输出解释正文（JSON格式：{\"explain\":\"...\"}）。";
+          const usr = `划选词条：“${term}”\n所在句子语境：“${ctx || term}”\n请返回 JSON：{"explain":"40字以内的大白话解释"}`;
+          const resObj = await callLlmJson(sys, usr);
+          if (resObj && resObj.explain) explained = String(resObj.explain).trim();
+        } catch (err) {
+          console.warn("Term AI explain fallback:", err);
+        }
+      }
+      if (!explained) {
+        explained = generateFallbackTermExplain(term, ctx);
+        if (!cfg.apiKey && event) {
+          showToast("💡 可直接修改下方速解并点击「📌 钉成虚线注」，或在右上角设置填入 AI Key 开启实时速解");
+        }
+      }
+      if (inputEl) {
+        inputEl.value = explained;
+        inputEl.focus();
+      }
+      if (aiBtn) aiBtn.textContent = "✨ AI 速解";
+    }
+
+    function pinCurrentTermAnnotation(event) {
+      if (event) event.stopPropagation();
+      const term = activePopoverTerm;
+      if (!term) return;
+      const inputEl = document.getElementById("term-pop-explain-input");
+      const explain = (inputEl?.value || "").trim() || generateFallbackTermExplain(term, activePopoverContext);
+      appStore.termAnnotations = appStore.termAnnotations || {};
+      const prevLikes = appStore.termAnnotations[term]?.likes || 0;
+      appStore.termAnnotations[term] = {
+        term,
+        explain,
+        likes: prevLikes + 1
+      };
+      likedTerms[term] = true;
+      localStorage.setItem("bookgraph_liked_terms", JSON.stringify(likedTerms));
+      saveData();
+      renderMindmap();
+      closeTermPopover();
+      try { window.getSelection()?.removeAllRanges(); } catch (_) {}
+      showToast(`📌 已将「${term}✓」钉为虚线注释，全员点击即可秒懂复用！`);
+    }
+
+    function likeCurrentTerm(event) {
+      if (event) event.stopPropagation();
+      const term = activePopoverTerm;
+      if (!term || !appStore.termAnnotations?.[term]) return;
+      const entry = appStore.termAnnotations[term];
+      if (likedTerms[term]) {
+        delete likedTerms[term];
+        entry.likes = Math.max(1, (entry.likes || 1) - 1);
+      } else {
+        likedTerms[term] = true;
+        entry.likes = (entry.likes || 1) + 1;
+      }
+      localStorage.setItem("bookgraph_liked_terms", JSON.stringify(likedTerms));
+      saveData();
+      onAnnotatedTermClick(term, null);
+    }
+
+    function initTermSelectionListeners() {
+      const checkSelection = () => {
+        setTimeout(() => {
+          const sel = window.getSelection();
+          if (!sel || sel.isCollapsed) return;
+          const raw = sel.toString().trim();
+          if (!raw || raw.length < 1 || raw.length > 12) return;
+          const anchorEl = sel.anchorNode?.nodeType === 1 ? sel.anchorNode : sel.anchorNode?.parentElement;
+          const bodyTextEl = anchorEl?.closest?.(".note-body-text");
+          if (!bodyTextEl) return;
+          const range = sel.getRangeAt(0);
+          const rect = range.getBoundingClientRect();
+          if (!rect || (rect.width === 0 && rect.height === 0)) return;
+          const contextText = bodyTextEl.dataset?.context || bodyTextEl.innerText || "";
+          openSelectionTermPopover(raw, contextText, rect);
+        }, 40);
+      };
+      document.addEventListener("mouseup", checkSelection);
+      document.addEventListener("touchend", checkSelection);
+      document.addEventListener("pointerdown", (e) => {
+        if (!e.target.closest?.("#term-popover, .term-inline")) {
+          closeTermPopover();
+        }
+      });
     }
 
     // ==================== 聚焦镜头控制：中心全景 vs Auto-Pan 支线移镜 ====================
@@ -1002,6 +1888,7 @@
 
     function onDimCardClick(dimKey, event) {
       if (event) event.stopPropagation();
+      if ((window.getSelection()?.toString().trim() || "").length > 0) return;
       if (!focusedNodeId) return;
       const node = getNodeById(focusedNodeId);
       const p = nodePositions[focusedNodeId];
@@ -1017,6 +1904,7 @@
 
     function onAccStripClick(dimKey, noteId, event) {
       if (event) event.stopPropagation();
+      if ((window.getSelection()?.toString().trim() || "").length > 0) return;
       if (!focusedNodeId) return;
       const key = `${dimKey}_${noteId}`;
       expandedAccNotes[key] = !expandedAccNotes[key];
@@ -1054,6 +1942,22 @@
       renderGraph();
     }
 
+    let openNoteMenuKey = null; // "${dimKey}_${noteId}"
+
+    function toggleNoteMoreMenu(dimKey, noteId, event) {
+      if (event) event.stopPropagation();
+      const key = `${dimKey}_${noteId}`;
+      openNoteMenuKey = openNoteMenuKey === key ? null : key;
+      renderMindmap();
+    }
+
+    document.addEventListener("click", () => {
+      if (openNoteMenuKey) {
+        openNoteMenuKey = null;
+        if (focusedNodeId) renderMindmap();
+      }
+    });
+
     function toggleVoteNote(dimKey, noteId, event) {
       if (event) event.stopPropagation();
       const node = getNodeById(focusedNodeId);
@@ -1072,14 +1976,156 @@
       renderMindmap();
     }
 
-    // ==================== 零负担写回答：直接写 + 自动分拣归类 + 顺竿爬免选 ====================
+    // 👑 榜一共创合并：将外侧手风琴里的优质补充回答并入当前维度榜一（合流票数 + 联名署名 + 补充金句）
+    function mergeNoteWithKing(dimKey, noteId, event) {
+      if (event) event.stopPropagation();
+      openNoteMenuKey = null;
+      const node = getNodeById(focusedNodeId);
+      if (!node) return;
+      const active = getActiveNotes(node, dimKey);
+      const king = active[0];
+      const source = (node.branches[dimKey] || []).find(n => n.id === noteId);
+      if (!king || !source || king.id === source.id) return;
+
+      king.coAuthors = Array.isArray(king.coAuthors) ? king.coAuthors : [];
+      const srcAuthor = source.author || "书友";
+      if (srcAuthor !== king.author && !king.coAuthors.includes(srcAuthor)) {
+        king.coAuthors.push(srcAuthor);
+      }
+      if (Array.isArray(source.coAuthors)) {
+        source.coAuthors.forEach(ca => {
+          if (ca !== king.author && !king.coAuthors.includes(ca)) king.coAuthors.push(ca);
+        });
+      }
+      king.votes = (king.votes || 1) + Math.max(1, source.votes || 1);
+      delete king.isAiDraft;
+
+      // 若补充回答有独特的短句且总长度可控，附在榜一末尾
+      if (source.text && !king.text.includes(source.text)) {
+        const mergedText = `${king.text}（补充：${source.text}）`;
+        if (mergedText.length <= 240) {
+          king.text = mergedText;
+        }
+      }
+      if (!king.linkTo && source.linkTo) {
+        king.linkTo = source.linkTo;
+      }
+
+      // 从分支列表中移除已被合并的卡片
+      node.branches[dimKey] = (node.branches[dimKey] || []).filter(n => n.id !== noteId);
+      delete expandedAccNotes[`${dimKey}_${noteId}`];
+
+      saveData();
+      renderMindmap();
+      showToast(`👑 已将「${srcAuthor}」的观点与票数并入榜一共创！`);
+    }
+
+    // ▼ 踩水贴/跑题：净分 <= -3 自动沉底折叠隐藏
+    function downvoteNote(dimKey, noteId, event) {
+      if (event) event.stopPropagation();
+      openNoteMenuKey = null;
+      const node = getNodeById(focusedNodeId);
+      if (!node) return;
+      const target = (node.branches[dimKey] || []).find(n => n.id === noteId);
+      if (!target) return;
+
+      target.downvotes = (target.downvotes || 0) + 1;
+      dislikedNotes[noteId] = (dislikedNotes[noteId] || 0) + 1;
+      const net = getNetScore(target);
+
+      saveLikesState();
+      saveData();
+      renderMindmap();
+
+      if (isFolded(target)) {
+        showToast("🧹 该回答净分已 ≤ -3，已自动沉底折叠隐藏");
+      } else {
+        showToast(`▼ 已记录踩水贴（当前净分 ${net}，净分 ≤ -3 将自动折叠）`);
+      }
+    }
+
+    function restoreFoldedNotes(dimKey, event) {
+      if (event) event.stopPropagation();
+      const node = getNodeById(focusedNodeId);
+      if (!node || !node.branches[dimKey]) return;
+      node.branches[dimKey].forEach(n => {
+        if (isFolded(n)) {
+          n.downvotes = 0;
+          n.votes = Math.max(1, n.votes || 1);
+        }
+      });
+      saveData();
+      renderMindmap();
+      showToast("已恢复该维度下被折叠的回答");
+    }
+
+    // ==================== 中心问题卡：补充/编辑引文（quote）与修改标题 ====================
+    let editingQuoteNodeId = null;
+
+    function openQuoteDialog(nodeId, event) {
+      if (event) event.stopPropagation();
+      const node = getNodeById(nodeId || focusedNodeId);
+      if (!node) return;
+      editingQuoteNodeId = node.id;
+      const dlg = document.getElementById("quote-dialog");
+      const confInput = document.getElementById("quote-confusion-input");
+      const quoteInput = document.getElementById("quote-text-input");
+      if (!dlg || !confInput || !quoteInput) return;
+
+      confInput.value = node.confusion || "";
+      quoteInput.value = node.quote || "";
+
+      if (typeof dlg.showModal === "function") {
+        dlg.showModal();
+      } else {
+        dlg.setAttribute("open", "");
+      }
+      setTimeout(() => quoteInput.focus(), 50);
+    }
+
+    function closeQuoteDialog() {
+      const dlg = document.getElementById("quote-dialog");
+      if (dlg && dlg.open) dlg.close();
+    }
+
+    function submitQuoteForm(event) {
+      event.preventDefault();
+      const node = getNodeById(editingQuoteNodeId || focusedNodeId);
+      if (!node) return;
+      const confInput = document.getElementById("quote-confusion-input");
+      const quoteInput = document.getElementById("quote-text-input");
+      const newConfusion = (confInput?.value || "").trim();
+      if (!newConfusion) return;
+      node.confusion = newConfusion;
+      node.quote = (quoteInput?.value || "").trim();
+
+      saveData();
+      closeQuoteDialog();
+      renderGraph();
+      showToast("📝 已保存问题与原著引文补充！");
+    }
+
+    // ==================== 零负担写回答：直接写 + 自动分拣归类 + 关联星点（linkTo） ====================
     let answerDialogLockedDim = null; // 若从维度框右上角 + 点进，则锁定该维度；否则为 null（自动识别）
     let answerDialogManualDim = null; // 用户点击右下角微调时的手动覆盖维度
     let answerDialogAutoDim = "d1";
+    let answerLinkToManualOpen = false;
 
     function detectDimensionFromText(text) {
       const t = String(text || "").trim();
       if (!t) return "d1";
+      if (currentMode === "idea") {
+        if (/借鉴|就像|好比|游戏|餐饮|自然界|参考|灵感|好比说/.test(t)) return "d3";
+        if (/验证|最小|今天|立刻|测试|实测|下一步|动手|原型|先找/.test(t)) return "d4";
+        if (/盲区|死在|挑刺|缺点|风险|如果|不可行|坑|死穴|失败/.test(t)) return "d2";
+        return "d1";
+      }
+      if (currentMode === "cross") {
+        if (/就像|好比|相当于|打个比方|宝妈|修车|做饭|教练|游戏|好比说|如同/.test(t)) return "d3";
+        if (/通感|另一个领域|底层逻辑|一模一样|如出一辙|同样|物理学|经济学|生物/.test(t)) return "d4";
+        if (/潜台词|现实|职场|生意|人性|博弈|割韭菜|利益|老江湖|之所以/.test(t)) return "d2";
+        return "d1";
+      }
       if (/就像|好比|相当于|打个比方|好比说|如同|好似|像极了|比作|比喻|好比是/.test(t)) {
         return "d3";
       }
@@ -1092,16 +2138,63 @@
       return "d1";
     }
 
+    function getEffectiveAnswerDim() {
+      return answerDialogLockedDim || answerDialogManualDim || answerDialogAutoDim || "d1";
+    }
+
+    function populateAnswerLinkToOptions(currentNodeId) {
+      const sel = document.getElementById("answer-linkto-select");
+      if (!sel) return;
+      const prevVal = sel.value;
+      const others = appData.filter(n => n.id !== currentNodeId);
+      sel.innerHTML = `<option value="">— 选择画布上要呼应/连线的星点（选填）—</option>` +
+        others.map(n => `<option value="${escapeHtml(n.id)}">✦ ${escapeHtml(n.confusion)}</option>`).join("");
+      if (prevVal && others.some(n => n.id === prevVal)) {
+        sel.value = prevVal;
+      } else {
+        sel.value = "";
+      }
+    }
+
+    function syncAnswerLinkToVisibility() {
+      const wrap = document.getElementById("answer-linkto-wrap");
+      const btn = document.getElementById("answer-linkto-toggle-btn");
+      const sel = document.getElementById("answer-linkto-select");
+      if (!wrap) return;
+      const effDim = getEffectiveAnswerDim();
+      const shouldShow = effDim === "d4" || answerLinkToManualOpen || Boolean(sel?.value);
+      wrap.classList.toggle("hidden", !shouldShow);
+      if (btn) {
+        btn.className = shouldShow
+          ? "text-[11px] px-2 py-1 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-300 transition"
+          : "text-[11px] px-2 py-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-400 hover:text-amber-300 hover:border-amber-500/40 transition";
+      }
+    }
+
+    function toggleAnswerLinkToBox() {
+      answerLinkToManualOpen = !answerLinkToManualOpen;
+      syncAnswerLinkToVisibility();
+    }
+
+    function clearAnswerLinkTo() {
+      const sel = document.getElementById("answer-linkto-select");
+      if (sel) sel.value = "";
+      answerLinkToManualOpen = false;
+      syncAnswerLinkToVisibility();
+    }
+
     function updateAnswerDimBadge() {
       const badge = document.getElementById("answer-dim-badge");
       if (!badge) return;
-      if (answerDialogLockedDim) {
+      if (answerDialogLockedDim && DIMENSIONS[answerDialogLockedDim]) {
         badge.textContent = `归入：${DIMENSIONS[answerDialogLockedDim].title}`;
-      } else if (answerDialogManualDim) {
+      } else if (answerDialogManualDim && DIMENSIONS[answerDialogManualDim]) {
         badge.textContent = `已选：${DIMENSIONS[answerDialogManualDim].title} ▾`;
       } else {
-        badge.textContent = `自动归入：${DIMENSIONS[answerDialogAutoDim].title} ▾`;
+        const autoKey = DIMENSIONS[answerDialogAutoDim] ? answerDialogAutoDim : "d1";
+        badge.textContent = `自动归入：${DIMENSIONS[autoKey].title} ▾`;
       }
+      syncAnswerLinkToVisibility();
     }
 
     function handleAnswerTextInput(val) {
@@ -1133,11 +2226,15 @@
       const qEl = document.getElementById("answer-dialog-question");
       const exBar = document.getElementById("answer-example-bar");
       const inputEl = document.getElementById("answer-text-input");
+      const sel = document.getElementById("answer-linkto-select");
       if (!dlg || !inputEl) return;
 
       answerDialogLockedDim = preselectedDim && DIMENSIONS[preselectedDim] ? preselectedDim : null;
       answerDialogManualDim = null;
       answerDialogAutoDim = "d1";
+      answerLinkToManualOpen = false;
+      populateAnswerLinkToOptions(node.id);
+      if (sel) sel.value = "";
 
       if (qEl) qEl.textContent = node.confusion;
       inputEl.value = "";
@@ -1158,7 +2255,8 @@
         }
       } else {
         if (titleEl) titleEl.textContent = "写下你的理解（无需选分类，发送自动归入四维）";
-        inputEl.placeholder = "写下你的理解…（比如：用一句话大白话点破 / 补齐书里没明说的背景设定 / 拿生活常识打个比方 / 点出和前后哪段情节呼应）";
+        const dNames = ["d1", "d2", "d3", "d4"].map(k => DIMENSIONS[k].title).join(" / ");
+        inputEl.placeholder = `写下你的理解…（自动识别归入：${dNames}）`;
         if (exBar) exBar.classList.add("hidden");
       }
 
@@ -1182,10 +2280,12 @@
       if (!node) return;
       const inputEl = document.getElementById("answer-text-input");
       const authorEl = document.getElementById("answer-author-input");
+      const selEl = document.getElementById("answer-linkto-select");
       const text = (inputEl?.value || "").trim();
       if (!text) return;
       const author = (authorEl?.value || "").trim() || "书友";
       const dimKey = answerDialogLockedDim || answerDialogManualDim || detectDimensionFromText(text);
+      const linkToId = (selEl?.value || "").trim();
 
       const newNote = {
         id: Date.now(),
@@ -1194,8 +2294,21 @@
         votes: 1,
         downvotes: 0
       };
+      if (linkToId && getNodeById(linkToId)) {
+        newNote.linkTo = linkToId;
+        node.links = Array.isArray(node.links) ? node.links : [];
+        if (!node.links.includes(linkToId)) {
+          node.links.push(linkToId);
+        }
+      }
+
       node.branches = node.branches || { d1: [], d2: [], d3: [], d4: [] };
       node.branches[dimKey] = node.branches[dimKey] || [];
+      // 若当前维度榜一是 AI 底稿，活人新回答如果是在攻擂该维度，默认给比 AI 底稿高 1 票使其荣登榜一！
+      const prevActive = getActiveNotes(node, dimKey);
+      if (prevActive.length > 0 && prevActive[0].isAiDraft) {
+        newNote.votes = (prevActive[0].votes || 1) + 1;
+      }
       node.branches[dimKey].push(newNote);
       likedNotes[newNote.id] = true;
 
@@ -1208,7 +2321,8 @@
       saveLikesState();
       saveData();
       closeAnswerDialog();
-      renderMindmap();
+      // 若新建了星点关联连线，调用 renderGraph 重绘星图连线与聚焦走廊邻居
+      renderGraph();
 
       // 发送后镜头平滑聚焦到该维度框
       const p = nodePositions[node.id];
@@ -1224,29 +2338,32 @@
     }
 
     // Fallback for browsers without native <dialog closedby="any"> support (e.g. Safari)
-    (function initAnswerDialogLightDismiss() {
-      const dialog = document.getElementById("answer-dialog");
-      if (!dialog) return;
-      if (!("closedBy" in HTMLDialogElement.prototype)) {
-        dialog.addEventListener("click", (event) => {
-          if (event.target !== dialog) return;
-          const rect = dialog.getBoundingClientRect();
-          const isDialogContent = (
-            rect.top <= event.clientY &&
-            event.clientY <= rect.top + rect.height &&
-            rect.left <= event.clientX &&
-            event.clientX <= rect.left + rect.width
-          );
-          if (isDialogContent) return;
-          dialog.close();
-        });
-      }
+    (function initDialogsLightDismiss() {
+      ["answer-dialog", "quote-dialog"].forEach(id => {
+        const dialog = document.getElementById(id);
+        if (!dialog) return;
+        if (!("closedBy" in HTMLDialogElement.prototype)) {
+          dialog.addEventListener("click", (event) => {
+            if (event.target !== dialog) return;
+            const rect = dialog.getBoundingClientRect();
+            const isDialogContent = (
+              rect.top <= event.clientY &&
+              event.clientY <= rect.top + rect.height &&
+              rect.left <= event.clientX &&
+              event.clientX <= rect.left + rect.width
+            );
+            if (isDialogContent) return;
+            dialog.close();
+          });
+        }
+      });
     })();
-
 
     function saveData() {
       lastLocalUpdateAt = Date.now();
-      localStorage.setItem("bookgraph_v1_0", JSON.stringify(appData));
+      appStore.modes[currentMode] = appData;
+      localStorage.setItem("bookgraph_v2_0", JSON.stringify(appStore));
+      localStorage.setItem("bookgraph_v1_0", JSON.stringify(appStore.modes.book));
       localStorage.setItem("bookgraph_updated_at", String(lastLocalUpdateAt));
       pushToCloud(false);
     }
@@ -1254,6 +2371,7 @@
     function saveLikesState() {
       localStorage.setItem("bookgraph_liked_questions", JSON.stringify(likedQuestions));
       localStorage.setItem("bookgraph_liked_notes", JSON.stringify(likedNotes));
+      localStorage.setItem("bookgraph_disliked_notes", JSON.stringify(dislikedNotes));
     }
 
     function isQuestionLiked(nodeId) {
@@ -1284,13 +2402,9 @@
 
     function formatAuthor(note) {
       if (note.coAuthors && note.coAuthors.length > 0) {
-        return `@${note.author} & @${note.coAuthors.join(", @")} 共创`;
+        return `${note.author} & ${note.coAuthors.join(", ")} 共创`;
       }
-      return `@${note.author}`;
-    }
-
-    function getChapterMeta(chapterId) {
-      return CHAPTERS.find(c => c.id === chapterId) || { id: "unlocated", shortName: "", name: "未归类章节", pos: "" };
+      return note.author || "书友";
     }
 
     // ==================== 顶栏 ··· 菜单控制 ====================
@@ -1610,6 +2724,10 @@
 
       stage.addEventListener("pointerdown", (e) => {
         if (e.button !== 0 && e.pointerType === "mouse") return;
+        // 允许在回答卡片正文中自由划词选字，不触发画布拖拽截获
+        if (e.target.closest?.(".note-body-text, .term-inline") && pointers.size === 0) {
+          return;
+        }
         pointers.set(e.pointerId, { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY, captured: false });
         if (pointers.size === 1) {
           dragMoved = false;
@@ -1759,11 +2877,11 @@
       if (!confusion) { input?.focus(); return; }
 
       const newNode = {
-        id: "node-" + Date.now(),
-        chapterId: "unlocated",
+        id: `${currentMode}-node-` + Date.now(),
         quote: "",
         confusion,
         sameAskCount: 1,
+        links: [],
         branches: { d1: [], d2: [], d3: [], d4: [] }
       };
       appData.unshift(newNode);
@@ -1784,13 +2902,17 @@
     }
 
     function resetDemoData() {
-      if (!confirm("确定要将本机与云端数据重置回初始《三体 II》演示数据吗？")) return;
+      if (!confirm("确定要将本机与云端数据重置回三大平行宇宙初始演示数据吗？")) return;
+      localStorage.removeItem("bookgraph_v2_0");
       localStorage.removeItem("bookgraph_v1_0");
       localStorage.removeItem("bookgraph_liked_questions");
       localStorage.removeItem("bookgraph_liked_notes");
+      localStorage.removeItem("bookgraph_disliked_notes");
       likedQuestions = {};
       likedNotes = {};
-      appData = JSON.parse(JSON.stringify(defaultData));
+      dislikedNotes = {};
+      appStore = upgradeAndNormalizeData(null);
+      appData = appStore.modes[currentMode];
       Object.keys(nodePositions).forEach(id => delete nodePositions[id]);
       saveData();
       renderGraph();
@@ -1820,7 +2942,18 @@
     }
 
     function refreshCurrentView() {
+      appData = appStore.modes[currentMode];
       renderGraph();
+    }
+
+    function buildSyncPayload(now) {
+      appStore.modes[currentMode] = appData;
+      return {
+        updatedAt: now,
+        modes: appStore.modes,
+        termAnnotations: appStore.termAnnotations,
+        nodes: appStore.modes.book
+      };
     }
 
     async function pullFromCloud(manual = false) {
@@ -1831,10 +2964,13 @@
           const localRes = await fetch(`/api/data?t=${Date.now()}`, { cache: "no-store" });
           if (localRes.ok) {
             const payload = await localRes.json();
-            if (Array.isArray(payload?.nodes) && payload.nodes.length > 0) {
-              appData = upgradeAndNormalizeData(payload.nodes);
+            const hasPayloadData = (payload?.modes && typeof payload.modes === "object") || (Array.isArray(payload?.nodes) && payload.nodes.length > 0);
+            if (hasPayloadData) {
+              appStore = upgradeAndNormalizeData(payload);
+              appData = appStore.modes[currentMode];
               lastLocalUpdateAt = Number(payload.updatedAt || Date.now());
-              localStorage.setItem("bookgraph_v1_0", JSON.stringify(appData));
+              localStorage.setItem("bookgraph_v2_0", JSON.stringify(appStore));
+              localStorage.setItem("bookgraph_v1_0", JSON.stringify(appStore.modes.book));
               localStorage.setItem("bookgraph_updated_at", String(lastLocalUpdateAt));
               refreshCurrentView();
               setCloudStatus("ok", `已与本机 data.json 同步 (${new Date().toLocaleTimeString()})`);
@@ -1852,14 +2988,17 @@
         const res = await fetch(`${CLOUD_API_BASE}/${cloudRoomId}?t=${Date.now()}`, { cache: "no-store" });
         if (!res.ok) throw new Error("HTTP " + res.status);
         const payload = await res.json();
-        const remoteNodes = payload?.data?.nodes;
-        const remoteUpdatedAt = Number(payload?.data?.updatedAt || 0);
+        const remoteData = payload?.data;
+        const hasRemote = (remoteData?.modes && typeof remoteData.modes === "object") || (Array.isArray(remoteData?.nodes) && remoteData.nodes.length > 0);
+        const remoteUpdatedAt = Number(remoteData?.updatedAt || 0);
 
-        if (Array.isArray(remoteNodes) && remoteNodes.length > 0) {
-          if (manual || remoteUpdatedAt >= lastLocalUpdateAt || !localStorage.getItem("bookgraph_v1_0")) {
-            appData = upgradeAndNormalizeData(remoteNodes);
+        if (hasRemote) {
+          if (manual || remoteUpdatedAt >= lastLocalUpdateAt || !localStorage.getItem("bookgraph_v2_0")) {
+            appStore = upgradeAndNormalizeData(remoteData);
+            appData = appStore.modes[currentMode];
             lastLocalUpdateAt = remoteUpdatedAt || Date.now();
-            localStorage.setItem("bookgraph_v1_0", JSON.stringify(appData));
+            localStorage.setItem("bookgraph_v2_0", JSON.stringify(appStore));
+            localStorage.setItem("bookgraph_v1_0", JSON.stringify(appStore.modes.book));
             localStorage.setItem("bookgraph_updated_at", String(lastLocalUpdateAt));
             refreshCurrentView();
           }
@@ -1878,6 +3017,7 @@
       const now = Date.now();
       lastLocalUpdateAt = now;
       localStorage.setItem("bookgraph_updated_at", String(now));
+      const syncData = buildSyncPayload(now);
 
       // 优先写入本机私有服务 /api/data (data.json)
       if (location.protocol.startsWith("http")) {
@@ -1885,7 +3025,7 @@
           const localRes = await fetch("/api/data", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ updatedAt: now, nodes: appData })
+            body: JSON.stringify(syncData)
           });
           if (localRes.ok) {
             setCloudStatus("ok", `已存入本机 data.json (${new Date().toLocaleTimeString()})`);
@@ -1901,11 +3041,8 @@
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            name: "bookgraph_v1_0",
-            data: {
-              updatedAt: now,
-              nodes: appData
-            }
+            name: "bookgraph_v2_0",
+            data: syncData
           })
         });
         if (!res.ok) throw new Error("HTTP " + res.status);
@@ -1918,8 +3055,236 @@
       }
     }
 
+    // ==================== AI 四维一键破壁 / 脑暴生成引擎（真大模型 + 零配置内置模板兜底） ====================
+    const AI_CONFIG_STORAGE_KEY = "bookgraph_ai_config_v1";
+
+    function getAiConfig() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(AI_CONFIG_STORAGE_KEY) || "{}");
+        return {
+          apiKey: (saved.apiKey || "").trim(),
+          baseUrl: (saved.baseUrl || "https://api.deepseek.com/v1").trim().replace(/\/+$/, ""),
+          model: (saved.model || "deepseek-chat").trim()
+        };
+      } catch (_) {
+        return { apiKey: "", baseUrl: "https://api.deepseek.com/v1", model: "deepseek-chat" };
+      }
+    }
+
+    function syncAiModalInputs() {
+      const cfg = getAiConfig();
+      const keyEl = document.getElementById("ai-api-key-input");
+      const urlEl = document.getElementById("ai-base-url-input");
+      const modelEl = document.getElementById("ai-model-input");
+      const statusEl = document.getElementById("ai-config-status");
+      if (keyEl) keyEl.value = cfg.apiKey;
+      if (urlEl) urlEl.value = cfg.baseUrl;
+      if (modelEl) modelEl.value = cfg.model;
+      if (statusEl) {
+        if (cfg.apiKey) {
+          statusEl.textContent = `⚡ 已启用真 AI (${cfg.model})`;
+          statusEl.className = "text-[11px] text-emerald-400 font-semibold";
+        } else {
+          statusEl.textContent = "当前：内置零配置启发引擎";
+          statusEl.className = "text-[11px] text-slate-400";
+        }
+      }
+    }
+
+    function applyAiPreset(preset) {
+      const urlEl = document.getElementById("ai-base-url-input");
+      const modelEl = document.getElementById("ai-model-input");
+      if (!urlEl || !modelEl) return;
+      if (preset === "deepseek") {
+        urlEl.value = "https://api.deepseek.com/v1";
+        modelEl.value = "deepseek-chat";
+      } else if (preset === "gemini") {
+        urlEl.value = "https://generativelanguage.googleapis.com/v1beta/openai";
+        modelEl.value = "gemini-2.5-flash";
+      } else if (preset === "openai") {
+        urlEl.value = "https://api.openai.com/v1";
+        modelEl.value = "gpt-4o-mini";
+      }
+    }
+
+    function saveAiConfigFromModal() {
+      const apiKey = (document.getElementById("ai-api-key-input")?.value || "").trim();
+      const baseUrl = (document.getElementById("ai-base-url-input")?.value || "https://api.deepseek.com/v1").trim().replace(/\/+$/, "");
+      const model = (document.getElementById("ai-model-input")?.value || "deepseek-chat").trim();
+      localStorage.setItem(AI_CONFIG_STORAGE_KEY, JSON.stringify({ apiKey, baseUrl, model }));
+      syncAiModalInputs();
+      showToast(apiKey ? `✅ 已保存本机 AI 配置 (${model})，仅存本地绝不外泄` : "✅ 已切回内置零配置启发引擎");
+    }
+
+    function clearAiConfig() {
+      localStorage.removeItem(AI_CONFIG_STORAGE_KEY);
+      syncAiModalInputs();
+      showToast("已清空本机 API Key，恢复内置零配置启发引擎");
+    }
+
+    function buildFourDimPrompt(node, modeKey) {
+      const dims = MODES_CONFIG[modeKey]?.dimensions || MODES_CONFIG.book.dimensions;
+      const q = node.confusion || "";
+      const quote = node.quote ? `\n原著/背景引文：“${node.quote}”` : "";
+      const modeDesc = modeKey === "idea"
+        ? "你是一个毒舌又极具创造力的产品脑暴教练。请针对用户的脑洞或难题，从四个维度给出犀利、具体、反套路的拆解。"
+        : modeKey === "cross"
+          ? "你是一个精通各行各业野生经验的跨界破壁高手。请撕掉装腔作势的专业黑话，用宝妈、修车工、厨师、老玩家等大白话和肉身经验一针见血讲透。"
+          : "你是一个深度共读《三体》等硬核神作的破壁人。请用最直白的大白话、幕后设定、接地气生活比方和前后文伏笔拆解读者困惑。";
+
+      const sys = `${modeDesc}\n请严格只输出一个合法的 JSON 对象，包含 "d1", "d2", "d3", "d4" 四个字符串字段，不要输出任何 Markdown 代码块标签或多余解释。每项严格控制在 95 字以内，语言犀利直白无废话：\n- d1 (${dims.d1.title}): ${dims.d1.prompt}\n- d2 (${dims.d2.title}): ${dims.d2.prompt}\n- d3 (${dims.d3.title}): ${dims.d3.prompt}\n- d4 (${dims.d4.title}): ${dims.d4.prompt}`;
+      const user = `核心问题/脑洞：“${q}”${quote}\n请直接返回 JSON：{"d1":"...","d2":"...","d3":"...","d4":"..."}`;
+      return { sys, user };
+    }
+
+    async function callLlmJson(sysPrompt, userPrompt) {
+      const cfg = getAiConfig();
+      if (!cfg.apiKey) return null;
+      const endpoint = cfg.baseUrl.endsWith("/chat/completions")
+        ? cfg.baseUrl
+        : `${cfg.baseUrl}/chat/completions`;
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${cfg.apiKey}`
+        },
+        body: JSON.stringify({
+          model: cfg.model,
+          temperature: 0.7,
+          messages: [
+            { role: "system", content: sysPrompt },
+            { role: "user", content: userPrompt }
+          ]
+        })
+      });
+      if (!res.ok) throw new Error("LLM HTTP " + res.status);
+      const data = await res.json();
+      const rawContent = data?.choices?.[0]?.message?.content || "";
+      const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error("Invalid JSON from LLM");
+      return JSON.parse(jsonMatch[0]);
+    }
+
+    // 零配置结构化模板引擎（当未配置 API Key 或网络受限时秒级生成高质量四维启发底稿）
+    function generateFallbackFourDim(node, modeKey) {
+      const q = String(node.confusion || "").replace(/[？?！!。]+$/, "");
+      const shortQ = q.length > 22 ? q.slice(0, 22) + "…" : q;
+      if (modeKey === "idea") {
+        return {
+          d1: `剥离表面形式，「${shortQ}」最核心的卡点在于用户缺乏「0.5秒内的即时正反馈」，以及启动第一下的物理摩擦力太高。`,
+          d2: `三个致命盲区：1. 把低频伪需求当高频刚需；2. 流程或硬件太重导致第3天新鲜感退潮后吃灰；3. 忽视了掏钱买单者与实际使用者的利益错位。`,
+          d3: `就像街机厅抓娃娃机与拼多多砍一刀：先给80%的进度错觉，再用声音/视觉爽感卡住每一次微小动作，把枯燥任务拆成带Combo连击的闯关。`,
+          d4: `最小验证：今天不写一行代码、不开模，直接拿现成工具拼一个「人工扮演后台」的草根原型，找3个真实目标用户现场试玩10分钟看哪里卡壳。`
+        };
+      }
+      if (modeKey === "cross") {
+        return {
+          d1: `撕掉高冷黑话，「${shortQ}」说白了就是：系统在信息不对称或资源受限时，表面反直觉、实则最省力自保的底层博弈策略。`,
+          d2: `老江湖潜台词：谁能把这套规则包装得越玄乎，谁就能在行业里收割信息差溢价；真正懂行的人只看「谁承担兜底风险，谁拿走复利收益」。`,
+          d3: `就像菜市场老摊主挑螃蟹：外行看壳大不大、绳子粗不粗，老手直接捏一下倒数第二根蟹脚硬不硬——一眼看穿虚胖的水分。`,
+          d4: `这与生物进化里的「节能本能」、牌桌上的「底池赔率计算」底层逻辑一模一样：所有看似复杂的表象，都在为最小代价存活服务。`
+        };
+      }
+      return {
+        d1: `一句话点破：「${shortQ}」表面看是违背常理的极端选择，本质上是在极端生存或规则锁死下唯一能算得过账的最优解。`,
+        d2: `书里没明说的潜台词：作者在这里故意隐去了日常道德滤镜，把尺度拉大到「零和生存博弈」，谁还用温室常识思考谁就会第一个出局。`,
+        d3: `就像两个蒙眼站在独木桥上的陌生人，谁先伸手试探都可能被对方当成推搡——哪怕双方都没恶意，结构性死局也会逼出最狠的底牌。`,
+        d4: `这一处实则是全书核心母题的缩影，既填了前文人物行为反常的伏笔，也为后文终极决战的底牌埋下了草蛇灰线。`
+      };
+    }
+
+    function applyAiFourDimResult(node, resultObj, isRealAi) {
+      node.branches = node.branches || { d1: [], d2: [], d3: [], d4: [] };
+      const authorName = isRealAi ? "🤖 AI 破壁官" : "🤖 AI 启发底稿";
+      const baseId = Date.now();
+
+      ["d1", "d2", "d3", "d4"].forEach((dimKey, idx) => {
+        const text = String(resultObj?.[dimKey] || "").trim();
+        if (!text) return;
+        node.branches[dimKey] = node.branches[dimKey] || [];
+        const active = getActiveNotes(node, dimKey);
+
+        // 若当前维度唯一或榜一回答本身就是旧 AI 底稿，直接原地刷新它
+        if (active.length > 0 && active[0].isAiDraft) {
+          active[0].text = text;
+          active[0].author = authorName;
+          return;
+        }
+
+        // 若当前维度已有高赞人类榜一，绝不覆盖人类榜一！将 AI 结果放入外侧手风琴折叠条并展开
+        if (active.length > 0) {
+          const newId = baseId + idx + 1;
+          const aiNote = {
+            id: newId,
+            author: authorName,
+            text,
+            votes: 1,
+            downvotes: 0,
+            isAiDraft: true
+          };
+          node.branches[dimKey].push(aiNote);
+          expandedAccNotes[`${dimKey}_${newId}`] = true;
+        } else {
+          // 若当前维度为空，AI 底稿顶上作为初始榜一，并挂出悬赏活人攻擂徽章
+          const newId = baseId + idx + 1;
+          node.branches[dimKey].push({
+            id: newId,
+            author: authorName,
+            text,
+            votes: 5,
+            downvotes: 0,
+            isAiDraft: true
+          });
+        }
+      });
+    }
+
+    async function triggerAiFourDim(nodeId, event) {
+      if (event) event.stopPropagation();
+      const node = getNodeById(nodeId || focusedNodeId);
+      if (!node || aiGeneratingNodeId) return;
+
+      aiGeneratingNodeId = node.id;
+      renderMindmap();
+
+      const cfg = getAiConfig();
+      let resultObj = null;
+      let isRealAi = false;
+
+      if (cfg.apiKey) {
+        try {
+          const { sys, user } = buildFourDimPrompt(node, currentMode);
+          resultObj = await callLlmJson(sys, user);
+          if (resultObj && (resultObj.d1 || resultObj.d2 || resultObj.d3 || resultObj.d4)) {
+            isRealAi = true;
+          }
+        } catch (err) {
+          console.warn("Real AI call failed, using fallback template:", err);
+        }
+      }
+
+      if (!resultObj) {
+        await new Promise(r => setTimeout(r, 320));
+        resultObj = generateFallbackFourDim(node, currentMode);
+      }
+
+      aiGeneratingNodeId = null;
+      applyAiFourDimResult(node, resultObj, isRealAi);
+      saveData();
+      panToFocusOverview(true);
+
+      if (isRealAi) {
+        showToast(`✨ 已通过 ${cfg.model} 生成四维破壁卡片（人类高赞榜一已受保护）`);
+      } else {
+        showToast("✨ 已生成四维启发底稿！可在右上角「··· ➔ 云端同步与 AI 设置」填入 DeepSeek/Gemini Key 开启真 AI 实时推演", 4600);
+      }
+    }
+
     function openSyncModal() {
       document.getElementById("sync-room-input").value = cloudRoomId;
+      syncAiModalInputs();
       const modal = document.getElementById("sync-modal");
       modal.classList.remove("hidden");
       modal.classList.add("flex");
@@ -1948,11 +3313,8 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            name: "bookgraph_v1_0",
-            data: {
-              updatedAt: now,
-              nodes: appData
-            }
+            name: "bookgraph_v2_0",
+            data: buildSyncPayload(now)
           })
         });
         if (!res.ok) throw new Error("HTTP " + res.status);
@@ -1971,11 +3333,12 @@
     }
 
     function exportJsonData() {
-      const blob = new Blob([JSON.stringify(appData, null, 2)], { type: "application/json" });
+      appStore.modes[currentMode] = appData;
+      const blob = new Blob([JSON.stringify(appStore, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `死磕黑板备份_${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `死磕黑板v2备份_${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
     }
@@ -1987,8 +3350,10 @@
       reader.onload = e => {
         try {
           const parsed = JSON.parse(e.target.result);
-          if (!Array.isArray(parsed)) throw new Error("格式不正确");
-          appData = parsed;
+          if (!parsed || typeof parsed !== "object") throw new Error("格式不正确");
+          appStore = upgradeAndNormalizeData(parsed);
+          appData = appStore.modes[currentMode];
+          Object.keys(nodePositions).forEach(id => delete nodePositions[id]);
           saveData();
           refreshCurrentView();
           closeSyncModal();
@@ -2001,7 +3366,9 @@
     }
 
     window.addEventListener("load", () => {
+      syncModeUI();
       initStageGestures();
+      initTermSelectionListeners();
       renderGraph();
       fitAll(false);
       pullFromCloud(false);
