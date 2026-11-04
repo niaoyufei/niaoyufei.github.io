@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>硬核概念卡片与活人比喻共创站</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --bg-paper: #F7F6F2;
+      --bg-card: #FCFBF9;
+      --bg-subtle: #F0EEE8;
+      --ink-primary: #1C1B18;
+      --ink-secondary: #57534E;
+      --ink-muted: #9A958C;
+      --border-warm: #E5E2DA;
+      --border-strong: #D4CFC3;
+      --accent-ink: #292524;
+    }
+
+    html {
+      background-color: var(--bg-paper);
+      color: var(--ink-primary);
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-color: var(--bg-paper);
+      background-image: radial-gradient(rgba(28, 27, 24, 0.03) 1px, transparent 0);
+      background-size: 24px 24px;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    /* 衬线体：用于概念标头与一句话本质解构 */
+    .font-editorial {
+      font-family: "Songti SC", "STSong", "Noto Serif SC", "Source Han Serif SC", "PMingLiU", Georgia, serif;
+    }
+
+    /* 纸张卡片质感 */
+    .paper-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-warm);
+      box-shadow: 0 2px 12px rgba(28, 27, 24, 0.025);
+    }
+
+    /* 移动端防 iOS 自动缩放：输入框至少 1rem (16px) */
+    textarea,
+    input[type="text"],
+    input[type="search"] {
+      font-size: 1rem;
+      line-height: 1.65;
+    }
+
+    textarea:focus-visible,
+    input:focus-visible,
+    button:focus-visible,
+    a:focus-visible {
+      outline: 2px solid #57534E;
+      outline-offset: 2px;
+    }
+
+    /* 辅助无障碍隐藏标签 */
+    .visually-hidden {
+      position: absolute;
+      clip-path: inset(50%);
+      overflow: hidden;
+      width: 1px;
+      height: 1px;
+      margin: -1px;
+      padding: 0;
+      border: 0;
+      white-space: nowrap;
+    }
+
+    /* 原生单选框品牌色与可点击热区优化 */
+    input[type="radio"] {
+      accent-color: #292524;
+      width: 1rem;
+      height: 1rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="pb-24">
+
+  <!-- ==================== 顶部极简杂志导航栏 ==================== -->
+  <header class="sticky top-0 z-20 bg-[#F7F6F2]/90 backdrop-blur-md border-b border-[#E5E2DA]">
+    <div class="max-w-3xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between gap-4">
+      <div class="flex items-baseline gap-3 min-w-0">
+        <h1 class="font-editorial text-lg sm:text-xl font-bold tracking-tight text-[#1C1B18] truncate">
+          硬核概念 × 活人比喻
+        </h1>
+        <span class="hidden sm:inline-block text-xs text-[#8C867B]">
+          剥离术语黑话 · 沉淀人类真实体感
+        </span>
+      </div>
+
+      <div class="flex items-center gap-2.5 shrink-0">
+        <button type="button" id="toggle-new-concept-btn"
+          class="text-xs px-3 py-1.5 rounded-lg border border-[#D4CFC3] bg-[#FCFBF9] hover:bg-[#F0EEE8] text-[#292524] font-medium transition">
+          + 添新概念卡
+        </button>
+        <a href="index.html"
+          class="text-xs px-3 py-1.5 rounded-lg text-[#6E6A61] hover:text-[#1C1B18] hover:bg-[#ECEAE3] transition">
+          ← 返回四维星图
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== 主体阅读容器（大留白杂志单栏） ==================== -->
+  <main class="max-w-3xl mx-auto px-5 sm:px-8 pt-8 sm:pt-12">
+
+    <!-- 顶部导语与快速检索/定位 -->
+    <section class="mb-10 pb-8 border-b border-[#E5E2DA] space-y-5">
+      <p class="font-editorial text-base sm:text-lg text-[#44403C] leading-relaxed">
+        这里不搬运教科书定义。每一张卡片只留<strong>一句 30 字以内的大白话扒底裤</strong>，以及各行各业活人被这个概念击中时的<strong>真实经历与肉身比喻</strong>。
+      </p>
+
+      <!-- 新增概念卡片折叠表单（默认收起，保持页面克制） -->
+      <div id="new-concept-panel" class="hidden paper-card rounded-2xl p-6 sm:p-7 space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="font-editorial text-base font-bold text-[#1C1B18]">新建一张概念卡片</h2>
+          <button type="button" id="close-new-concept-btn" class="text-xs text-[#8C867B] hover:text-[#1C1B18]">收起</button>
+        </div>
+        <form id="new-concept-form" class="space-y-4">
+          <div>
+            <label for="new-concept-title" class="block text-xs font-medium text-[#57534E] mb-1.5">
+              概念名称（必填）
+            </label>
+            <input id="new-concept-title" name="title" type="text" required maxlength="40"
+              placeholder="例如：古德哈特定律 / 邓宁-克鲁格效应 / 螃蟹效应"
+              class="w-full bg-[#F7F6F2] border border-[#D6D3C9] rounded-xl px-3.5 py-2.5 text-[#1C1B18] placeholder-[#A8A29E]">
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label for="new-concept-essence" class="block text-xs font-medium text-[#57534E]">
+                一句话扒底裤（30字以内大白话本质解构）
+              </label>
+              <button type="button" id="ai-essence-btn"
+                class="text-xs text-[#57534E] hover:text-[#1C1B18] underline underline-offset-4">
+                AI 帮我浓缩 30 字本质
+              </button>
+            </div>
+            <input id="new-concept-essence" name="essence" type="text" required maxlength="35"
+              placeholder="撕掉包装，用 30 字以内的大白话点破它到底是什么…"
+              class="w-full bg-[#F7F6F2] border border-[#D6D3C9] rounded-xl px-3.5 py-2.5 font-editorial text-[#1C1B18] placeholder-[#A8A29E]">
+          </div>
+          <div class="flex justify-end gap-2 pt-1">
+            <button type="submit"
+              class="text-xs px-4 py-2.5 rounded-xl bg-[#1C1B18] hover:bg-[#33302B] text-[#F7F6F2] font-medium transition">
+              生成概念卡
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- 概念速览索引条 + 极简搜索 -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+        <nav id="concept-index-nav" aria-label="概念快速定位" class="flex items-center gap-1.5 flex-wrap"></nav>
+
+        <div class="relative w-full sm:w-56 shrink-0">
+          <label for="concept-search-input" class="visually-hidden">搜索概念或比喻经历</label>
+          <input id="concept-search-input" type="search" autocomplete="off"
+            autocorrect="off" autocapitalize="off" spellcheck="false"
+            placeholder="筛选概念或比喻关键词…"
+            class="w-full bg-[#FCFBF9] border border-[#DFDCD2] rounded-xl px-3 py-1.5 text-sm text-[#1C1B18] placeholder-[#9A958C]">
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 概念卡片流（三段式极简布局） ==================== -->
+    <div id="concepts-feed" class="space-y-12 sm:space-y-16"></div>
+
+  </main>
+
+  <!-- ==================== 页脚留白 ==================== -->
+  <footer class="max-w-3xl mx-auto px-5 sm:px-8 mt-20 pt-8 border-t border-[#E5E2DA] flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-[#9A958C]">
+    <span>内容永远置顶 · 名字永远置后 · 回归纯粹阅读与直觉共鸣</span>
+    <button type="button" id="reset-concepts-btn" class="hover:text-[#57534E] underline underline-offset-4">
+      恢复初始示例卡片
+    </button>
+  </footer>
+
+  <script>
+    // ==================== 初始硬核概念与活人比喻数据 ====================
+    const DEFAULT_CONCEPTS = [
+      {
+        id: "concept-goodhart",
+        title: "古德哈特定律",
+        subtitle: "Goodhart's Law",
+        essence: "当一个指标变成考核目标，它就立刻失去测量价值，只剩造假。",
+        metaphors: [
+          {
+            id: "m-101",
+            content: "以前我们在呼叫中心上班，老板原本用「通话时长短」来衡量客服解决问题的效率。结果从宣布跟绩效挂钩那天起，大家遇到复杂问题不再帮客户解决，而是故意把声音调小假装信号不好直接挂断——平均通话时长瞬间降到 30 秒，全员拿满分奖金，客户投诉率直接爆表。",
+            author: "前客服主管老林",
+            votes: 186,
+            isPrivate: false
+          },
+          {
+            id: "m-102",
+            content: "我妈当年要求我每天必须在书桌前坐满 3 小时才算认真学习。于是我练就了把《故事会》夹在《五年高考三年模拟》里一页不翻坐满 3 小时的绝活——屁股焊在椅子上了，脑子一秒钟没学。",
+            author: "小镇做题家阿泽",
+            votes: 142,
+            isPrivate: false
+          },
+          {
+            id: "m-103",
+            content: "医院为了降低「住院患者院内死亡率」这项考核指标，遇到真正救不活的重症病人，会在最后一口气前拼命劝家属办出院手续拉回家。报表上的死亡率漂亮极了，但没有一个病人因此多活一天。",
+            author: "急诊科夜班人",
+            votes: 98,
+            isPrivate: false
+          }
+        ]
+      },
+      {
+        id: "concept-sunk-cost",
+        title: "沉没成本谬误",
+        subtitle: "Sunk Cost Fallacy",
+        essence: "为了心疼已经泼出去的水，硬逼自己把剩下的半瓶毒药也喝光。",
+        metaphors: [
+          {
+            id: "m-201",
+            content: "花 68 块钱买了一张奇烂无比的电影票，开场 20 分钟就已经如坐针毡了，但脑子里有个声音一直在算账：「走人岂不是白瞎了 68 块？」结果硬着头皮坐满两小时——最后不仅 68 块钱没回来，还多赔进去两小时周末晚上的好心情。",
+            author: "周末影院受难者",
+            votes: 215,
+            isPrivate: false
+          },
+          {
+            id: "m-202",
+            content: "自助餐厅里明明吃到第七盘已经撑到嗓子眼了，一想到进门交了 298 块还没吃回本，硬是又往嘴里塞了两块冻硬的三文鱼，最后出门直接花 300 块挂急诊开健胃消食和急性肠胃炎的药。",
+            author: "胃酸倒流患者",
+            votes: 164,
+            isPrivate: false
+          },
+          {
+            id: "m-203",
+            content: "谈了六年早就没话聊、每天都在互相折磨的感情，谁也不敢提分手。问就是「我都把六年青春砸进去了，现在分岂不是全白费了」——好像再多耗三十年，前六年就能变成利息退回来一样。",
+            author: "民政局门口吹风的人",
+            votes: 129,
+            isPrivate: false
+          }
+        ]
+      },
+      {
+        id: "concept-survivorship",
+        title: "幸存者偏差",
+        subtitle: "Survivorship Bias",
+        essence: "死人不会说话，你听到的全是刚好没被雷劈中的人在传授避雷秘籍。",
+        metaphors: [
+          {
+            id: "m-301",
+            content: "老家亲戚总爱拿某首富初中辍学创业身家百亿来教育小孩「读书没用」。但他们从来不去火车站桥洞底下采访那十万个同样初中辍学、现在连泡面都吃不起的同龄人——因为失败的人根本没机会出书上电视。",
+            author: "大厂搬砖工小陈",
+            votes: 193,
+            isPrivate: false
+          },
+          {
+            id: "m-302",
+            content: "视频评论区里经常有人说：「现在的建筑全是豆腐渣，你看古代留下来的木塔和石桥几百年都不倒！」废话，古代那 99.9% 造得不结实的房子早就塌成泥了，能熬到今天让你看见的，本来就是万里挑一的怪物。",
+            author: "土木老狗老赵",
+            votes: 151,
+            isPrivate: false
+          }
+        ]
+      },
+      {
+        id: "concept-dunning-kruger",
+        title: "达克效应",
+        subtitle: "Dunning-Kruger Effect",
+        essence: "懂得越少的人越觉得自己全懂了，因为连「自己不懂什么」都看不见。",
+        metaphors: [
+          {
+            id: "m-401",
+            content: "刚学会煎鸡蛋和可乐鸡翅那周，我觉得米其林大厨纯属智商税，差点辞职去盘一家私房菜馆；直到后来真去后厨帮工三天，发现光是一个「炒青菜不出水、保持翠绿」的油温和锅气就让我连废了二十锅，才终于闭上了嘴。",
+            author: "厨房炸锅选手",
+            votes: 174,
+            isPrivate: false
+          },
+          {
+            id: "m-402",
+            content: "就像拿着手电筒在黑夜里照地面：光圈很小的时候，周围一圈边界很短，你觉得黑暗不过如此；当你手电筒越亮、照亮的面积越大，你接触到的黑暗边界反而成倍变长，才第一次对未知产生敬畏。",
+            author: "野生天文迷",
+            votes: 118,
+            isPrivate: false
+          }
+        ]
+      }
+    ];
+
+    const STORAGE_KEY = "sike_concepts_cards_v1";
+    const LIKED_METAPHORS_KEY = "sike_concepts_liked_v1";
+
+    let conceptsData = loadConceptsData();
+    let likedMetaphors = loadLikedMetaphors();
+    let activeFilterId = "all";
+    let searchKeyword = "";
+
+    function loadConceptsData() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return JSON.parse(JSON.stringify(DEFAULT_CONCEPTS));
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed) || parsed.length === 0) {
+          return JSON.parse(JSON.stringify(DEFAULT_CONCEPTS));
+        }
+        return parsed;
+      } catch (_) {
+        return JSON.parse(JSON.stringify(DEFAULT_CONCEPTS));
+      }
+    }
+
+    function saveConceptsData() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(conceptsData));
+      } catch (_) {}
+    }
+
+    function loadLikedMetaphors() {
+      try {
+        return JSON.parse(localStorage.getItem(LIKED_METAPHORS_KEY) || "{}");
+      } catch (_) {
+        return {};
+      }
+    }
+
+    function saveLikedMetaphors() {
+      try {
+        localStorage.setItem(LIKED_METAPHORS_KEY, JSON.stringify(likedMetaphors));
+      } catch (_) {}
+    }
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    // ==================== 概念速览索引栏渲染 ====================
+    function renderIndexNav() {
+      const nav = document.getElementById("concept-index-nav");
+      if (!nav) return;
+
+      const allActive = activeFilterId === "all";
+      let html = `
+        <button type="button" data-filter="all"
+          class="text-xs px-3 py-1.5 rounded-full transition ${
+            allActive
+              ? "bg-[#1C1B18] text-[#F7F6F2] font-medium"
+              : "bg-[#EFECE6] text-[#57534E] hover:bg-[#E5E1D8] hover:text-[#1C1B18]"
+          }">
+          全部 (${conceptsData.length})
+        </button>
+      `;
+
+      conceptsData.forEach((c) => {
+        const isActive = activeFilterId === c.id;
+        html += `
+          <button type="button" data-filter="${escapeHtml(c.id)}"
+            class="text-xs px-3 py-1.5 rounded-full transition ${
+              isActive
+                ? "bg-[#1C1B18] text-[#F7F6F2] font-medium"
+                : "bg-[#EFECE6] text-[#57534E] hover:bg-[#E5E1D8] hover:text-[#1C1B18]"
+            }">
+            ${escapeHtml(c.title)}
+          </button>
+        `;
+      });
+
+      nav.innerHTML = html;
+    }
+
+    // ==================== 单张概念卡片（三段式极简布局）渲染 ====================
+    function renderConceptsFeed() {
+      const feed = document.getElementById("concepts-feed");
+      if (!feed) return;
+
+      const kw = searchKeyword.trim().toLowerCase();
+      const filtered = conceptsData.filter((card) => {
+        if (activeFilterId !== "all" && card.id !== activeFilterId) return false;
+        if (!kw) return true;
+        const matchCard =
+          (card.title || "").toLowerCase().includes(kw) ||
+          (card.subtitle || "").toLowerCase().includes(kw) ||
+          (card.essence || "").toLowerCase().includes(kw);
+        const matchMetaphor = (card.metaphors || []).some((m) =>
+          (m.content || "").toLowerCase().includes(kw)
+        );
+        return matchCard || matchMetaphor;
+      });
+
+      if (filtered.length === 0) {
+        feed.innerHTML = `
+          <div class="paper-card rounded-2xl p-12 text-center space-y-3">
+            <p class="font-editorial text-base text-[#57534E]">没有找到匹配的概念卡片</p>
+            <button type="button" id="clear-filter-btn"
+              class="text-xs px-3.5 py-2 rounded-lg bg-[#EFECE6] hover:bg-[#E5E1D8] text-[#1C1B18] transition">
+              显示全部概念卡片
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      feed.innerHTML = filtered
+        .map((card) => {
+          // 按点赞数从高到低排序
+          const sortedMetaphors = [...(card.metaphors || [])].sort(
+            (a, b) => (Number(b.votes) || 0) - (Number(a.votes) || 0)
+          );
+
+          const metaphorsHtml =
+            sortedMetaphors.length === 0
+              ? `<p class="text-sm text-[#9A958C] py-4">暂无经历比喻，在下方写下你的第一条真实体感吧。</p>`
+              : sortedMetaphors
+                  .map((m) => {
+                    const isLiked = Boolean(likedMetaphors[m.id]);
+                    const privateBadge = m.isPrivate
+                      ? `<span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-[#EFECE6] text-[#6E6A61] mr-2">🔒 仅自己可见 · 私人笔记</span>`
+                      : "";
+
+                    return `
+                      <li class="py-6 first:pt-2 last:pb-2 border-b last:border-b-0 border-[#ECE9E1] flex items-start justify-between gap-5">
+                        <div class="flex-1 min-w-0">
+                          <!-- 比喻内容永远排在最上方/最显眼位置 -->
+                          <p class="text-[16px] sm:text-[17px] text-[#1C1B18] leading-[1.8] whitespace-pre-wrap break-words">${escapeHtml(m.content)}</p>
+                          <!-- 贡献者名字永远作为次要灰色小字排在底部靠边 -->
+                          <div class="mt-3 flex items-center justify-end text-xs text-[#9A958C]">
+                            ${privateBadge}
+                            <span>— ${escapeHtml(m.author || "匿名读者")}</span>
+                          </div>
+                        </div>
+
+                        <!-- 极简 👍 [点赞数] 按钮 -->
+                        <div class="shrink-0 pt-0.5">
+                          <button type="button"
+                            data-action="like-metaphor"
+                            data-card-id="${escapeHtml(card.id)}"
+                            data-metaphor-id="${escapeHtml(m.id)}"
+                            aria-pressed="${isLiked ? "true" : "false"}"
+                            aria-label="支持这条比喻，当前 ${Number(m.votes) || 0} 赞"
+                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs transition select-none ${
+                              isLiked
+                                ? "bg-[#292524] border-[#292524] text-[#F7F6F2] font-medium"
+                                : "bg-[#F7F6F2] border-[#E0DDD3] text-[#57534E] hover:border-[#BDB8AA] hover:text-[#1C1B18]"
+                            }">
+                            <span aria-hidden="true">👍</span>
+                            <span>${Number(m.votes) || 0}</span>
+                          </button>
+                        </div>
+                      </li>
+                    `;
+                  })
+                  .join("");
+
+          return `
+            <article id="card-${escapeHtml(card.id)}" class="paper-card rounded-2xl p-6 sm:p-10 md:p-12 space-y-8">
+              
+              <!-- ==================== 1. 顶部：【概念标头与一句话扒底裤】 ==================== -->
+              <header class="border-b border-[#E5E2DA] pb-7 space-y-4">
+                <div class="flex flex-wrap items-baseline justify-between gap-2">
+                  <h2 class="font-editorial text-2xl sm:text-3xl font-bold text-[#1C1B18] tracking-tight">
+                    ${escapeHtml(card.title)}
+                  </h2>
+                  ${
+                    card.subtitle
+                      ? `<span class="text-xs font-mono text-[#9A958C] tracking-wide">${escapeHtml(card.subtitle)}</span>`
+                      : ""
+                  }
+                </div>
+
+                <!-- AI 生成的 30 字以内大白话本质解构：大字号、衬线体、杂志留白风格 -->
+                <p class="font-editorial text-lg sm:text-xl text-[#292524] leading-relaxed bg-[#F7F6F2] border-l-2 border-[#292524] pl-4 py-2.5 rounded-r-lg">
+                  ${escapeHtml(card.essence)}
+                </p>
+              </header>
+
+              <!-- ==================== 2. 中部：【高赞活人比喻流】 ==================== -->
+              <section aria-label="${escapeHtml(card.title)}的高赞活人比喻">
+                <div class="flex items-center justify-between mb-2">
+                  <h3 class="text-xs font-medium tracking-wider text-[#8C867B] uppercase">
+                    活人真实经历与比喻 (${sortedMetaphors.length})
+                  </h3>
+                  <span class="text-[11px] text-[#A8A29E]">按支持数排序</span>
+                </div>
+                <ul class="divide-y divide-[#ECE9E1]">
+                  ${metaphorsHtml}
+                </ul>
+              </section>
+
+              <!-- ==================== 3. 底部：【写下我的体感 / 补充经历】 ==================== -->
+              <footer class="pt-6 border-t border-[#E5E2DA]">
+                <form class="metaphor-form space-y-4" data-card-id="${escapeHtml(card.id)}">
+                  <div>
+                    <label for="textarea-${escapeHtml(card.id)}" class="block text-xs font-medium text-[#57534E] mb-2">
+                      写下我的体感 / 补充经历
+                    </label>
+                    <textarea
+                      id="textarea-${escapeHtml(card.id)}"
+                      name="content"
+                      rows="3"
+                      required
+                      maxlength="500"
+                      placeholder="随手记录你被「${escapeHtml(card.title)}」戳中的真实经历，或拿日常生活打个比方…"
+                      class="w-full bg-[#F7F6F2] border border-[#DCD8CE] focus:border-[#78716C] rounded-xl p-3.5 text-[#1C1B18] placeholder-[#9A958C] transition"></textarea>
+                  </div>
+
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <!-- 简单的单选开关：[🔒 仅作为私人笔记保存] 或 [🌐 公开并提交到该概念的广场] -->
+                    <fieldset class="flex flex-wrap items-center gap-4 border-0 p-0 m-0">
+                      <legend class="visually-hidden">选择保存与公开方式</legend>
+                      <label for="vis-public-${escapeHtml(card.id)}" class="inline-flex items-center gap-2 text-xs text-[#44403C] cursor-pointer select-none py-1">
+                        <input type="radio" id="vis-public-${escapeHtml(card.id)}" name="visibility-${escapeHtml(card.id)}" value="public" checked>
+                        <span>🌐 公开并提交到该概念的广场</span>
+                      </label>
+                      <label for="vis-private-${escapeHtml(card.id)}" class="inline-flex items-center gap-2 text-xs text-[#6E6A61] cursor-pointer select-none py-1">
+                        <input type="radio" id="vis-private-${escapeHtml(card.id)}" name="visibility-${escapeHtml(card.id)}" value="private">
+                        <span>🔒 仅作为私人笔记保存</span>
+                      </label>
+                    </fieldset>
+
+                    <!-- 弱化署名输入 + 直接提交按钮 -->
+                    <div class="flex items-center justify-end gap-2 shrink-0">
+                      <label for="author-${escapeHtml(card.id)}" class="visually-hidden">署名（选填）</label>
+                      <input
+                        id="author-${escapeHtml(card.id)}"
+                        name="author"
+                        type="text"
+                        maxlength="18"
+                        placeholder="署名（选填）"
+                        class="w-28 bg-[#F7F6F2] border border-[#DCD8CE] rounded-lg px-2.5 py-1.5 text-xs text-[#57534E] placeholder-[#A8A29E]">
+                      <button type="submit"
+                        class="text-xs px-4 py-2 rounded-lg bg-[#292524] hover:bg-[#1C1B18] text-[#F7F6F2] font-medium transition shrink-0">
+                        提交记录
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </footer>
+
+            </article>
+          `;
+        })
+        .join("");
+    }
+
+    // ==================== 交互逻辑：点赞支持 + 提交体感 + 新建概念卡 ====================
+    function handleLikeMetaphor(cardId, metaphorId) {
+      const card = conceptsData.find((c) => c.id === cardId);
+      if (!card || !Array.isArray(card.metaphors)) return;
+      const item = card.metaphors.find((m) => m.id === metaphorId);
+      if (!item) return;
+
+      if (likedMetaphors[metaphorId]) {
+        delete likedMetaphors[metaphorId];
+        item.votes = Math.max(0, (Number(item.votes) || 1) - 1);
+      } else {
+        likedMetaphors[metaphorId] = true;
+        item.votes = (Number(item.votes) || 0) + 1;
+      }
+
+      saveLikedMetaphors();
+      saveConceptsData();
+      renderConceptsFeed();
+    }
+
+    function handleMetaphorSubmit(formEl) {
+      const cardId = formEl.getAttribute("data-card-id");
+      const card = conceptsData.find((c) => c.id === cardId);
+      if (!card) return;
+
+      const contentEl = formEl.querySelector('textarea[name="content"]');
+      const authorEl = formEl.querySelector('input[name="author"]');
+      const visEl = formEl.querySelector(`input[name="visibility-${cardId}"]:checked`);
+
+      const content = (contentEl?.value || "").trim();
+      if (!content) {
+        contentEl?.focus();
+        return;
+      }
+
+      const isPrivate = visEl?.value === "private";
+      const rawAuthor = (authorEl?.value || "").trim();
+      const author = rawAuthor || (isPrivate ? "我的私人笔记" : "匿名读者");
+
+      const newMetaphor = {
+        id: "m-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6),
+        content,
+        author,
+        votes: 1,
+        isPrivate
+      };
+
+      card.metaphors = card.metaphors || [];
+      card.metaphors.push(newMetaphor);
+      likedMetaphors[newMetaphor.id] = true;
+
+      saveLikedMetaphors();
+      saveConceptsData();
+      renderConceptsFeed();
+    }
+
+    // 内置 30 字以内大白话解构生成器（同时兼容复用本机已配置的 AI Key）
+    async function generate30CharEssence(conceptTitle) {
+      const cleanTitle = conceptTitle.trim();
+      if (!cleanTitle) return "";
+
+      // 若用户在主站配置过 AI Key，优先调用真大模型生成 30 字内本质解构
+      try {
+        const aiCfg = JSON.parse(localStorage.getItem("bookgraph_ai_config_v1") || "{}");
+        if (aiCfg.apiKey) {
+          const baseUrl = (aiCfg.baseUrl || "https://api.deepseek.com/v1").replace(/\/+$/, "");
+          const endpoint = baseUrl.endsWith("/chat/completions") ? baseUrl : `${baseUrl}/chat/completions`;
+          const res = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${aiCfg.apiKey}`
+            },
+            body: JSON.stringify({
+              model: aiCfg.model || "deepseek-chat",
+              temperature: 0.6,
+              messages: [
+                {
+                  role: "system",
+                  content: "你是一个极简概念解构专家。请用30字以内的大白话，撕掉专业包装，一针见血点破用户输入概念的本质。严格控制在30个汉字以内，不要引号，不要多余前缀。"
+                },
+                {
+                  role: "user",
+                  content: cleanTitle
+                }
+              ]
+            })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            const text = (data?.choices?.[0]?.message?.content || "").trim().replace(/^["“「]|["”」]$/g, "");
+            if (text) return text.slice(0, 34);
+          }
+        }
+      } catch (_) {}
+
+      // 常见硬核概念内置精准 30 字扒底裤词典与通用兜底
+      const presetDict = {
+        "破窗效应": "第一扇破窗户没人修，路人就会默认这里允许砸烂一切。",
+        "公地悲剧": "大家都能免费薅的草地，最后一定会被所有人抢着薅成沙漠。",
+        "螃蟹效应": "竹篓里只要有一只螃蟹想往上爬，底下所有螃蟹都会伸钳子拽它下来。",
+        "墨菲定律": "只要一件事存在变糟的可能，不管概率多小，它迟早会当面炸开。",
+        "彼得原理": "每个人都会被提拔到他刚好干不动、开始出洋相的那个职位上停住。",
+        "帕金森定律": "大机构就算屁事没有，也会自己制造审批和会议把所有时间塞满。",
+        "奥卡姆剃刀": "别把事情想得太玄乎，最少假设就能讲通的往往就是真相。",
+        "信息茧房": "算法只喂你爱看的东西，久了你以为全世界都跟你想的一模一样。",
+        "禀赋效应": "破水杯一旦塞进自己手里，要你卖掉时你觉得它值传家宝的价。"
+      };
+
+      for (const [k, v] of Object.entries(presetDict)) {
+        if (cleanTitle.includes(k) || k.includes(cleanTitle)) return v;
+      }
+
+      return `撕掉术语包装：它揭示了人在面对「${cleanTitle.slice(0, 8)}」时最本能的隐蔽算计。`;
+    }
+
+    // ==================== 事件委托与初始化 ====================
+    document.addEventListener("DOMContentLoaded", () => {
+      renderIndexNav();
+      renderConceptsFeed();
+
+      // 顶栏「+ 添新概念卡」展开/收起
+      const toggleNewBtn = document.getElementById("toggle-new-concept-btn");
+      const closeNewBtn = document.getElementById("close-new-concept-btn");
+      const newPanel = document.getElementById("new-concept-panel");
+      const titleInput = document.getElementById("new-concept-title");
+      const essenceInput = document.getElementById("new-concept-essence");
+      const aiEssenceBtn = document.getElementById("ai-essence-btn");
+
+      toggleNewBtn?.addEventListener("click", () => {
+        if (!newPanel) return;
+        const isHidden = newPanel.classList.contains("hidden");
+        if (isHidden) {
+          newPanel.classList.remove("hidden");
+          titleInput?.focus();
+        } else {
+          newPanel.classList.add("hidden");
+        }
+      });
+
+      closeNewBtn?.addEventListener("click", () => {
+        newPanel?.classList.add("hidden");
+      });
+
+      aiEssenceBtn?.addEventListener("click", async () => {
+        const titleVal = (titleInput?.value || "").trim();
+        if (!titleVal) {
+          titleInput?.focus();
+          return;
+        }
+        aiEssenceBtn.textContent = "正在提炼…";
+        const generated = await generate30CharEssence(titleVal);
+        if (essenceInput && generated) {
+          essenceInput.value = generated;
+        }
+        aiEssenceBtn.textContent = "AI 帮我浓缩 30 字本质";
+      });
+
+      // 新建概念卡表单提交
+      const newConceptForm = document.getElementById("new-concept-form");
+      newConceptForm?.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const title = (titleInput?.value || "").trim();
+        const essence = (essenceInput?.value || "").trim();
+        if (!title || !essence) return;
+
+        const newCard = {
+          id: "concept-" + Date.now(),
+          title,
+          subtitle: "",
+          essence: essence.slice(0, 35),
+          metaphors: []
+        };
+
+        conceptsData.unshift(newCard);
+        activeFilterId = "all";
+        saveConceptsData();
+        renderIndexNav();
+        renderConceptsFeed();
+
+        if (titleInput) titleInput.value = "";
+        if (essenceInput) essenceInput.value = "";
+        newPanel?.classList.add("hidden");
+      });
+
+      // 索引导航切换
+      const indexNav = document.getElementById("concept-index-nav");
+      indexNav?.addEventListener("click", (e) => {
+        const btn = e.target.closest("button[data-filter]");
+        if (!btn) return;
+        activeFilterId = btn.getAttribute("data-filter") || "all";
+        renderIndexNav();
+        renderConceptsFeed();
+      });
+
+      // 关键词搜索筛选
+      const searchInput = document.getElementById("concept-search-input");
+      searchInput?.addEventListener("input", () => {
+        searchKeyword = searchInput.value || "";
+        renderConceptsFeed();
+      });
+
+      // 卡片流事件委托：点赞支持 & 清除筛选
+      const feed = document.getElementById("concepts-feed");
+      feed?.addEventListener("click", (e) => {
+        const likeBtn = e.target.closest('button[data-action="like-metaphor"]');
+        if (likeBtn) {
+          const cardId = likeBtn.getAttribute("data-card-id");
+          const metaphorId = likeBtn.getAttribute("data-metaphor-id");
+          if (cardId && metaphorId) {
+            handleLikeMetaphor(cardId, metaphorId);
+          }
+          return;
+        }
+
+        const clearBtn = e.target.closest("#clear-filter-btn");
+        if (clearBtn) {
+          activeFilterId = "all";
+          searchKeyword = "";
+          if (searchInput) searchInput.value = "";
+          renderIndexNav();
+          renderConceptsFeed();
+        }
+      });
+
+      // 卡片内「写下我的体感 / 补充经历」表单提交
+      feed?.addEventListener("submit", (e) => {
+        const formEl = e.target.closest("form.metaphor-form");
+        if (!formEl) return;
+        e.preventDefault();
+        handleMetaphorSubmit(formEl);
+      });
+
+      // 支持 Cmd+Enter / Ctrl+Enter 快捷提交，并保护中文输入法 (IME) 候选词确认不误触
+      feed?.addEventListener("keydown", (e) => {
+        const textarea = e.target.closest('textarea[name="content"]');
+        if (!textarea) return;
+        if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+          if (e.isComposing || e.keyCode === 229) return;
+          e.preventDefault();
+          const formEl = textarea.closest("form.metaphor-form");
+          if (formEl) formEl.requestSubmit();
+        }
+      });
+
+      // 恢复初始示例卡片
+      const resetBtn = document.getElementById("reset-concepts-btn");
+      resetBtn?.addEventListener("click", () => {
+        if (!confirm("确定要恢复为初始示例概念卡片吗？")) return;
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(LIKED_METAPHORS_KEY);
+        conceptsData = loadConceptsData();
+        likedMetaphors = {};
+        activeFilterId = "all";
+        searchKeyword = "";
+        if (searchInput) searchInput.value = "";
+        renderIndexNav();
+        renderConceptsFeed();
+      });
+    });
+  </script>
+</body>
+</html>
