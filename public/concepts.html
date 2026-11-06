@@ -57,91 +57,307 @@
       outline: 2px solid #57534E;
       outline-offset: 2px;
     }
+
+    /* ==================== 星图视图深色反差主题 ==================== */
+    body.is-starmap-mode {
+      background-color: #121316;
+      background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 0);
+      background-size: 28px 28px;
+      color: #F3F2EE;
+    }
+    body.is-starmap-mode > header {
+      background-color: rgba(18, 19, 22, 0.9);
+      border-bottom-color: #262830;
+    }
+    body.is-starmap-mode h1 {
+      color: #F5F4F0;
+    }
+
+    #starmap-viewport {
+      position: relative;
+      width: 100%;
+      height: calc(100vh - 108px);
+      min-height: 540px;
+      background: radial-gradient(circle at 50% 45%, #1A1C23 0%, #121316 75%);
+      border: 1px solid #262830;
+      border-radius: 24px;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+      cursor: grab;
+    }
+    #starmap-viewport.is-panning {
+      cursor: grabbing;
+    }
+    #starmap-world {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      transform-origin: 0 0;
+    }
+
+    /* 一级学科引力中心节点 */
+    .galaxy-hub {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      pointer-events: none;
+    }
+    .galaxy-hub-core {
+      width: 58px;
+      height: 58px;
+      border-radius: 9999px;
+      background: radial-gradient(circle, rgba(247, 246, 242, 0.16) 0%, rgba(247, 246, 242, 0.04) 70%);
+      border: 1.5px dashed rgba(247, 246, 242, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 32px rgba(255, 255, 255, 0.06);
+    }
+    .galaxy-hub-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 9999px;
+      background: #E7E5DF;
+      box-shadow: 0 0 12px rgba(231, 229, 223, 0.8);
+    }
+    .galaxy-hub-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #E7E5DF;
+      background: rgba(18, 19, 22, 0.78);
+      padding: 2px 10px;
+      border-radius: 9999px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      white-space: nowrap;
+    }
+
+    /* 概念节点：🔴 AI守擂 / 🟣 紫蓝裂纹争夺中 / 🔵 人类攻占 + ⭐ 金环 */
+    .concept-star-node {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+      background: none;
+      border: 0;
+      padding: 4px;
+    }
+    .concept-orb-wrap {
+      position: relative;
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .concept-orb {
+      width: 22px;
+      height: 22px;
+      border-radius: 9999px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .concept-star-node:hover .concept-orb {
+      transform: scale(1.22);
+    }
+    /* 🔴 AI 守擂发光红点 */
+    .concept-orb.state-ai {
+      background: radial-gradient(circle at 35% 35%, #FDA4AF, #E11D48 65%, #9F1239);
+      box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.16), 0 0 20px rgba(244, 63, 94, 0.65);
+    }
+    /* 🟣 争夺中：紫蓝双色裂纹点 */
+    .concept-orb.state-contest {
+      background: linear-gradient(135deg, #F43F5E 0%, #A855F7 48%, #38BDF8 100%);
+      box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.2), 0 0 22px rgba(168, 85, 247, 0.7);
+    }
+    .concept-orb.state-contest::after {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      background: linear-gradient(125deg, transparent 43%, #FFF 48%, #38BDF8 52%, transparent 57%);
+      opacity: 0.9;
+    }
+    /* 🔵 人类攻占发光蓝点 */
+    .concept-orb.state-human {
+      background: radial-gradient(circle at 35% 35%, #BAE6FD, #0284C7 65%, #075985);
+      box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.18), 0 0 22px rgba(56, 189, 248, 0.72);
+    }
+    /* ⭐ 外圈金色点亮星环 */
+    .concept-gold-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 9999px;
+      border: 1.75px solid #FBBF24;
+      box-shadow: 0 0 12px rgba(251, 191, 36, 0.55), inset 0 0 6px rgba(251, 191, 36, 0.25);
+      pointer-events: none;
+    }
+    .concept-node-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: #D6D3CD;
+      background: rgba(18, 19, 22, 0.82);
+      padding: 2px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      transition: color 0.18s, border-color 0.18s;
+    }
+    .concept-star-node:hover .concept-node-label {
+      color: #FFFFFF;
+      border-color: rgba(255, 255, 255, 0.24);
+    }
   </style>
 </head>
-<body class="pb-24">
+<body class="pb-24 is-starmap-mode">
 
-  <!-- ==================== 顶部常驻全局导航栏 ==================== -->
-  <header class="sticky top-0 z-30 bg-[#F7F6F2]/95 backdrop-blur-md border-b border-[#E5E2DA]">
-    <div class="max-w-6xl mx-auto px-4 sm:px-8 py-3.5 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+  <!-- ==================== 顶部常驻全局导航栏（含宏观末日生存钟） ==================== -->
+  <header class="sticky top-0 z-30 bg-[#F7F6F2]/95 backdrop-blur-md border-b border-[#E5E2DA] transition-colors duration-200">
+    <div class="max-w-6xl mx-auto px-4 sm:px-8 py-3.5 space-y-3">
       
-      <!-- 左侧：标题 + 实时全局战况统计条 -->
-      <div class="flex flex-wrap items-center gap-3 min-w-0">
-        <div class="flex items-center gap-2.5">
+      <!-- 第一行：标题 + 视图切换 + 全局操作 -->
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+        <div class="flex items-center gap-2.5 min-w-0">
           <a href="index.html" title="返回四维主星图"
             class="text-xs px-2.5 py-1 rounded-lg bg-[#EFECE6] hover:bg-[#E4E0D8] text-[#57534E] hover:text-[#1C1B18] transition shrink-0">
             ← 四维星图
           </a>
-          <h1 class="font-editorial text-lg sm:text-xl font-bold tracking-tight text-[#1C1B18] truncate">
+          <h1 class="font-editorial text-lg sm:text-xl font-bold tracking-tight text-[#1C1B18] truncate transition-colors">
             概念星图：人类 vs AI 活人比喻争夺战
           </h1>
         </div>
 
-        <!-- 实时战况条：🔴 AI 守擂: X | 🟣 争夺中: Y | 🔵 人类攻占: Z -->
-        <div id="global-battle-bar" aria-live="polite"
-          class="inline-flex items-center gap-2.5 px-3 py-1 rounded-full bg-[#FCFBF9] border border-[#E2DFD7] text-xs font-medium text-[#44403C]">
-          <span>🔴 AI 守擂: <strong id="stat-ai-count" class="font-bold text-rose-700">0</strong></span>
-          <span class="text-[#D4CFC3]">|</span>
-          <span>🟣 争夺中: <strong id="stat-contest-count" class="font-bold text-purple-700">0</strong></span>
-          <span class="text-[#D4CFC3]">|</span>
-          <span>🔵 人类攻占: <strong id="stat-human-count" class="font-bold text-sky-700">0</strong></span>
+        <div class="flex flex-wrap items-center justify-between sm:justify-start lg:justify-end gap-2">
+          <div role="tablist" aria-label="视图模式切换"
+            class="inline-flex items-center bg-[#EFECE6] border border-[#DFDCD2] rounded-xl p-1">
+            <button type="button" id="tab-btn-starmap" role="tab" aria-selected="true"
+              data-view="starmap"
+              class="view-switch-btn text-xs px-3 py-1.5 rounded-lg font-semibold transition bg-[#FCFBF9] text-[#1C1B18] shadow-sm">
+              🌌 星图全局视图
+            </button>
+            <button type="button" id="tab-btn-directory" role="tab" aria-selected="false"
+              data-view="directory"
+              class="view-switch-btn text-xs px-3 py-1.5 rounded-lg font-medium transition text-[#6E6A61] hover:text-[#1C1B18]">
+              🗂️ 极简目录视图
+            </button>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" id="btn-my-collection" aria-pressed="false"
+              class="text-xs px-3 py-1.5 rounded-xl border border-[#DFDCD2] bg-[#FCFBF9] hover:bg-[#EFECE6] text-[#44403C] font-medium transition">
+              ⭐ 我的点亮图鉴
+            </button>
+            <button type="button" id="btn-summon-concept"
+              class="text-xs px-3 py-1.5 rounded-xl bg-[#1C1B18] hover:bg-[#33302B] text-[#F7F6F2] border border-white/15 font-medium transition">
+              + 召唤新概念 <span class="opacity-75">(开荒券: <span id="ticket-count">3</span>)</span>
+            </button>
+            <button type="button" id="btn-api-config" title="配置 DeepSeek API Key"
+              class="text-xs px-2.5 py-1.5 rounded-xl border border-[#DFDCD2] bg-[#FCFBF9] hover:bg-[#EFECE6] text-[#6E6A61] hover:text-[#1C1B18] font-medium transition">
+              ⚙️ API
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- 中间：双视图切换按钮组 -->
-      <div class="flex items-center justify-between sm:justify-start lg:justify-center gap-2">
-        <div role="tablist" aria-label="视图模式切换"
-          class="inline-flex items-center bg-[#EFECE6] border border-[#DFDCD2] rounded-xl p-1">
-          <button type="button" id="tab-btn-starmap" role="tab" aria-selected="false"
-            data-view="starmap"
-            class="view-switch-btn text-xs px-3 py-1.5 rounded-lg font-medium transition text-[#6E6A61] hover:text-[#1C1B18]">
-            🌌 星图全局视图
-          </button>
-          <button type="button" id="tab-btn-directory" role="tab" aria-selected="true"
-            data-view="directory"
-            class="view-switch-btn text-xs px-3 py-1.5 rounded-lg font-semibold transition bg-[#FCFBF9] text-[#1C1B18] shadow-sm">
-            🗂️ 极简目录视图
-          </button>
+      <!-- 第二行：宏观末日生存钟仪表盘 -->
+      <div id="global-battle-bar" aria-live="polite"
+        class="rounded-2xl bg-[#FCFBF9] border border-[#E2DFD7] px-4 py-2.5 shadow-sm transition-colors">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-xs">
+          <div class="font-semibold tracking-wide flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span>🌍 全球认知阵地战况 ——</span>
+            <span class="text-rose-600 font-bold">🤖 AI 统治率: <span id="macro-ai-rate">62%</span></span>
+            <span class="opacity-40">|</span>
+            <span class="text-sky-500 font-bold">🧑 人类幸存阵地: <span id="macro-human-rate">38%</span></span>
+          </div>
+          <div class="text-[11px] opacity-75 font-mono">
+            🔴 AI守擂 <strong id="stat-ai-count">0</strong> · 🟣 争夺中 <strong id="stat-contest-count">0</strong> · 🔵 人类幸存 <strong id="stat-human-count">0</strong>
+          </div>
         </div>
 
-        <!-- 右侧：全局操作按钮占位 -->
-        <div class="flex items-center gap-2">
-          <button type="button" id="btn-my-collection"
-            class="text-xs px-3 py-1.5 rounded-xl border border-[#DFDCD2] bg-[#FCFBF9] hover:bg-[#EFECE6] text-[#44403C] font-medium transition">
-            ⭐ 我的点亮图鉴
-          </button>
-          <button type="button" id="btn-summon-concept"
-            class="text-xs px-3 py-1.5 rounded-xl bg-[#1C1B18] hover:bg-[#33302B] text-[#F7F6F2] font-medium transition">
-            + 召唤新概念 <span class="opacity-75">(开荒券: <span id="ticket-count">3</span>)</span>
-          </button>
+        <!-- 视觉冲击双色对抗进度条 -->
+        <div class="mt-2 h-2 w-full rounded-full bg-rose-500/20 overflow-hidden flex">
+          <div id="macro-ai-bar" class="h-full bg-gradient-to-r from-rose-600 via-rose-500 to-purple-500 transition-all duration-500" style="width: 62%"></div>
+          <div id="macro-human-bar" class="h-full bg-gradient-to-r from-sky-400 to-sky-500 transition-all duration-500" style="width: 38%"></div>
         </div>
+
+        <p id="macro-subtitle" class="mt-1.5 text-[11px] opacity-75">
+          当前共收录 8 个高维概念，人类仅在 3 个概念中贡献了超越 AI 的主导比喻
+        </p>
       </div>
 
     </div>
   </header>
 
-  <!-- ==================== 主内容区 ==================== -->
-  <main class="max-w-6xl mx-auto px-4 sm:px-8 pt-8 sm:pt-10">
+  <!-- 全局轻提示 Toast -->
+  <div id="global-toast" role="status" aria-live="polite"
+    class="hidden fixed top-24 left-1/2 -translate-x-1/2 z-50 max-w-md w-[92vw] px-4 py-2.5 rounded-2xl bg-[#1C1B18] text-[#F7F6F2] border border-white/15 text-xs text-center shadow-2xl pointer-events-none"></div>
 
-    <!-- 视图 1：🌌 星图全局视图（第 1 步先留空容器占位，第 2 步实现） -->
-    <section id="view-starmap" class="hidden" aria-label="星图全局视图">
-      <div class="paper-card rounded-3xl p-12 sm:p-20 text-center space-y-4 border-dashed border-[#D4CFC3]">
-        <div class="text-3xl">🌌</div>
-        <h2 class="font-editorial text-xl font-bold text-[#1C1B18]">星图全局视图（待第 2 步点亮）</h2>
-        <p class="text-sm text-[#6E6A61] max-w-md mx-auto leading-relaxed">
-          此处将在下一步接入一级学科引力中心与红/紫/蓝阵营概念节点连线画布。当前请先检视「🗂️ 极简目录视图」的数据结构与卡片排版。
-        </p>
-        <div class="pt-2">
-          <button type="button" data-switch-to="directory"
-            class="text-xs px-4 py-2 rounded-xl bg-[#1C1B18] text-[#F7F6F2] font-medium hover:bg-[#33302B] transition">
-            返回 🗂️ 极简目录视图
-          </button>
+  <!-- ==================== 主内容区 ==================== -->
+  <main class="max-w-6xl mx-auto px-4 sm:px-8 pt-6 sm:pt-8">
+
+    <!-- 图鉴筛选激活提示条 -->
+    <div id="collection-filter-banner" class="hidden mb-5 px-4 py-2.5 rounded-2xl bg-amber-500/15 border border-amber-500/35 text-xs flex items-center justify-between gap-3">
+      <span>⭐ 当前仅显示「我的点亮图鉴」（已点亮收藏、封神归档、写过私人批注或公开比喻的概念节点）</span>
+      <button type="button" id="btn-clear-collection-filter" class="underline font-medium hover:opacity-80">显示全部节点</button>
+    </div>
+
+    <!-- 视图 1：🌌 星图全局视图（类 Obsidian Graph） -->
+    <section id="view-starmap" aria-label="星图全局视图">
+      <div id="starmap-viewport">
+        <!-- 左上角图例说明 -->
+        <div class="absolute top-4 left-4 z-10 flex flex-wrap items-center gap-3 px-3.5 py-2 rounded-xl bg-[#181A20]/90 border border-white/10 text-[11px] text-[#C8C5BE] backdrop-blur-md pointer-events-none">
+          <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>🔴 AI 守擂 (Top3全AI)</span>
+          <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-rose-500 via-purple-500 to-sky-400 inline-block"></span>🟣 争夺中 (人类占1席)</span>
+          <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-400 inline-block"></span>🔵 人类幸存阵地 (人类≥2席)</span>
+          <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full border border-amber-400 inline-block"></span>⭐ 点亮/封神金环</span>
+          <span class="inline-flex items-center gap-1.5 text-amber-300/90">🪐 悬停节点显影「跨界双子星」金弧</span>
+        </div>
+
+        <!-- 悬停节点时的底部「一句话扒底裤定义」浮层 -->
+        <div id="starmap-hover-card" class="hidden absolute bottom-4 left-4 z-10 max-w-md px-4 py-3 rounded-2xl bg-[#181A20]/95 border border-white/15 text-left shadow-2xl backdrop-blur-md pointer-events-none space-y-1">
+          <div class="flex items-center justify-between gap-3">
+            <span id="hover-card-title" class="font-editorial text-base font-bold text-[#F7F6F2]"></span>
+            <span id="hover-card-badge" class="text-[11px] px-2 py-0.5 rounded-full"></span>
+          </div>
+          <p id="hover-card-def" class="font-editorial text-sm text-[#D6D3CD] leading-relaxed"></p>
+          <p id="hover-card-twin" class="hidden text-[11px] text-amber-300/95 pt-1 border-t border-white/10"></p>
+        </div>
+
+        <!-- 右下角画布缩放复位控件 -->
+        <div class="absolute bottom-4 right-4 z-10 flex items-center gap-1.5">
+          <button type="button" id="starmap-zoom-in" title="放大星图" aria-label="放大星图"
+            class="w-8 h-8 rounded-lg bg-[#181A20]/90 hover:bg-[#252830] border border-white/10 text-[#E7E5DF] text-sm font-bold transition">+</button>
+          <button type="button" id="starmap-zoom-out" title="缩小星图" aria-label="缩小星图"
+            class="w-8 h-8 rounded-lg bg-[#181A20]/90 hover:bg-[#252830] border border-white/10 text-[#E7E5DF] text-sm font-bold transition">−</button>
+          <button type="button" id="starmap-zoom-reset" title="复位星图视角"
+            class="px-2.5 h-8 rounded-lg bg-[#181A20]/90 hover:bg-[#252830] border border-white/10 text-[#C8C5BE] hover:text-white text-xs transition">复位</button>
+        </div>
+
+        <!-- 星图世界层（SVG引力线 + 按需显影双子星金弧 + 学科中心 + 概念节点） -->
+        <div id="starmap-world">
+          <svg id="starmap-links-svg" class="absolute inset-0 w-full h-full overflow-visible pointer-events-none"></svg>
+          <!-- 跨界双子星弧线中央的 20 字「🔗 相通本质」浮标（平时隐形，仅聚焦时显影） -->
+          <div id="starmap-twin-label"
+            class="hidden absolute z-20 -translate-x-1/2 -translate-y-1/2 px-3 py-1 rounded-full bg-[#1C1917]/95 border border-amber-400/70 text-[11px] text-amber-200 shadow-[0_0_20px_rgba(251,191,36,0.35)] whitespace-nowrap pointer-events-none">
+          </div>
+          <div id="starmap-hubs-layer"></div>
+          <div id="starmap-nodes-layer"></div>
         </div>
       </div>
     </section>
 
-    <!-- 视图 2：🗂️ 极简目录视图（第 1 步默认激活） -->
-    <section id="view-directory" aria-label="极简目录视图" class="space-y-12">
+    <!-- 视图 2：🗂️ 极简目录视图 -->
+    <section id="view-directory" aria-label="极简目录视图" class="hidden space-y-12">
 
       <!-- 杂志感导语与阵营规则一句话说明 -->
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b border-[#E5E2DA]">
@@ -154,7 +370,7 @@
           </h2>
         </div>
         <p class="text-xs text-[#6E6A61] leading-relaxed max-w-lg">
-          每个概念初始由 3 条 AI 比喻守擂（默认各 3 赞）。按点赞数取 <strong>Top 3 席位</strong>：全为 AI 则 <span class="text-rose-700 font-medium">🔴 AI 守擂</span>，人类挤入 1 席为 <span class="text-purple-700 font-medium">🟣 争夺中</span>，人类占据 ≥2 席即宣告 <span class="text-sky-700 font-medium">🔵 人类攻占</span>。
+          每个概念初始由 3 条 AI 比喻守擂（默认各 3 赞）。按点赞数取 <strong>Top 3 席位</strong>：全为 AI 则 <span class="text-rose-700 font-medium">🔴 AI 守擂</span>，人类挤入 1 席为 <span class="text-purple-700 font-medium">🟣 争夺中</span>，人类占据 ≥2 席即成为 <span class="text-sky-700 font-medium">🔵 人类幸存阵地</span>。
         </p>
       </div>
 
@@ -163,7 +379,298 @@
 
     </section>
 
+    <!-- 底部角落：状态说明与重置初始数据按钮 -->
+    <footer class="mt-8 pt-4 flex items-center justify-between text-[11px] opacity-60 hover:opacity-100 transition">
+      <span id="footer-identity-label">免登录 LocalStorage 实时持久化</span>
+      <button type="button" id="btn-reset-demo-data" class="underline hover:text-rose-500 transition">
+        [重置初始数据]
+      </button>
+    </footer>
+
   </main>
+
+  <!-- ==================== 概念单卡详情弹窗/抽屉（极简明牌阅读 + 封神存档 + 双子星穿梭） ==================== -->
+  <style>
+    dialog#concept-detail-dialog,
+    dialog#summon-concept-dialog,
+    dialog#api-config-dialog {
+      background: transparent;
+      border: 0;
+      padding: 0;
+      width: 100%;
+      color: #1C1B18;
+      margin: auto;
+    }
+    dialog#concept-detail-dialog {
+      max-width: min(94vw, 740px);
+    }
+    dialog#summon-concept-dialog,
+    dialog#api-config-dialog {
+      max-width: min(92vw, 480px);
+    }
+    dialog:modal {
+      overscroll-behavior: contain;
+    }
+    dialog::backdrop {
+      background: rgba(12, 13, 16, 0.72);
+      backdrop-filter: blur(5px);
+      overflow: hidden;
+      overscroll-behavior: contain;
+    }
+    /* 微小黄色警示漏洞便签 */
+    .flaw-sticky-note {
+      background-color: #FEFCE8;
+      border: 1px solid #FDE047;
+      border-left: 3px solid #EAB308;
+      color: #713F12;
+      box-shadow: 0 2px 6px rgba(202, 138, 4, 0.08);
+    }
+    textarea, input[type="text"], input[type="password"], select {
+      font-size: 1rem;
+    }
+    input[type="radio"] {
+      accent-color: #1C1B18;
+      width: 1rem;
+      height: 1rem;
+      cursor: pointer;
+    }
+  </style>
+
+  <dialog id="concept-detail-dialog" closedby="any" aria-labelledby="detail-concept-title">
+    <div class="bg-[#F7F6F2] border border-[#DCD8CE] rounded-3xl shadow-2xl max-h-[88vh] overflow-y-auto p-6 sm:p-9 space-y-7 text-left">
+      
+      <!-- 1. 顶部：【一句话扒底裤】 + 封神纪元按钮 -->
+      <header class="space-y-4 border-b border-[#E5E2DA] pb-6">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex flex-wrap items-center gap-2">
+            <span id="detail-concept-meta" class="font-mono text-xs text-[#8C867B] tracking-wider"></span>
+            <span id="detail-concept-status" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full border text-xs font-medium"></span>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- 当概念被人类攻占（🔵 蓝色）时出现：[ 🏆 封存本轮并开启新挑战 ] -->
+            <button type="button" id="detail-archive-epoch-btn"
+              class="hidden text-xs px-3 py-1.5 rounded-xl border border-amber-500/80 bg-amber-100/90 hover:bg-amber-200/80 text-amber-950 font-semibold transition items-center gap-1.5 shadow-sm">
+              🏆 封存本轮并开启新挑战
+            </button>
+            <button type="button" id="detail-star-btn"
+              class="text-xs px-3 py-1.5 rounded-xl border transition font-medium inline-flex items-center gap-1.5">
+              <span>⭐</span>
+              <span id="detail-star-text">点亮收藏</span>
+            </button>
+            <button type="button" id="detail-close-btn" aria-label="关闭详情窗口"
+              class="w-8 h-8 rounded-xl bg-[#EFECE6] hover:bg-[#E2DFD7] text-[#57534E] hover:text-[#1C1B18] text-lg leading-none flex items-center justify-center transition">
+              &times;
+            </button>
+          </div>
+        </div>
+
+        <h2 id="detail-concept-title" class="font-editorial text-2xl sm:text-3xl font-bold text-[#1C1B18] tracking-tight"></h2>
+
+        <!-- 黑底白字封条：30字以内大白话本质解构 -->
+        <div class="bg-[#1C1B18] text-[#F7F6F2] px-4 sm:px-5 py-3.5 rounded-2xl shadow-sm">
+          <p id="detail-concept-definition" class="font-editorial text-base sm:text-lg leading-relaxed tracking-wide"></p>
+        </div>
+
+        <!-- 可折叠的【📜 历代神比喻档案】（封神存档纪元碑文） -->
+        <details id="detail-hall-of-fame" class="hidden bg-[#FAF7F0] border border-amber-300/80 rounded-2xl px-4 py-3 text-xs">
+          <summary class="cursor-pointer font-semibold text-amber-950 flex items-center justify-between select-none">
+            <span id="detail-hof-summary">📜 历代神比喻档案（已封存 0 轮人类胜出纪元）</span>
+            <span class="text-[11px] text-amber-800/80 font-normal">点击展开碑文 ▾</span>
+          </summary>
+          <div id="detail-hof-list" class="mt-3 pt-3 border-t border-amber-200/80 space-y-3"></div>
+        </details>
+      </header>
+
+      <!-- 2. 中部：【3 + 1 黄金席位比喻区（极简明牌阅读）】 -->
+      <section class="space-y-6" aria-label="3+1黄金席位比喻区">
+        
+        <!-- Top 3 黄金席位 -->
+        <div class="space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h3 class="text-xs font-semibold tracking-wider text-[#57534E] uppercase">
+              🏆 Top 3 黄金席位（三局两胜决定阵地归属）
+            </h3>
+            <span class="text-[11px] text-[#9A958C]">新挑战比喻集满 3 赞将黑马直升替换第 3 名</span>
+          </div>
+          <div id="detail-top3-list" class="space-y-3.5"></div>
+        </div>
+
+        <!-- +1 新鲜人类挑战席 -->
+        <div class="pt-4 border-t border-dashed border-[#D6D3C9] space-y-3">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-semibold text-[#44403C]">🌱 +1 新鲜人类挑战席</span>
+              <span id="detail-challenger-counter" class="text-[11px] text-[#9A958C]"></span>
+            </div>
+            <button type="button" id="detail-cycle-challenger-btn"
+              class="text-xs px-3 py-1 rounded-lg border border-[#D4CFC3] bg-[#FCFBF9] hover:bg-[#EFECE6] text-[#44403C] transition">
+              🎲 换一条
+            </button>
+          </div>
+          <div id="detail-challenger-slot"></div>
+        </div>
+
+        <!-- 我的私人批注展示区（若有） -->
+        <div id="detail-private-notes-wrap" class="hidden pt-4 border-t border-dashed border-[#D6D3C9] space-y-2.5">
+          <h4 class="text-xs font-semibold text-[#57534E]">🔒 我的私人批注（仅自己可见 · 已存入个人图鉴）</h4>
+          <div id="detail-private-notes-list" class="space-y-2.5"></div>
+        </div>
+
+      </section>
+
+      <!-- 3. 跨界双子星穿梭条 + 底部【写下我的真实经历 / 比喻】 -->
+      <footer class="pt-5 border-t border-[#E5E2DA] space-y-5">
+        
+        <!-- 🪐 跨界同构穿梭与手动修改关联 -->
+        <div class="bg-[#FAF8F4] border border-[#E5E2DA] rounded-2xl px-4 py-3 space-y-2.5">
+          <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div id="detail-twin-display" class="text-[#44403C] leading-relaxed flex-1 min-w-0"></div>
+            <button type="button" id="detail-twin-edit-btn"
+              class="text-[11px] text-[#8C867B] hover:text-[#1C1B18] transition shrink-0">
+              [ 🔗 修改关联 ]
+            </button>
+          </div>
+
+          <form id="detail-twin-edit-form" class="hidden pt-2 border-t border-dashed border-[#DEDAD0] flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            <label for="detail-twin-select" class="sr-only">选择跨界同构概念</label>
+            <select id="detail-twin-select"
+              class="bg-[#FCFBF9] border border-[#D4CFC3] rounded-xl px-2.5 py-1.5 text-xs text-[#1C1B18] focus:outline-none"></select>
+            <label for="detail-twin-reason-input" class="sr-only">输入20字以内的相通本质理由</label>
+            <input id="detail-twin-reason-input" type="text" maxlength="24" required
+              placeholder="20字内写出两者的相通本质…"
+              class="flex-1 bg-[#FCFBF9] border border-[#D4CFC3] rounded-xl px-3 py-1.5 text-xs text-[#1C1B18] placeholder-[#9A958C] focus:outline-none">
+            <button type="submit"
+              class="text-xs px-3 py-1.5 rounded-xl bg-[#1C1B18] text-[#F7F6F2] font-medium shrink-0">
+              保存关联
+            </button>
+          </form>
+        </div>
+
+        <form id="detail-metaphor-form" class="space-y-4">
+          <div class="flex items-center justify-between">
+            <label for="detail-metaphor-textarea" class="text-xs font-semibold text-[#292524]">
+              ✍️ 写下我的真实经历 / 比喻
+            </label>
+            <span id="detail-handle-badge" class="text-[11px] text-[#8C867B]"></span>
+          </div>
+
+          <textarea id="detail-metaphor-textarea" name="content" rows="3" required maxlength="400"
+            placeholder="用你亲身经历的一件具体小事，给这个概念打个比方..."
+            class="w-full bg-[#FCFBF9] border border-[#D6D3C9] focus:border-[#1C1B18] rounded-2xl p-3.5 text-[#1C1B18] placeholder-[#9A958C] focus:outline-none leading-relaxed"></textarea>
+
+          <!-- 温和反馈提示条 -->
+          <div id="detail-submit-feedback" class="hidden text-xs px-3.5 py-2 rounded-xl"></div>
+
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+            <fieldset class="flex flex-wrap items-center gap-4 border-0 p-0 m-0">
+              <legend class="sr-only">选择保存方式</legend>
+              <label for="radio-vis-private" class="inline-flex items-center gap-2 text-xs text-[#44403C] cursor-pointer select-none py-1">
+                <input type="radio" id="radio-vis-private" name="metaphorVisibility" value="private" checked>
+                <span>🔒 仅作为私人批注保存</span>
+              </label>
+              <label for="radio-vis-public" class="inline-flex items-center gap-2 text-xs text-[#1C1B18] font-medium cursor-pointer select-none py-1">
+                <input type="radio" id="radio-vis-public" name="metaphorVisibility" value="public">
+                <span>🌐 公开并挑战 AI 席位</span>
+              </label>
+            </fieldset>
+
+            <button type="submit"
+              class="text-xs px-5 py-2.5 rounded-xl bg-[#1C1B18] hover:bg-[#33302B] text-[#F7F6F2] font-medium transition shrink-0">
+              提交记录
+            </button>
+          </div>
+        </form>
+      </footer>
+
+    </div>
+  </dialog>
+
+  <!-- ==================== 弹窗 2：[ + 召唤新概念 ]（真实接入 DeepSeek API） ==================== -->
+  <dialog id="summon-concept-dialog" closedby="any" aria-labelledby="summon-dialog-title">
+    <form id="summon-concept-form" class="bg-[#F7F6F2] border border-[#DCD8CE] rounded-3xl shadow-2xl p-6 sm:p-7 space-y-5 text-left">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <h2 id="summon-dialog-title" class="font-editorial text-xl font-bold text-[#1C1B18]">🌌 召唤新概念节点</h2>
+          <p class="text-xs text-[#6E6A61] mt-1">
+            输入任意硬核概念词，DeepSeek 将在星图中自动归入学科并构建 3 条守擂防线（消耗 1 张开荒券）。
+          </p>
+        </div>
+        <button type="button" id="summon-close-btn" aria-label="关闭召唤窗口"
+          class="w-8 h-8 rounded-xl bg-[#EFECE6] hover:bg-[#E2DFD7] text-[#57534E] text-lg leading-none flex items-center justify-center">
+          &times;
+        </button>
+      </div>
+
+      <div>
+        <label for="summon-concept-input" class="block text-xs font-medium text-[#44403C] mb-1.5">
+          概念名称
+        </label>
+        <input id="summon-concept-input" name="conceptName" type="text" required maxlength="36"
+          placeholder="例如：费米悖论 / 破窗效应 / 邓宁-克鲁格效应"
+          class="w-full bg-[#FCFBF9] border border-[#D4CFC3] focus:border-[#1C1B18] rounded-xl px-3.5 py-2.5 text-[#1C1B18] placeholder-[#9A958C] focus:outline-none">
+      </div>
+
+      <!-- 加载或拒绝提示 -->
+      <div id="summon-status-box" class="hidden rounded-xl px-3.5 py-2.5 text-xs leading-relaxed"></div>
+
+      <div class="flex items-center justify-between pt-1">
+        <span class="text-xs text-[#6E6A61]">剩余开荒券：<strong id="summon-ticket-num" class="text-[#1C1B18]">3</strong> 张</span>
+        <div class="flex items-center gap-2">
+          <button type="button" id="summon-open-api-btn" class="text-xs text-[#6E6A61] hover:text-[#1C1B18] underline">
+            配置 API Key
+          </button>
+          <button type="submit" id="summon-submit-btn"
+            class="text-xs px-4 py-2.5 rounded-xl bg-[#1C1B18] hover:bg-[#33302B] text-[#F7F6F2] font-medium transition">
+            消耗 1 券召唤
+          </button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- ==================== 弹窗 3：[ ⚙️ API ] DeepSeek API Key 与玩家代号配置 ==================== -->
+  <dialog id="api-config-dialog" closedby="any" aria-labelledby="api-dialog-title">
+    <form id="api-config-form" class="bg-[#F7F6F2] border border-[#DCD8CE] rounded-3xl shadow-2xl p-6 sm:p-7 space-y-5 text-left">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <h2 id="api-dialog-title" class="font-editorial text-xl font-bold text-[#1C1B18]">⚙️ DeepSeek API 与本地身份设置</h2>
+          <p class="text-xs text-[#6E6A61] mt-1">
+            API Key 仅保存在你当前浏览器的 LocalStorage 中，用于实时召唤新概念并生成 3 条 AI 守擂比喻。
+          </p>
+        </div>
+        <button type="button" id="api-close-btn" aria-label="关闭设置窗口"
+          class="w-8 h-8 rounded-xl bg-[#EFECE6] hover:bg-[#E2DFD7] text-[#57534E] text-lg leading-none flex items-center justify-center">
+          &times;
+        </button>
+      </div>
+
+      <div>
+        <label for="api-key-input" class="block text-xs font-medium text-[#44403C] mb-1.5">
+          DeepSeek API Key（调用 `https://api.deepseek.com/chat/completions`）
+        </label>
+        <input id="api-key-input" name="apiKey" type="password" autocomplete="off"
+          placeholder="sk-..."
+          class="w-full bg-[#FCFBF9] border border-[#D4CFC3] focus:border-[#1C1B18] rounded-xl px-3.5 py-2.5 text-[#1C1B18] font-mono placeholder-[#9A958C] focus:outline-none">
+      </div>
+
+      <div>
+        <label for="user-handle-input" class="block text-xs font-medium text-[#44403C] mb-1.5">
+          我的活人玩家代号（公开提交比喻时显示在右下角）
+        </label>
+        <input id="user-handle-input" name="userHandle" type="text" maxlength="20"
+          placeholder="例如：@小桃"
+          class="w-full bg-[#FCFBF9] border border-[#D4CFC3] focus:border-[#1C1B18] rounded-xl px-3.5 py-2.5 text-[#1C1B18] placeholder-[#9A958C] focus:outline-none">
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-1">
+        <button type="submit"
+          class="text-xs px-4 py-2.5 rounded-xl bg-[#1C1B18] hover:bg-[#33302B] text-[#F7F6F2] font-medium transition">
+          保存设置
+        </button>
+      </div>
+    </form>
+  </dialog>
 
   <script>
     // ==================== 一级学科星系配置 ====================
@@ -249,6 +756,14 @@
             author: "@夜班急诊人",
             isAI: false,
             likes: 2,
+            flaw: null
+          },
+          {
+            id: "m-01-h4",
+            content: "公司规定客服每天必须拿下至少15个「五星好评」才发绩效，结果客服遇到难缠客户直接自掏腰包发5块钱微信红包求点五星——好评率全员100%，产品烂在哪老板永远不知道。",
+            author: "@电商老运营",
+            isAI: false,
+            likes: 3,
             flaw: null
           }
         ]
@@ -546,23 +1061,140 @@
     ];
 
     const STORAGE_KEY = "concept_star_battle_v1";
+    const STARRED_KEY = "concept_star_starred_v1";
+    const PRIVATE_NOTES_KEY = "concept_star_private_notes_v1";
+    const TICKETS_KEY = "concept_star_tickets_v1";
+    const USER_HANDLE_KEY = "concept_star_user_handle_v1";
+    const DEEPSEEK_KEY_STORAGE = "concept_star_deepseek_key_v1";
+
+    // 预置跨界双子星映射（20字以内相通本质理由）
+    const DEFAULT_TWIN_MAP = {
+      "concept-01": {
+        twinConceptId: "concept-05",
+        twinReason: "只要开始测量或考核，系统就会因介入而失真"
+      },
+      "concept-05": {
+        twinConceptId: "concept-01",
+        twinReason: "只要开始测量或考核，系统就会因介入而失真"
+      },
+      "concept-02": {
+        twinConceptId: "concept-08",
+        twinReason: "都被局部算计或既有投入锁死在次优烂局里"
+      },
+      "concept-08": {
+        twinConceptId: "concept-02",
+        twinReason: "都被局部算计或既有投入锁死在次优烂局里"
+      },
+      "concept-03": {
+        twinConceptId: "concept-04",
+        twinReason: "都在对抗不可信信道与噪声带来的信息混乱"
+      },
+      "concept-04": {
+        twinConceptId: "concept-03",
+        twinReason: "都在对抗不可信信道与噪声带来的信息混乱"
+      },
+      "concept-06": {
+        twinConceptId: "concept-07",
+        twinReason: "人脑只盯住极端显眼样本而扭曲真实概率分布"
+      },
+      "concept-07": {
+        twinConceptId: "concept-06",
+        twinReason: "人脑只盯住极端显眼样本而扭曲真实概率分布"
+      }
+    };
+
+    function normalizeConceptsData(list) {
+      return list.map((c) => {
+        const defTwin = DEFAULT_TWIN_MAP[c.id];
+        return {
+          ...c,
+          twinConceptId: c.twinConceptId !== undefined ? c.twinConceptId : (defTwin?.twinConceptId || ""),
+          twinReason: c.twinReason !== undefined ? c.twinReason : (defTwin?.twinReason || ""),
+          hallOfFame: Array.isArray(c.hallOfFame) ? c.hallOfFame : []
+        };
+      });
+    }
 
     function loadConcepts() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return JSON.parse(JSON.stringify(INITIAL_CONCEPTS_DATA));
+        if (!raw) return normalizeConceptsData(JSON.parse(JSON.stringify(INITIAL_CONCEPTS_DATA)));
         const parsed = JSON.parse(raw);
         if (!Array.isArray(parsed) || parsed.length < 8) {
-          return JSON.parse(JSON.stringify(INITIAL_CONCEPTS_DATA));
+          return normalizeConceptsData(JSON.parse(JSON.stringify(INITIAL_CONCEPTS_DATA)));
         }
-        return parsed;
+        return normalizeConceptsData(parsed);
       } catch (_) {
-        return JSON.parse(JSON.stringify(INITIAL_CONCEPTS_DATA));
+        return normalizeConceptsData(JSON.parse(JSON.stringify(INITIAL_CONCEPTS_DATA)));
       }
     }
 
+    function loadStarred() {
+      try {
+        const raw = localStorage.getItem(STARRED_KEY);
+        if (!raw) return { "concept-01": true };
+        return JSON.parse(raw);
+      } catch (_) {
+        return { "concept-01": true };
+      }
+    }
+
+    function loadPrivateNotes() {
+      try {
+        return JSON.parse(localStorage.getItem(PRIVATE_NOTES_KEY) || "{}");
+      } catch (_) {
+        return {};
+      }
+    }
+
+    function loadTickets() {
+      const val = Number(localStorage.getItem(TICKETS_KEY));
+      return Number.isFinite(val) && val >= 0 ? val : 3;
+    }
+
+    function saveTickets() {
+      try {
+        localStorage.setItem(TICKETS_KEY, String(userTickets));
+      } catch (_) {}
+      const el1 = document.getElementById("ticket-count");
+      const el2 = document.getElementById("summon-ticket-num");
+      if (el1) el1.textContent = String(userTickets);
+      if (el2) el2.textContent = String(userTickets);
+    }
+
     let conceptsList = loadConcepts();
-    let currentView = "directory"; // 第 1 步默认激活「极简目录视图」
+    let starredMap = loadStarred();
+    let privateNotesMap = loadPrivateNotes();
+    let userTickets = loadTickets();
+    let userHandle = localStorage.getItem(USER_HANDLE_KEY) || "";
+    let onlyMyCollection = false;
+    let justSummonedConceptId = null;
+    let currentView = "starmap";
+
+    function isConceptInMyCollection(concept) {
+      if (starredMap[concept.id]) return true;
+      if (Array.isArray(concept.hallOfFame) && concept.hallOfFame.length > 0) return true;
+      if (Array.isArray(privateNotesMap[concept.id]) && privateNotesMap[concept.id].length > 0) return true;
+      if (userHandle && (concept.metaphors || []).some((m) => !m.isAI && m.author === userHandle)) return true;
+      return false;
+    }
+
+    function getActiveGalaxies() {
+      const baseNames = new Set(GALAXIES.map((g) => g.name));
+      const extra = [];
+      conceptsList.forEach((c) => {
+        if (c.category && !baseNames.has(c.category)) {
+          baseNames.add(c.category);
+          extra.push({
+            id: "gal-" + extra.length,
+            name: c.category,
+            en: "Extended Galaxy",
+            desc: "通过 DeepSeek 新召唤开拓的学科星系"
+          });
+        }
+      });
+      return [...GALAXIES, ...extra];
+    }
 
     function escapeHtml(str) {
       return String(str || "")
@@ -573,13 +1205,23 @@
         .replace(/'/g, "&#39;");
     }
 
-    // ==================== 阵营计算规则（三局两胜制：取 Top 3 高赞席位） ====================
+    // ==================== 阵营计算规则（三局两胜 + 群众自净 + 黑马3赞直升） ====================
+    function getActiveMetaphors(concept) {
+      // 累计被点 3 次 [👎 离题] 的比喻自动从展示区折叠移除
+      return (Array.isArray(concept.metaphors) ? concept.metaphors : []).filter(
+        (m) => (Number(m.dislikes) || 0) < 3
+      );
+    }
+
     function getConceptBattleStatus(concept) {
-      const list = Array.isArray(concept.metaphors) ? [...concept.metaphors] : [];
-      // 按点赞数从高到低排序；同赞数时 AI 原生守擂优先保持防线（人类需超过 3 赞才能破防）
+      const list = [...getActiveMetaphors(concept)];
       list.sort((a, b) => {
         const diff = (Number(b.likes) || 0) - (Number(a.likes) || 0);
         if (diff !== 0) return diff;
+        // 同为 >=3 赞时，新鲜人类比喻（黑马直升）优先于默认3赞的AI守擂席位
+        if ((Number(b.likes) || 0) >= 3 && a.isAI !== b.isAI) {
+          return (a.isAI ? 1 : 0) - (b.isAI ? 1 : 0);
+        }
         return (b.isAI ? 1 : 0) - (a.isAI ? 1 : 0);
       });
 
@@ -591,8 +1233,10 @@
         return {
           state: "human",
           dot: "🔵",
-          label: "人类攻占",
+          label: "人类幸存阵地",
           badgeCls: "bg-sky-50 text-sky-800 border-sky-200/90",
+          darkBadgeCls: "bg-sky-500/20 text-sky-300 border border-sky-400/40",
+          lineStroke: "rgba(56, 189, 248, 0.36)",
           humanInTop3,
           aiInTop3,
           top3
@@ -604,6 +1248,8 @@
           dot: "🟣",
           label: "争夺中",
           badgeCls: "bg-purple-50 text-purple-800 border-purple-200/90",
+          darkBadgeCls: "bg-purple-500/20 text-purple-300 border border-purple-400/40",
+          lineStroke: "rgba(168, 85, 247, 0.38)",
           humanInTop3,
           aiInTop3,
           top3
@@ -614,13 +1260,15 @@
         dot: "🔴",
         label: "AI 守擂",
         badgeCls: "bg-rose-50 text-rose-800 border-rose-200/90",
+        darkBadgeCls: "bg-rose-500/20 text-rose-300 border border-rose-400/40",
+        lineStroke: "rgba(244, 63, 94, 0.34)",
         humanInTop3,
         aiInTop3,
         top3
       };
     }
 
-    // ==================== 渲染顶栏全局战况条 ====================
+    // ==================== 渲染顶部「宏观末日生存钟」仪表盘 ====================
     function renderGlobalBattleStats() {
       let aiCount = 0;
       let contestCount = 0;
@@ -633,12 +1281,32 @@
         else if (st.state === "human") humanCount++;
       });
 
+      const total = Math.max(conceptsList.length, 1);
+      const humanRate = Math.round((humanCount / total) * 100);
+      const aiRate = 100 - humanRate;
+
       const aiEl = document.getElementById("stat-ai-count");
       const contestEl = document.getElementById("stat-contest-count");
       const humanEl = document.getElementById("stat-human-count");
       if (aiEl) aiEl.textContent = String(aiCount);
       if (contestEl) contestEl.textContent = String(contestCount);
       if (humanEl) humanEl.textContent = String(humanCount);
+
+      const aiRateEl = document.getElementById("macro-ai-rate");
+      const humanRateEl = document.getElementById("macro-human-rate");
+      const aiBarEl = document.getElementById("macro-ai-bar");
+      const humanBarEl = document.getElementById("macro-human-bar");
+      const subEl = document.getElementById("macro-subtitle");
+
+      if (aiRateEl) aiRateEl.textContent = `${aiRate}%`;
+      if (humanRateEl) humanRateEl.textContent = `${humanRate}%`;
+      if (aiBarEl) aiBarEl.style.width = `${aiRate}%`;
+      if (humanBarEl) humanBarEl.style.width = `${humanRate}%`;
+      if (subEl) {
+        subEl.textContent = `当前共收录 ${conceptsList.length} 个高维概念，人类仅在 ${humanCount} 个概念中贡献了超越 AI 的主导比喻`;
+      }
+
+      saveTickets();
     }
 
     // ==================== 渲染 🗂️ 极简目录视图 ====================
@@ -646,106 +1314,940 @@
       const container = document.getElementById("directory-galaxies-container");
       if (!container) return;
 
-      container.innerHTML = GALAXIES.map((galaxy, gIdx) => {
-        const galaxyConcepts = conceptsList.filter((c) => c.category === galaxy.name);
+      const allGalaxies = getActiveGalaxies();
+      const sectionsHtml = allGalaxies
+        .map((galaxy, gIdx) => {
+          const galaxyConcepts = conceptsList.filter(
+            (c) => c.category === galaxy.name && (!onlyMyCollection || isConceptInMyCollection(c))
+          );
+          if (galaxyConcepts.length === 0) return "";
 
-        const cardsHtml = galaxyConcepts
-          .map((concept) => {
-            const status = getConceptBattleStatus(concept);
-            const topMetaphor = status.top3[0];
+          const cardsHtml = galaxyConcepts
+            .map((concept) => {
+              const status = getConceptBattleStatus(concept);
+              const topMetaphor = status.top3[0];
+              const isStarred = Boolean(starredMap[concept.id]);
+              const privCount = (privateNotesMap[concept.id] || []).length;
 
-            return `
-              <article
-                class="paper-card rounded-2xl p-6 flex flex-col justify-between gap-5"
-                data-concept-id="${escapeHtml(concept.id)}">
-                
-                <div class="space-y-3.5">
-                  <!-- 顶部：编号 + 右上角醒目阵营状态标识 -->
-                  <div class="flex items-center justify-between gap-2">
-                    <span class="font-mono text-xs text-[#9A958C] tracking-wider">
-                      #${escapeHtml(concept.code || "00")} · ${escapeHtml(concept.category)}
-                    </span>
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-xs font-medium ${status.badgeCls}">
-                      <span>${status.dot}</span>
-                      <span>${status.label}</span>
-                    </span>
+              return `
+                <article
+                  class="paper-card rounded-2xl p-6 flex flex-col justify-between gap-5 cursor-pointer"
+                  data-concept-id="${escapeHtml(concept.id)}">
+                  
+                  <div class="space-y-3.5">
+                    <div class="flex items-center justify-between gap-2">
+                      <span class="font-mono text-xs text-[#9A958C] tracking-wider">
+                        #${escapeHtml(concept.code || "00")} · ${escapeHtml(concept.category)} ${isStarred ? "⭐" : ""} ${privCount > 0 ? "🔒" : ""}
+                      </span>
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-xs font-medium ${status.badgeCls}">
+                        <span>${status.dot}</span>
+                        <span>${status.label}</span>
+                      </span>
+                    </div>
+
+                    <h3 class="font-editorial text-xl sm:text-2xl font-bold text-[#1C1B18] tracking-tight">
+                      ${escapeHtml(concept.name)}
+                    </h3>
+
+                    <p class="text-[15px] text-[#292524] leading-relaxed bg-[#F7F6F2] border-l-2 border-[#292524] pl-3.5 py-2 rounded-r-lg">
+                      ${escapeHtml(concept.definition)}
+                    </p>
                   </div>
 
-                  <!-- 主视觉区：概念名称（高质感衬线体）+ 一句话大白话定义预览（绝对置顶） -->
-                  <h3 class="font-editorial text-xl sm:text-2xl font-bold text-[#1C1B18] tracking-tight">
-                    ${escapeHtml(concept.name)}
+                  <div class="pt-3.5 border-t border-[#ECE9E1] flex items-center justify-between text-xs text-[#8C867B]">
+                    <span>
+                      Top 3 席位：人类 ${status.humanInTop3} / AI ${status.aiInTop3}
+                    </span>
+                    <span>
+                      最高赞 👍 ${topMetaphor ? Number(topMetaphor.likes) || 0 : 0}
+                    </span>
+                  </div>
+                </article>
+              `;
+            })
+            .join("");
+
+          return `
+            <section class="space-y-5" aria-labelledby="galaxy-heading-${escapeHtml(galaxy.id)}">
+              <div class="flex flex-wrap items-baseline justify-between gap-2 border-b border-[#E5E2DA] pb-3">
+                <div class="flex items-baseline gap-3">
+                  <span class="font-mono text-xs text-[#9A958C]">GALAXY 0${gIdx + 1}</span>
+                  <h3 id="galaxy-heading-${escapeHtml(galaxy.id)}" class="font-editorial text-xl font-bold text-[#1C1B18]">
+                    ${escapeHtml(galaxy.name)}
                   </h3>
-
-                  <p class="text-[15px] text-[#292524] leading-relaxed bg-[#F7F6F2] border-l-2 border-[#292524] pl-3.5 py-2 rounded-r-lg">
-                    ${escapeHtml(concept.definition)}
-                  </p>
+                  <span class="text-xs font-mono text-[#9A958C] hidden sm:inline">${escapeHtml(galaxy.en)}</span>
                 </div>
-
-                <!-- 底部次要信息：当前榜首比喻微缩预览 & Top 3 席位战况 -->
-                <div class="pt-3.5 border-t border-[#ECE9E1] flex items-center justify-between text-xs text-[#8C867B]">
-                  <span>
-                    Top 3 席位：人类 ${status.humanInTop3} / AI ${status.aiInTop3}
-                  </span>
-                  <span>
-                    最高赞 👍 ${topMetaphor ? Number(topMetaphor.likes) || 0 : 0}
-                  </span>
-                </div>
-              </article>
-            `;
-          })
-          .join("");
-
-        return `
-          <section class="space-y-5" aria-labelledby="galaxy-heading-${escapeHtml(galaxy.id)}">
-            <!-- 一级学科星系分区标头 -->
-            <div class="flex flex-wrap items-baseline justify-between gap-2 border-b border-[#E5E2DA] pb-3">
-              <div class="flex items-baseline gap-3">
-                <span class="font-mono text-xs text-[#9A958C]">GALAXY 0${gIdx + 1}</span>
-                <h3 id="galaxy-heading-${escapeHtml(galaxy.id)}" class="font-editorial text-xl font-bold text-[#1C1B18]">
-                  ${escapeHtml(galaxy.name)}
-                </h3>
-                <span class="text-xs font-mono text-[#9A958C] hidden sm:inline">${escapeHtml(galaxy.en)}</span>
+                <p class="text-xs text-[#8C867B]">${escapeHtml(galaxy.desc)}</p>
               </div>
-              <p class="text-xs text-[#8C867B]">${escapeHtml(galaxy.desc)}</p>
-            </div>
 
-            <!-- 网格卡片墙 -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              ${cardsHtml}
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                ${cardsHtml}
+              </div>
+            </section>
+          `;
+        })
+        .filter(Boolean)
+        .join("");
+
+      container.innerHTML =
+        sectionsHtml ||
+        `<div class="paper-card rounded-2xl p-12 text-center text-sm text-[#6E6A61]">当前点亮图鉴为空，去星图点亮几个概念或写下你的第一条批注吧！</div>`;
+    }
+
+    // ==================== 🌌 星图全局视图（类 Obsidian Graph 引力弹簧引擎） ====================
+    const starCamera = { x: 0, y: 0, k: 1 };
+    const galaxyHubPositions = {};
+    const starNodeState = {};
+    let draggingNodeId = null;
+    let isPanningCanvas = false;
+    let panStart = { x: 0, y: 0, camX: 0, camY: 0 };
+    let hoveredConceptId = null;
+
+    function computeGalaxyCenters(width, height) {
+      const cx = width / 2;
+      const cy = height / 2;
+      const rx = Math.min(width * 0.27, 270);
+      const ry = Math.min(height * 0.24, 155);
+      const activeGalaxies = getActiveGalaxies();
+      if (activeGalaxies.length <= 3) {
+        galaxyHubPositions["商业与博弈"] = { x: cx - rx, y: cy - ry * 0.45 };
+        galaxyHubPositions["物理与宇宙"] = { x: cx + rx, y: cy - ry * 0.45 };
+        galaxyHubPositions["心理与人性"] = { x: cx, y: cy + ry * 0.95 };
+      } else {
+        activeGalaxies.forEach((g, idx) => {
+          const angle = (idx * Math.PI * 2) / activeGalaxies.length - Math.PI / 2;
+          galaxyHubPositions[g.name] = {
+            x: cx + Math.cos(angle) * rx,
+            y: cy + Math.sin(angle) * ry
+          };
+        });
+      }
+    }
+
+    function layoutStarNodes(forceReset = false) {
+      const viewport = document.getElementById("starmap-viewport");
+      if (!viewport) return;
+      const rect = viewport.getBoundingClientRect();
+      const w = rect.width || 960;
+      const h = rect.height || 600;
+      computeGalaxyCenters(w, h);
+
+      const activeGalaxies = getActiveGalaxies();
+      activeGalaxies.forEach((g, gIdx) => {
+        const hub = galaxyHubPositions[g.name] || { x: w / 2, y: h / 2 };
+        const children = conceptsList.filter((c) => c.category === g.name);
+        const count = Math.max(children.length, 1);
+        const radius = Math.min(w, h) * 0.195;
+
+        children.forEach((c, idx) => {
+          const baseAngle = (gIdx * 1.1) + (idx * (Math.PI * 2)) / count - Math.PI / 2;
+          const tx = hub.x + Math.cos(baseAngle) * radius;
+          const ty = hub.y + Math.sin(baseAngle) * radius;
+
+          if (!starNodeState[c.id] || forceReset) {
+            starNodeState[c.id] = {
+              x: tx,
+              y: ty,
+              vx: 0,
+              vy: 0,
+              anchorX: tx,
+              anchorY: ty,
+              phase: idx * 1.7 + gIdx * 2.3
+            };
+          } else {
+            starNodeState[c.id].anchorX = tx;
+            starNodeState[c.id].anchorY = ty;
+          }
+        });
+      });
+    }
+
+    function renderStarMapDOM() {
+      const hubsLayer = document.getElementById("starmap-hubs-layer");
+      const nodesLayer = document.getElementById("starmap-nodes-layer");
+      const linksSvg = document.getElementById("starmap-links-svg");
+      if (!hubsLayer || !nodesLayer || !linksSvg) return;
+
+      layoutStarNodes(false);
+      const activeGalaxies = getActiveGalaxies();
+
+      // 1. 渲染一级学科引力中心
+      hubsLayer.innerHTML = activeGalaxies.map((g) => {
+        const pos = galaxyHubPositions[g.name] || { x: 400, y: 300 };
+        return `
+          <div class="galaxy-hub" data-galaxy="${escapeHtml(g.name)}" style="left:${pos.x}px;top:${pos.y}px;">
+            <div class="galaxy-hub-core">
+              <div class="galaxy-hub-dot"></div>
             </div>
-          </section>
+            <div class="galaxy-hub-title font-editorial">${escapeHtml(g.name)}</div>
+          </div>
         `;
       }).join("");
+
+      // 2. 渲染引力连线 + 按需显影的「跨界双子星」金色发光贝塞尔虚线弧（平时完全隐形）
+      const linesHtml = conceptsList
+        .map((c) => {
+          const st = getConceptBattleStatus(c);
+          const dimmed = onlyMyCollection && !isConceptInMyCollection(c);
+          return `<line id="star-link-${escapeHtml(c.id)}" stroke="${st.lineStroke}" stroke-opacity="${dimmed ? "0.1" : "1"}" stroke-width="1.5" stroke-dasharray="4 4" />`;
+        })
+        .join("");
+
+      linksSvg.innerHTML = `
+        <defs>
+          <filter id="gold-arc-glow" x="-25%" y="-25%" width="150%" height="150%">
+            <feGaussianBlur stdDeviation="3.5" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        ${linesHtml}
+        <path id="starmap-twin-arc"
+          class="hidden"
+          fill="none"
+          stroke="#FBBF24"
+          stroke-width="2.4"
+          stroke-dasharray="7 5"
+          stroke-linecap="round"
+          filter="url(#gold-arc-glow)" />
+      `;
+
+      // 3. 渲染概念节点（红/紫裂纹/蓝 + 外圈收藏/封神金环）
+      nodesLayer.innerHTML = conceptsList
+        .map((c) => {
+          const st = getConceptBattleStatus(c);
+          const isStarred = isConceptInMyCollection(c);
+          const hasEpoch = Array.isArray(c.hallOfFame) && c.hallOfFame.length > 0;
+          const dimmed = onlyMyCollection && !isStarred;
+          const isJustSummoned = justSummonedConceptId === c.id;
+          const pos = starNodeState[c.id] || { x: 400, y: 300 };
+
+          return `
+            <button type="button"
+              id="star-node-${escapeHtml(c.id)}"
+              data-concept-id="${escapeHtml(c.id)}"
+              class="concept-star-node transition-opacity ${dimmed ? "opacity-20" : "opacity-100"}"
+              style="left:${pos.x}px;top:${pos.y}px;">
+              <div class="concept-orb-wrap ${isJustSummoned ? "scale-125" : ""}">
+                ${isStarred || hasEpoch ? `<span class="concept-gold-ring" style="${hasEpoch ? "inset:-8px;border-width:2.2px;border-color:#F59E0B;" : ""}" title="${hasEpoch ? "已封神纪元碑文节点" : "已收入我的点亮图鉴"}"></span>` : ""}
+                <span class="concept-orb state-${st.state}"></span>
+              </div>
+              <span class="concept-node-label">${escapeHtml(c.name)}${hasEpoch ? " 🏆" : ""}</span>
+            </button>
+          `;
+        })
+        .join("");
+
+      updateStarMapPositions();
+    }
+
+    function applyStarCamera() {
+      const world = document.getElementById("starmap-world");
+      if (world) {
+        world.style.transform = `translate(${starCamera.x}px, ${starCamera.y}px) scale(${starCamera.k})`;
+      }
+    }
+
+    function updateStarMapPositions() {
+      const focusId = hoveredConceptId || activeDetailConceptId;
+      const focusConcept = focusId ? conceptsList.find((x) => x.id === focusId) : null;
+      const twinId = focusConcept?.twinConceptId || null;
+
+      conceptsList.forEach((c) => {
+        const s = starNodeState[c.id];
+        const hub = galaxyHubPositions[c.category];
+        if (!s || !hub) return;
+
+        const nodeEl = document.getElementById(`star-node-${c.id}`);
+        if (nodeEl) {
+          nodeEl.style.left = `${s.x.toFixed(1)}px`;
+          nodeEl.style.top = `${s.y.toFixed(1)}px`;
+        }
+
+        const linkEl = document.getElementById(`star-link-${c.id}`);
+        if (linkEl) {
+          linkEl.setAttribute("x1", hub.x.toFixed(1));
+          linkEl.setAttribute("y1", hub.y.toFixed(1));
+          linkEl.setAttribute("x2", s.x.toFixed(1));
+          linkEl.setAttribute("y2", s.y.toFixed(1));
+          if (focusId === c.id || twinId === c.id) {
+            linkEl.setAttribute("stroke-width", "2.4");
+            linkEl.removeAttribute("stroke-dasharray");
+          } else {
+            linkEl.setAttribute("stroke-width", "1.5");
+            linkEl.setAttribute("stroke-dasharray", "4 4");
+          }
+        }
+      });
+
+      // 按需显影「跨界双子星」金色发光贝塞尔虚线弧（平时完全隐形）
+      const arcEl = document.getElementById("starmap-twin-arc");
+      const labelEl = document.getElementById("starmap-twin-label");
+      if (!arcEl || !labelEl) return;
+
+      if (focusConcept && twinId && starNodeState[focusConcept.id] && starNodeState[twinId]) {
+        const p1 = starNodeState[focusConcept.id];
+        const p2 = starNodeState[twinId];
+        const twinConcept = conceptsList.find((x) => x.id === twinId);
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+        const dist = Math.hypot(dx, dy) || 1;
+        // 计算垂直偏移控制点，形成优美跨星系拱弧
+        const curveOffset = Math.min(110, dist * 0.28);
+        const nx = -dy / dist;
+        const ny = dx / dist;
+        const ctrlX = (p1.x + p2.x) / 2 + nx * curveOffset;
+        const ctrlY = (p1.y + p2.y) / 2 + ny * curveOffset;
+
+        const dPath = `M ${p1.x.toFixed(1)} ${p1.y.toFixed(1)} Q ${ctrlX.toFixed(1)} ${ctrlY.toFixed(1)} ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+        arcEl.setAttribute("d", dPath);
+        arcEl.classList.remove("hidden");
+
+        // 二次贝塞尔曲线 t=0.5 顶点坐标
+        const midX = 0.25 * p1.x + 0.5 * ctrlX + 0.25 * p2.x;
+        const midY = 0.25 * p1.y + 0.5 * ctrlY + 0.25 * p2.y;
+        labelEl.style.left = `${midX.toFixed(1)}px`;
+        labelEl.style.top = `${midY.toFixed(1)}px`;
+        const reasonStr = focusConcept.twinReason || "跨界底层逻辑同构";
+        labelEl.textContent = `🔗 双子星【${twinConcept ? twinConcept.name : ""}】：${reasonStr}`;
+        labelEl.classList.remove("hidden");
+      } else {
+        arcEl.classList.add("hidden");
+        labelEl.classList.add("hidden");
+      }
+    }
+
+    // 轻量物理呼吸浮动与拖拽弹簧回弹循环
+    function tickStarPhysics(now) {
+      if (currentView === "starmap") {
+        const t = now * 0.0012;
+        conceptsList.forEach((c) => {
+          const s = starNodeState[c.id];
+          if (!s) return;
+          if (draggingNodeId === c.id) return;
+
+          // 轻微呼吸漂移目标点 + 弹簧回弹力
+          const floatX = s.anchorX + Math.cos(t + s.phase) * 5.5;
+          const floatY = s.anchorY + Math.sin(t * 1.15 + s.phase) * 5.5;
+          const dx = floatX - s.x;
+          const dy = floatY - s.y;
+
+          s.vx = (s.vx + dx * 0.08) * 0.78;
+          s.vy = (s.vy + dy * 0.08) * 0.78;
+          s.x += s.vx;
+          s.y += s.vy;
+        });
+        updateStarMapPositions();
+      }
+      requestAnimationFrame(tickStarPhysics);
+    }
+
+    function showHoverConceptCard(conceptId) {
+      hoveredConceptId = conceptId;
+      const cardEl = document.getElementById("starmap-hover-card");
+      if (!cardEl) return;
+      const concept = conceptsList.find((x) => x.id === conceptId);
+      if (!concept) {
+        cardEl.classList.add("hidden");
+        return;
+      }
+      const st = getConceptBattleStatus(concept);
+      const titleEl = document.getElementById("hover-card-title");
+      const badgeEl = document.getElementById("hover-card-badge");
+      const defEl = document.getElementById("hover-card-def");
+      const twinEl = document.getElementById("hover-card-twin");
+
+      if (titleEl) titleEl.textContent = `#${concept.code || "00"} ${concept.name}`;
+      if (badgeEl) {
+        badgeEl.className = `text-[11px] px-2.5 py-0.5 rounded-full font-medium ${st.darkBadgeCls}`;
+        badgeEl.textContent = `${st.dot} ${st.label} (人类 ${st.humanInTop3}/3)`;
+      }
+      if (defEl) defEl.textContent = concept.definition;
+      if (twinEl) {
+        const twin = concept.twinConceptId ? conceptsList.find((x) => x.id === concept.twinConceptId) : null;
+        if (twin) {
+          twinEl.textContent = `🪐 跨界同构：【${twin.name}】—— “${concept.twinReason || "底层逻辑相通"}”`;
+          twinEl.classList.remove("hidden");
+        } else {
+          twinEl.classList.add("hidden");
+        }
+      }
+      cardEl.classList.remove("hidden");
+    }
+
+    function initStarMapInteractions() {
+      const viewport = document.getElementById("starmap-viewport");
+      if (!viewport) return;
+
+      // 悬停高亮显示一句话大白话定义
+      viewport.addEventListener("pointerover", (e) => {
+        const nodeBtn = e.target.closest(".concept-star-node");
+        if (nodeBtn) {
+          showHoverConceptCard(nodeBtn.getAttribute("data-concept-id"));
+        }
+      });
+
+      viewport.addEventListener("pointerout", (e) => {
+        const nodeBtn = e.target.closest(".concept-star-node");
+        if (nodeBtn && !nodeBtn.contains(e.relatedTarget)) {
+          hoveredConceptId = null;
+          document.getElementById("starmap-hover-card")?.classList.add("hidden");
+        }
+      });
+
+      // 拖拽单个概念节点（带物理回弹）或点击打开详情或拖拽平移画布
+      let pointerDownPos = { x: 0, y: 0 };
+      let pointerMoved = false;
+
+      viewport.addEventListener("pointerdown", (e) => {
+        if (e.target.closest("#starmap-zoom-in, #starmap-zoom-out, #starmap-zoom-reset")) return;
+        pointerDownPos = { x: e.clientX, y: e.clientY };
+        pointerMoved = false;
+
+        const nodeBtn = e.target.closest(".concept-star-node");
+        if (nodeBtn) {
+          draggingNodeId = nodeBtn.getAttribute("data-concept-id");
+          nodeBtn.setPointerCapture?.(e.pointerId);
+          e.stopPropagation();
+          return;
+        }
+        isPanningCanvas = true;
+        viewport.classList.add("is-panning");
+        panStart = { x: e.clientX, y: e.clientY, camX: starCamera.x, camY: starCamera.y };
+        viewport.setPointerCapture?.(e.pointerId);
+      });
+
+      viewport.addEventListener("pointermove", (e) => {
+        if (draggingNodeId || isPanningCanvas) {
+          if (Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y) > 5) {
+            pointerMoved = true;
+          }
+        }
+        if (draggingNodeId) {
+          const rect = viewport.getBoundingClientRect();
+          const wx = (e.clientX - rect.left - starCamera.x) / starCamera.k;
+          const wy = (e.clientY - rect.top - starCamera.y) / starCamera.k;
+          const s = starNodeState[draggingNodeId];
+          if (s) {
+            s.x = wx;
+            s.y = wy;
+            s.vx = 0;
+            s.vy = 0;
+          }
+          return;
+        }
+        if (isPanningCanvas) {
+          starCamera.x = panStart.camX + (e.clientX - panStart.x);
+          starCamera.y = panStart.camY + (e.clientY - panStart.y);
+          applyStarCamera();
+        }
+      });
+
+      const endPointer = (e) => {
+        if (draggingNodeId && !pointerMoved && e.type === "pointerup") {
+          const clickedId = draggingNodeId;
+          draggingNodeId = null;
+          openConceptDetail(clickedId);
+          return;
+        }
+        draggingNodeId = null;
+        isPanningCanvas = false;
+        viewport.classList.remove("is-panning");
+      };
+      viewport.addEventListener("pointerup", endPointer);
+      viewport.addEventListener("pointercancel", endPointer);
+
+      // 滚轮缩放画布
+      viewport.addEventListener(
+        "wheel",
+        (e) => {
+          e.preventDefault();
+          const rect = viewport.getBoundingClientRect();
+          const mx = e.clientX - rect.left;
+          const my = e.clientY - rect.top;
+          const factor = Math.exp(-e.deltaY * 0.0014);
+          const nextK = Math.min(2.2, Math.max(0.55, starCamera.k * factor));
+          starCamera.x = mx - ((mx - starCamera.x) / starCamera.k) * nextK;
+          starCamera.y = my - ((my - starCamera.y) / starCamera.k) * nextK;
+          starCamera.k = nextK;
+          applyStarCamera();
+        },
+        { passive: false }
+      );
+
+      // 右下角缩放与复位按钮
+      document.getElementById("starmap-zoom-in")?.addEventListener("click", () => {
+        starCamera.k = Math.min(2.2, starCamera.k * 1.2);
+        applyStarCamera();
+      });
+      document.getElementById("starmap-zoom-out")?.addEventListener("click", () => {
+        starCamera.k = Math.max(0.55, starCamera.k * 0.84);
+        applyStarCamera();
+      });
+      document.getElementById("starmap-zoom-reset")?.addEventListener("click", () => {
+        starCamera.x = 0;
+        starCamera.y = 0;
+        starCamera.k = 1;
+        applyStarCamera();
+        layoutStarNodes(true);
+      });
+
+      window.addEventListener("resize", () => {
+        if (currentView === "starmap") {
+          renderStarMapDOM();
+        }
+      });
+    }
+
+    // ==================== 第 3 步：概念单卡详情弹窗、盲测揭晓与漏洞便签 ====================
+    const LIKED_METAPHORS_KEY = "concept_star_liked_metaphors_v1";
+    function loadLikedMetaphors() {
+      try {
+        return JSON.parse(localStorage.getItem(LIKED_METAPHORS_KEY) || "{}");
+      } catch (_) {
+        return {};
+      }
+    }
+    function saveLikedMetaphors() {
+      try {
+        localStorage.setItem(LIKED_METAPHORS_KEY, JSON.stringify(likedMetaphorsMap));
+      } catch (_) {}
+    }
+    function saveConcepts() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(conceptsList));
+      } catch (_) {}
+    }
+    function saveStarred() {
+      try {
+        localStorage.setItem(STARRED_KEY, JSON.stringify(starredMap));
+      } catch (_) {}
+    }
+
+    let likedMetaphorsMap = loadLikedMetaphors();
+    let activeDetailConceptId = null;
+    let challengerIndexByConcept = {};
+    let lastRevealedMetaphorId = null;
+    let activeFlawInputMetaphorId = null;
+
+    function renderMetaphorCardHTML(conceptId, m, seatBadgeText) {
+      const isLiked = Boolean(likedMetaphorsMap[m.id]);
+      const isFlawInputOpen = activeFlawInputMetaphorId === m.id;
+      const dislikeCount = Number(m.dislikes) || 0;
+
+      // 明牌极简身份展示：🤖 AI 生成 或 🧑 @用户代号
+      const authorLabel = m.isAI
+        ? "🤖 AI 生成"
+        : `🧑 ${m.author || "@活人玩家"}`;
+
+      // 最多展示 1 条黄色警示漏洞便签
+      const flawHtml = m.flaw && m.flaw.content
+        ? `
+          <div class="mt-3 flex justify-end">
+            <div class="flaw-sticky-note rounded-lg px-3 py-1.5 text-xs max-w-md inline-flex items-start gap-1.5">
+              <span class="shrink-0">⚡ 漏洞封条：</span>
+              <span class="break-words">${escapeHtml(m.flaw.content)}</span>
+            </div>
+          </div>
+        `
+        : "";
+
+      const flawFormHtml = isFlawInputOpen
+        ? `
+          <form class="flaw-submit-form mt-3 flex items-center gap-2" data-concept-id="${escapeHtml(conceptId)}" data-metaphor-id="${escapeHtml(m.id)}">
+            <label for="flaw-input-${escapeHtml(m.id)}" class="sr-only">输入50字以内的一句话漏洞反驳</label>
+            <input id="flaw-input-${escapeHtml(m.id)}" name="flawText" type="text" maxlength="50" required
+              placeholder="一句话指出该比喻的逻辑漏洞（50字以内）…"
+              value="${escapeHtml(m.flaw?.content || "")}"
+              class="flex-1 bg-[#FFFBEB] border border-[#FDE047] rounded-lg px-3 py-1.5 text-xs text-[#713F12] placeholder-[#A16207] focus:outline-none">
+            <button type="submit" class="text-xs px-3 py-1.5 rounded-lg bg-[#713F12] text-[#FEFCE8] font-medium shrink-0">
+              贴上封条
+            </button>
+          </form>
+        `
+        : "";
+
+      return `
+        <article class="bg-[#FCFBF9] border border-[#E5E2DA] rounded-2xl p-5 transition">
+          <!-- 最高排版铁律：上方是干净的正文大字（绝对主角） -->
+          <p class="text-[16px] sm:text-[17px] text-[#1C1B18] leading-[1.85] whitespace-pre-wrap break-words font-normal">${escapeHtml(m.content)}</p>
+
+          <!-- 正下方/右下角仅用一行极小的浅灰色次要文字显示：👍 [精确赞数] · [👎 离题] · [🤖 AI 生成 / 🧑 @用户代号] -->
+          <div class="mt-3.5 pt-2.5 border-t border-[#F0EDE6] flex flex-wrap items-center justify-between gap-2 text-xs text-[#9A958C]">
+            <span class="font-mono text-[11px] text-[#ABA69C]">${escapeHtml(seatBadgeText)}</span>
+
+            <div class="flex flex-wrap items-center justify-end gap-2.5">
+              <button type="button"
+                data-action="blind-like"
+                data-concept-id="${escapeHtml(conceptId)}"
+                data-metaphor-id="${escapeHtml(m.id)}"
+                aria-pressed="${isLiked ? "true" : "false"}"
+                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-xs transition select-none ${
+                  isLiked
+                    ? "bg-[#1C1B18] border-[#1C1B18] text-[#F7F6F2] font-medium"
+                    : "bg-transparent border-[#E2DFD7] text-[#6E6A61] hover:border-[#9A958C] hover:text-[#1C1B18]"
+                }">
+                <span aria-hidden="true">👍</span>
+                <span>${Number(m.likes) || 0}</span>
+              </button>
+
+              <button type="button"
+                data-action="off-topic"
+                data-concept-id="${escapeHtml(conceptId)}"
+                data-metaphor-id="${escapeHtml(m.id)}"
+                title="若累计被点 3 次离题，该条比喻将自动折叠移除"
+                class="text-[11px] text-[#A8A29E] hover:text-[#57534E] transition select-none">
+                [ 👎 离题${dislikeCount > 0 ? ` ${dislikeCount}/3` : ""} ]
+              </button>
+
+              <span class="text-[#D4CFC3]">·</span>
+              <span class="text-xs text-[#8C867B]">${escapeHtml(authorLabel)}</span>
+              <span class="text-[#D4CFC3]">·</span>
+
+              <button type="button"
+                data-action="toggle-flaw"
+                data-metaphor-id="${escapeHtml(m.id)}"
+                class="text-[11px] text-[#A8A29E] hover:text-[#57534E] transition">
+                ⚡ 指出漏洞
+              </button>
+            </div>
+          </div>
+
+          ${flawHtml}
+          ${flawFormHtml}
+        </article>
+      `;
+    }
+
+    function renderConceptDetailModal() {
+      const concept = conceptsList.find((c) => c.id === activeDetailConceptId);
+      if (!concept) return;
+
+      const status = getConceptBattleStatus(concept);
+      const isStarred = Boolean(starredMap[concept.id]);
+
+      const metaEl = document.getElementById("detail-concept-meta");
+      const statusEl = document.getElementById("detail-concept-status");
+      const starBtn = document.getElementById("detail-star-btn");
+      const starText = document.getElementById("detail-star-text");
+      const titleEl = document.getElementById("detail-concept-title");
+      const defEl = document.getElementById("detail-concept-definition");
+
+      if (metaEl) metaEl.textContent = `#${concept.code || "00"} · ${concept.category}`;
+      if (statusEl) {
+        statusEl.className = `inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full border text-xs font-medium ${status.badgeCls}`;
+        statusEl.innerHTML = `<span>${status.dot}</span><span>${status.label} (人类 ${status.humanInTop3}/3)</span>`;
+      }
+      if (starBtn && starText) {
+        if (isStarred) {
+          starBtn.className = "text-xs px-3 py-1.5 rounded-xl border border-amber-400 bg-amber-50 text-amber-900 font-semibold transition inline-flex items-center gap-1.5";
+          starText.textContent = "已点亮收藏";
+        } else {
+          starBtn.className = "text-xs px-3 py-1.5 rounded-xl border border-[#D4CFC3] bg-[#FCFBF9] hover:bg-[#EFECE6] text-[#44403C] font-medium transition inline-flex items-center gap-1.5";
+          starText.textContent = "点亮收藏";
+        }
+      }
+      if (titleEl) titleEl.textContent = concept.name;
+      if (defEl) defEl.textContent = concept.definition;
+
+      // 当节点被人类成功攻占（🔵 蓝色）时，显示 [ 🏆 封存本轮并开启新挑战 ] 按钮
+      const archiveBtn = document.getElementById("detail-archive-epoch-btn");
+      if (archiveBtn) {
+        if (status.state === "human") {
+          archiveBtn.classList.remove("hidden");
+          archiveBtn.classList.add("inline-flex");
+        } else {
+          archiveBtn.classList.add("hidden");
+          archiveBtn.classList.remove("inline-flex");
+        }
+      }
+
+      // 渲染顶部可折叠的【📜 历代神比喻档案】
+      const hofDetails = document.getElementById("detail-hall-of-fame");
+      const hofSummary = document.getElementById("detail-hof-summary");
+      const hofList = document.getElementById("detail-hof-list");
+      const hofItems = Array.isArray(concept.hallOfFame) ? concept.hallOfFame : [];
+      if (hofDetails && hofSummary && hofList) {
+        if (hofItems.length === 0) {
+          hofDetails.classList.add("hidden");
+          hofList.innerHTML = "";
+        } else {
+          hofDetails.classList.remove("hidden");
+          hofSummary.textContent = `📜 历代神比喻档案（已永久封存 ${hofItems.length} 条人类胜出碑文）`;
+          hofList.innerHTML = hofItems
+            .map(
+              (item, idx) => `
+              <div class="bg-[#FCFBF9] border border-amber-300/70 rounded-xl p-3.5 space-y-2">
+                <p class="text-[15px] text-[#1C1B18] leading-relaxed whitespace-pre-wrap break-words">${escapeHtml(item.content)}</p>
+                <div class="flex items-center justify-between text-[11px] text-[#8C867B]">
+                  <span class="font-mono text-amber-900 font-medium">🏆 第 ${idx + 1} 纪元封神碑文</span>
+                  <span>👍 ${Number(item.likes) || 0} · 🧑 ${escapeHtml(item.author || "@活人玩家")} · ${escapeHtml(item.archivedAt || "")}</span>
+                </div>
+              </div>
+            `
+            )
+            .join("");
+        }
+      }
+
+      // Top 3 黄金席位渲染
+      const top3Ids = new Set(status.top3.map((m) => m.id));
+      const top3Container = document.getElementById("detail-top3-list");
+      if (top3Container) {
+        top3Container.innerHTML = status.top3
+          .map((m, idx) => renderMetaphorCardHTML(concept.id, m, `TOP 0${idx + 1}`))
+          .join("");
+      }
+
+      // +1 新鲜人类挑战席：筛选尚未进入 Top 3 且未被群众折叠的人类比喻 (!m.isAI)
+      const challengerList = getActiveMetaphors(concept).filter((m) => !m.isAI && !top3Ids.has(m.id));
+      const challengerSlot = document.getElementById("detail-challenger-slot");
+      const challengerCounter = document.getElementById("detail-challenger-counter");
+      const cycleBtn = document.getElementById("detail-cycle-challenger-btn");
+
+      if (challengerSlot) {
+        if (challengerList.length === 0) {
+          if (challengerCounter) challengerCounter.textContent = "（当前暂无待挑战的人类新比喻）";
+          cycleBtn?.classList.add("hidden");
+          challengerSlot.innerHTML = `
+            <div class="bg-[#FCFBF9] border border-dashed border-[#D6D3C9] rounded-2xl p-5 text-center text-xs text-[#8C867B]">
+              该概念下所有人类比喻均已冲入 Top 3，或尚无新挑战者。欢迎在下方写下你的真实经历攻擂！
+            </div>
+          `;
+        } else {
+          const curIdx = (challengerIndexByConcept[concept.id] || 0) % challengerList.length;
+          challengerIndexByConcept[concept.id] = curIdx;
+          const challenger = challengerList[curIdx];
+          if (challengerCounter) {
+            challengerCounter.textContent = `（第 ${curIdx + 1} / ${challengerList.length} 条候选 · 满3赞黑马直升）`;
+          }
+          if (cycleBtn) {
+            cycleBtn.classList.toggle("hidden", challengerList.length <= 1);
+          }
+          challengerSlot.innerHTML = renderMetaphorCardHTML(
+            concept.id,
+            challenger,
+            "🌱 挑战席"
+          );
+        }
+      }
+
+      // 渲染我的私人批注列表（仅自己可见）
+      const notesWrap = document.getElementById("detail-private-notes-wrap");
+      const notesListEl = document.getElementById("detail-private-notes-list");
+      const notes = Array.isArray(privateNotesMap[concept.id]) ? privateNotesMap[concept.id] : [];
+      if (notesWrap && notesListEl) {
+        if (notes.length === 0) {
+          notesWrap.classList.add("hidden");
+          notesListEl.innerHTML = "";
+        } else {
+          notesWrap.classList.remove("hidden");
+          notesListEl.innerHTML = notes
+            .map(
+              (n) => `
+              <div class="bg-[#FAF8F5] border border-[#E5E2DA] rounded-xl px-4 py-3 flex items-start justify-between gap-3">
+                <p class="text-sm text-[#292524] leading-relaxed whitespace-pre-wrap break-words flex-1">${escapeHtml(n.content)}</p>
+                <span class="text-[11px] text-[#9A958C] shrink-0">🔒 私人批注 · ${escapeHtml(n.time || "刚刚")}</span>
+              </div>
+            `
+            )
+            .join("");
+        }
+      }
+
+      // 渲染底部「🪐 跨界同构穿梭条」
+      const twinDisplay = document.getElementById("detail-twin-display");
+      const twinSelect = document.getElementById("detail-twin-select");
+      const twinReasonInput = document.getElementById("detail-twin-reason-input");
+      const twinConcept = concept.twinConceptId
+        ? conceptsList.find((x) => x.id === concept.twinConceptId)
+        : null;
+
+      if (twinDisplay) {
+        if (twinConcept) {
+          twinDisplay.innerHTML = `
+            <span>🪐 跨界同构：</span>
+            <button type="button" data-action="jump-twin" data-twin-id="${escapeHtml(twinConcept.id)}"
+              class="font-semibold text-[#1C1B18] underline decoration-amber-500/80 underline-offset-4 hover:text-amber-800 transition">
+              【${escapeHtml(twinConcept.name)}】
+            </button>
+            <span class="text-[#6E6A61]">—— “${escapeHtml(concept.twinReason || "底层逻辑相通")}”</span>
+          `;
+        } else {
+          twinDisplay.innerHTML = `<span class="text-[#8C867B]">🪐 跨界同构：暂未绑定跨学科双子星概念，可点击右侧手动关联</span>`;
+        }
+      }
+
+      if (twinSelect) {
+        twinSelect.innerHTML = conceptsList
+          .filter((x) => x.id !== concept.id)
+          .map(
+            (x) =>
+              `<option value="${escapeHtml(x.id)}" ${x.id === concept.twinConceptId ? "selected" : ""}>【${escapeHtml(x.category)}】${escapeHtml(x.name)}</option>`
+          )
+          .join("");
+      }
+      if (twinReasonInput) {
+        twinReasonInput.value = concept.twinReason || "";
+      }
+
+      const handleBadge = document.getElementById("detail-handle-badge");
+      if (handleBadge) {
+        handleBadge.textContent = userHandle
+          ? `当前署名：${userHandle}`
+          : "公开提交时可设置你的玩家代号";
+      }
+
+      lastRevealedMetaphorId = null;
+    }
+
+    function savePrivateNotes() {
+      try {
+        localStorage.setItem(PRIVATE_NOTES_KEY, JSON.stringify(privateNotesMap));
+      } catch (_) {}
+    }
+
+    let toastTimer = null;
+    function showToast(msg, duration = 3200) {
+      const toast = document.getElementById("global-toast");
+      if (!toast) return;
+      toast.textContent = msg;
+      toast.classList.remove("hidden");
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.add("hidden");
+      }, duration);
+    }
+
+    // 轻量场景安检：检查字数 > 15 字，且包含具体生活场景/动作，而非纯情绪发泄
+    function validatePublicScenario(text) {
+      const clean = String(text || "").trim();
+      if (clean.length <= 15) {
+        return {
+          ok: false,
+          reason: "比喻字数不足 15 字，暂未体现完整场景，已自动为你保存为「🔒 私人批注」。"
+        };
+      }
+      // 过滤纯情绪宣泄或无意义重复字符
+      const pureVentRegex = /^(哈哈+|呵呵+|呜呜+|啊啊+|牛逼+|垃圾+|太难了+|无语+|救命+|不知道+|随便写写)+[！!。.~～]*$/;
+      if (pureVentRegex.test(clean) || new Set(clean.split("")).size <= 4) {
+        return {
+          ok: false,
+          reason: "检测到内容偏向简短情绪吐槽，缺少具体故事场景，已温和转为「🔒 私人批注」保存。"
+        };
+      }
+      // 检查是否包含常见具象动作或生活场景词
+      const sceneIndicators = /(就像|好比|比如|当年|有一次|小时候|公司|老板|同事|家里|我妈|我爸|孩子|朋友|食堂|超市|排队|买|卖|写|做|吃|喝|看|去|刷|考|聊|打|玩|花|存|改|点|发|领导|客户|外婆|奶奶|学校|老师|同学|地铁|公交|医院|健身|减肥|谈恋爱|相亲|结婚|装修|合租|室友|打游戏|加班|开会)/;
+      if (!sceneIndicators.test(clean) && clean.length < 24) {
+        return {
+          ok: false,
+          reason: "还没看出来具体的生活动作或亲身小事（建议加上“就像有一次我…”），已先帮你存为「🔒 私人批注」。"
+        };
+      }
+      return { ok: true };
+    }
+
+    function getStoredDeepSeekKey() {
+      const directKey = (localStorage.getItem(DEEPSEEK_KEY_STORAGE) || "").trim();
+      if (directKey) return directKey;
+      try {
+        const mainSiteCfg = JSON.parse(localStorage.getItem("bookgraph_ai_config_v1") || "{}");
+        if (mainSiteCfg?.keys?.deepseek) return String(mainSiteCfg.keys.deepseek).trim();
+      } catch (_) {}
+      return "";
+    }
+
+    function updateCollectionFilterUI() {
+      const btn = document.getElementById("btn-my-collection");
+      const banner = document.getElementById("collection-filter-banner");
+      if (btn) {
+        btn.setAttribute("aria-pressed", onlyMyCollection ? "true" : "false");
+        if (onlyMyCollection) {
+          btn.className = "text-xs px-3 py-1.5 rounded-lg border border-amber-400 bg-amber-50 text-amber-900 font-semibold transition flex items-center gap-1.5 shadow-sm";
+        } else {
+          btn.className = "text-xs px-3 py-1.5 rounded-lg border border-[#D4CFC3] bg-[#FCFBF9] hover:bg-[#EFECE6] text-[#44403C] transition flex items-center gap-1.5";
+        }
+      }
+      if (banner) {
+        banner.classList.toggle("hidden", !onlyMyCollection);
+      }
+    }
+
+    function openConceptDetail(conceptId) {
+      const concept = conceptsList.find((c) => c.id === conceptId);
+      if (!concept) return;
+      activeDetailConceptId = conceptId;
+      activeFlawInputMetaphorId = null;
+      const feedbackEl = document.getElementById("detail-submit-feedback");
+      if (feedbackEl) feedbackEl.classList.add("hidden");
+      renderConceptDetailModal();
+      const dialog = document.getElementById("concept-detail-dialog");
+      if (dialog && !dialog.open) {
+        dialog.showModal();
+      }
+    }
+
+    function refreshAllViewsAndStats() {
+      saveTickets();
+      updateCollectionFilterUI();
+      renderGlobalBattleStats();
+      renderDirectoryView();
+      renderStarMapDOM();
+      if (activeDetailConceptId) {
+        renderConceptDetailModal();
+      }
     }
 
     // ==================== 视图切换控制 ====================
     function switchView(targetView) {
-      currentView = targetView === "starmap" ? "starmap" : "directory";
+      currentView = targetView === "directory" ? "directory" : "starmap";
       const starmapSec = document.getElementById("view-starmap");
       const dirSec = document.getElementById("view-directory");
       const btnStar = document.getElementById("tab-btn-starmap");
       const btnDir = document.getElementById("tab-btn-directory");
 
       if (currentView === "starmap") {
+        document.body.classList.add("is-starmap-mode");
         starmapSec?.classList.remove("hidden");
         dirSec?.classList.add("hidden");
         btnStar?.setAttribute("aria-selected", "true");
         btnDir?.setAttribute("aria-selected", "false");
         if (btnStar) btnStar.className = "view-switch-btn text-xs px-3 py-1.5 rounded-lg font-semibold transition bg-[#FCFBF9] text-[#1C1B18] shadow-sm";
         if (btnDir) btnDir.className = "view-switch-btn text-xs px-3 py-1.5 rounded-lg font-medium transition text-[#6E6A61] hover:text-[#1C1B18]";
+        renderStarMapDOM();
       } else {
+        document.body.classList.remove("is-starmap-mode");
         starmapSec?.classList.add("hidden");
         dirSec?.classList.remove("hidden");
         btnStar?.setAttribute("aria-selected", "false");
         btnDir?.setAttribute("aria-selected", "true");
         if (btnDir) btnDir.className = "view-switch-btn text-xs px-3 py-1.5 rounded-lg font-semibold transition bg-[#FCFBF9] text-[#1C1B18] shadow-sm";
         if (btnStar) btnStar.className = "view-switch-btn text-xs px-3 py-1.5 rounded-lg font-medium transition text-[#6E6A61] hover:text-[#1C1B18]";
+        renderDirectoryView();
       }
     }
 
+    function attachDialogLightDismiss(dlg) {
+      if (!dlg || "closedBy" in HTMLDialogElement.prototype) return;
+      const isOutside = (e) => {
+        const r = dlg.getBoundingClientRect();
+        return e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+      };
+      let downOutside = false;
+      dlg.addEventListener("pointerdown", (e) => { downOutside = isOutside(e); });
+      dlg.addEventListener("pointerup", (e) => { if (downOutside && isOutside(e)) dlg.close(); });
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
+      saveTickets();
+      updateCollectionFilterUI();
       renderGlobalBattleStats();
       renderDirectoryView();
+      renderStarMapDOM();
+      initStarMapInteractions();
+      requestAnimationFrame(tickStarPhysics);
 
       document.querySelectorAll(".view-switch-btn").forEach((btn) => {
         btn.addEventListener("click", () => {
@@ -754,8 +2256,594 @@
         });
       });
 
-      document.querySelector('[data-switch-to="directory"]')?.addEventListener("click", () => {
-        switchView("directory");
+      // 点击「🗂️ 极简目录视图」中的任意概念卡片，打开单卡详情弹窗
+      document.getElementById("directory-galaxies-container")?.addEventListener("click", (e) => {
+        const card = e.target.closest("article[data-concept-id]");
+        if (card) {
+          openConceptDetail(card.getAttribute("data-concept-id"));
+        }
+      });
+
+      const detailDialog = document.getElementById("concept-detail-dialog");
+      const summonDialog = document.getElementById("summon-concept-dialog");
+      const apiDialog = document.getElementById("api-config-dialog");
+
+      document.getElementById("detail-close-btn")?.addEventListener("click", () => detailDialog?.close());
+      document.getElementById("summon-close-btn")?.addEventListener("click", () => summonDialog?.close());
+      document.getElementById("api-close-btn")?.addEventListener("click", () => apiDialog?.close());
+
+      attachDialogLightDismiss(detailDialog);
+      attachDialogLightDismiss(summonDialog);
+      attachDialogLightDismiss(apiDialog);
+
+      // [ ⭐ 我的点亮图鉴 ] 过滤开关
+      document.getElementById("btn-my-collection")?.addEventListener("click", () => {
+        onlyMyCollection = !onlyMyCollection;
+        refreshAllViewsAndStats();
+        showToast(onlyMyCollection ? "⭐ 已开启「我的点亮图鉴」专属视图" : "已恢复显示全部概念节点");
+      });
+
+      document.getElementById("btn-clear-collection-filter")?.addEventListener("click", () => {
+        onlyMyCollection = false;
+        refreshAllViewsAndStats();
+      });
+
+      // [ ⭐ 点亮收藏 ] 切换并同步星图金环
+      document.getElementById("detail-star-btn")?.addEventListener("click", () => {
+        if (!activeDetailConceptId) return;
+        if (starredMap[activeDetailConceptId]) {
+          delete starredMap[activeDetailConceptId];
+        } else {
+          starredMap[activeDetailConceptId] = true;
+        }
+        saveStarred();
+        refreshAllViewsAndStats();
+      });
+
+      // [ 🏆 封存本轮并开启新挑战 ]：将获胜人类比喻归档入【📜 历代神比喻档案】，点亮星图金环并开启新一轮守擂挑战
+      document.getElementById("detail-archive-epoch-btn")?.addEventListener("click", () => {
+        if (!activeDetailConceptId) return;
+        const concept = conceptsList.find((c) => c.id === activeDetailConceptId);
+        if (!concept) return;
+
+        const status = getConceptBattleStatus(concept);
+        const winningHumans = status.top3.filter((m) => !m.isAI);
+        if (winningHumans.length === 0) return;
+
+        if (!Array.isArray(concept.hallOfFame)) concept.hallOfFame = [];
+        const todayStr = new Date().toISOString().slice(0, 10);
+        const winningIds = new Set(winningHumans.map((m) => m.id));
+
+        winningHumans.forEach((m) => {
+          concept.hallOfFame.unshift({
+            id: m.id,
+            content: m.content,
+            author: m.author || "@活人玩家",
+            likes: m.likes || 3,
+            archivedAt: todayStr
+          });
+        });
+
+        // 保留未夺冠的人类比喻与 AI 守擂比喻（AI 守擂重置为 3 赞基础血量开启新纪元）
+        concept.metaphors = (concept.metaphors || [])
+          .filter((m) => !winningIds.has(m.id))
+          .map((m) => (m.isAI ? { ...m, likes: 3 } : m));
+
+        starredMap[concept.id] = true;
+        userTickets += 1;
+
+        saveStarred();
+        saveTickets();
+        saveConcepts();
+        refreshAllViewsAndStats();
+
+        const hofEl = document.getElementById("detail-hall-of-fame");
+        if (hofEl) hofEl.open = true;
+        showToast(`🏆 已将本轮获胜人类比喻永久镌刻入【历代神比喻档案】，星图外圈点亮封神金环，奖励开荒券 +1！`);
+      });
+
+      // [ 🔗 修改关联 ] 展开/收起跨界双子星手动重绑表单
+      document.getElementById("detail-twin-edit-btn")?.addEventListener("click", () => {
+        const form = document.getElementById("detail-twin-edit-form");
+        if (form) form.classList.toggle("hidden");
+      });
+
+      document.getElementById("detail-twin-edit-form")?.addEventListener("submit", (e) => {
+        e.preventDefault();
+        if (!activeDetailConceptId) return;
+        const concept = conceptsList.find((c) => c.id === activeDetailConceptId);
+        if (!concept) return;
+
+        const sel = document.getElementById("detail-twin-select");
+        const reasonInput = document.getElementById("detail-twin-reason-input");
+        const targetId = sel?.value || "";
+        const reason = (reasonInput?.value || "").trim().slice(0, 24);
+        if (!targetId || !reason) return;
+
+        concept.twinConceptId = targetId;
+        concept.twinReason = reason;
+
+        // 双向同步绑定对方概念的双子星关联
+        const targetConcept = conceptsList.find((c) => c.id === targetId);
+        if (targetConcept) {
+          targetConcept.twinConceptId = concept.id;
+          targetConcept.twinReason = reason;
+        }
+
+        document.getElementById("detail-twin-edit-form")?.classList.add("hidden");
+        saveConcepts();
+        refreshAllViewsAndStats();
+        showToast(`🪐 已更新跨界同构双子星关联：【${concept.name}】⇄【${targetConcept?.name || ""}】`);
+      });
+
+      // [ 🎲 换一条 ] 轮换 +1 挑战席人类比喻
+      document.getElementById("detail-cycle-challenger-btn")?.addEventListener("click", () => {
+        if (!activeDetailConceptId) return;
+        challengerIndexByConcept[activeDetailConceptId] = (challengerIndexByConcept[activeDetailConceptId] || 0) + 1;
+        renderConceptDetailModal();
+      });
+
+      // 明牌点赞、[👎 离题] 群众自净、双子星卡片内穿梭 & 展开漏洞输入框
+      detailDialog?.addEventListener("click", (e) => {
+        const jumpTwinBtn = e.target.closest('button[data-action="jump-twin"]');
+        if (jumpTwinBtn) {
+          const twinId = jumpTwinBtn.getAttribute("data-twin-id");
+          if (twinId) {
+            openConceptDetail(twinId);
+            showToast("🪐 已穿梭至跨界双子星概念卡片");
+          }
+          return;
+        }
+
+        const likeBtn = e.target.closest('button[data-action="blind-like"]');
+        if (likeBtn) {
+          const cId = likeBtn.getAttribute("data-concept-id");
+          const mId = likeBtn.getAttribute("data-metaphor-id");
+          const concept = conceptsList.find((c) => c.id === cId);
+          const metaphor = concept?.metaphors?.find((m) => m.id === mId);
+          if (!concept || !metaphor) return;
+
+          const prevStatus = getConceptBattleStatus(concept);
+          const wasInTop3 = prevStatus.top3.some((m) => m.id === mId);
+
+          if (!likedMetaphorsMap[mId]) {
+            likedMetaphorsMap[mId] = true;
+            metaphor.likes = (Number(metaphor.likes) || 0) + 1;
+          } else {
+            delete likedMetaphorsMap[mId];
+            metaphor.likes = Math.max(0, (Number(metaphor.likes) || 1) - 1);
+          }
+
+          // 若底部新鲜人类比喻获得 3 个赞，直接作为黑马升入 Top 3 替换第 3 名
+          if (!metaphor.isAI && !wasInTop3 && (Number(metaphor.likes) || 0) >= 3) {
+            const currentTop3 = prevStatus.top3;
+            const thirdSeat = currentTop3[2];
+            if (thirdSeat && (Number(metaphor.likes) || 0) <= (Number(thirdSeat.likes) || 0)) {
+              metaphor.likes = (Number(thirdSeat.likes) || 3) + 1;
+            }
+            showToast("🐎 黑马直升！该条新鲜人类比喻集满 3 赞，已成功挤入 Top 3 黄金席位！");
+          }
+
+          const nextStatus = getConceptBattleStatus(concept).state;
+          if (prevStatus.state !== "human" && nextStatus === "human") {
+            userTickets += 1;
+            saveTickets();
+            showToast(`🔵 恭喜！你的一票助推人类成功守住「${concept.name}」幸存阵地，奖励开荒券 +1！`);
+          }
+
+          saveLikedMetaphors();
+          saveConcepts();
+          refreshAllViewsAndStats();
+          return;
+        }
+
+        const offTopicBtn = e.target.closest('button[data-action="off-topic"]');
+        if (offTopicBtn) {
+          const cId = offTopicBtn.getAttribute("data-concept-id");
+          const mId = offTopicBtn.getAttribute("data-metaphor-id");
+          const concept = conceptsList.find((c) => c.id === cId);
+          const metaphor = concept?.metaphors?.find((m) => m.id === mId);
+          if (!concept || !metaphor) return;
+
+          metaphor.dislikes = (Number(metaphor.dislikes) || 0) + 1;
+          if (metaphor.dislikes >= 3) {
+            showToast("🧹 该条比喻已累计 3 次「👎 离题」反馈，已自动从展示区折叠移除。");
+          } else {
+            showToast(`已记录离题反馈（${metaphor.dislikes}/3，满 3 次自动折叠移除）`);
+          }
+          saveConcepts();
+          refreshAllViewsAndStats();
+          return;
+        }
+
+        const flawBtn = e.target.closest('button[data-action="toggle-flaw"]');
+        if (flawBtn) {
+          const mId = flawBtn.getAttribute("data-metaphor-id");
+          activeFlawInputMetaphorId = activeFlawInputMetaphorId === mId ? null : mId;
+          renderConceptDetailModal();
+          if (activeFlawInputMetaphorId) {
+            document.getElementById(`flaw-input-${activeFlawInputMetaphorId}`)?.focus();
+          }
+        }
+      });
+
+      // 提交 50 字以内的一句话漏洞封条
+      detailDialog?.addEventListener("submit", (e) => {
+        const form = e.target.closest("form.flaw-submit-form");
+        if (!form) return;
+        e.preventDefault();
+        const cId = form.getAttribute("data-concept-id");
+        const mId = form.getAttribute("data-metaphor-id");
+        const input = form.querySelector('input[name="flawText"]');
+        const text = (input?.value || "").trim().slice(0, 50);
+        if (!text) return;
+
+        const concept = conceptsList.find((c) => c.id === cId);
+        const metaphor = concept?.metaphors?.find((m) => m.id === mId);
+        if (!metaphor) return;
+
+        metaphor.flaw = {
+          content: text,
+          author: userHandle || "@逻辑挑刺人",
+          likes: 1
+        };
+        activeFlawInputMetaphorId = null;
+        saveConcepts();
+        renderConceptDetailModal();
+      });
+
+      // ==================== 底部表单：写下我的真实经历 / 比喻 ====================
+      const metaphorForm = document.getElementById("detail-metaphor-form");
+      const metaphorTextarea = document.getElementById("detail-metaphor-textarea");
+
+      // IME 安全快捷键：Cmd/Ctrl + Enter 提交
+      metaphorTextarea?.addEventListener("keydown", (e) => {
+        if (e.isComposing || e.keyCode === 229) return;
+        if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+          e.preventDefault();
+          metaphorForm?.requestSubmit();
+        }
+      });
+
+      metaphorForm?.addEventListener("submit", (e) => {
+        e.preventDefault();
+        if (!activeDetailConceptId) return;
+        const concept = conceptsList.find((c) => c.id === activeDetailConceptId);
+        if (!concept) return;
+
+        const rawText = (metaphorTextarea?.value || "").trim();
+        if (!rawText) return;
+
+        const formData = new FormData(metaphorForm);
+        const visibility = formData.get("metaphorVisibility") || "private";
+        const feedbackEl = document.getElementById("detail-submit-feedback");
+
+        const saveAsPrivateNote = (noticeText, isAutoFallback = false) => {
+          if (!Array.isArray(privateNotesMap[concept.id])) {
+            privateNotesMap[concept.id] = [];
+          }
+          const now = new Date();
+          const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+          privateNotesMap[concept.id].unshift({
+            id: "note-" + Date.now(),
+            content: rawText,
+            time: timeStr
+          });
+          starredMap[concept.id] = true;
+          savePrivateNotes();
+          saveStarred();
+          if (metaphorTextarea) metaphorTextarea.value = "";
+          refreshAllViewsAndStats();
+
+          if (feedbackEl) {
+            feedbackEl.className = isAutoFallback
+              ? "text-xs px-3.5 py-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900"
+              : "text-xs px-3.5 py-2.5 rounded-xl bg-stone-100 border border-stone-200 text-stone-800";
+            feedbackEl.textContent = noticeText;
+            feedbackEl.classList.remove("hidden");
+          }
+        };
+
+        if (visibility === "private") {
+          saveAsPrivateNote("🔒 已作为私人批注保存（仅自己可见），并自动点亮收入你的图鉴。");
+          return;
+        }
+
+        // 选择「🌐 公开并挑战 AI 席位」时，执行轻量场景安检
+        const check = validatePublicScenario(rawText);
+        if (!check.ok) {
+          saveAsPrivateNote(check.reason, true);
+          return;
+        }
+
+        // 确保玩家代号格式为 @xxx
+        if (!userHandle) {
+          userHandle = "@活人玩家_" + String(Math.floor(100 + Math.random() * 900));
+          try {
+            localStorage.setItem(USER_HANDLE_KEY, userHandle);
+          } catch (_) {}
+        }
+
+        const newMetaphorId = `m-human-${Date.now()}`;
+        const newMetaphor = {
+          id: newMetaphorId,
+          content: rawText,
+          author: userHandle,
+          isAI: false,
+          likes: 1,
+          flaw: null
+        };
+
+        if (!Array.isArray(concept.metaphors)) concept.metaphors = [];
+        concept.metaphors.push(newMetaphor);
+
+        likedMetaphorsMap[newMetaphorId] = true;
+        starredMap[concept.id] = true;
+        userTickets += 1;
+
+        const top3Ids = new Set(getConceptBattleStatus(concept).top3.map((m) => m.id));
+        const challengerList = getActiveMetaphors(concept).filter((m) => !m.isAI && !top3Ids.has(m.id));
+        const newIdx = challengerList.findIndex((m) => m.id === newMetaphorId);
+        if (newIdx >= 0) {
+          challengerIndexByConcept[concept.id] = newIdx;
+        }
+
+        saveLikedMetaphors();
+        saveStarred();
+        saveConcepts();
+        if (metaphorTextarea) metaphorTextarea.value = "";
+        refreshAllViewsAndStats();
+
+        if (feedbackEl) {
+          feedbackEl.className = "text-xs px-3.5 py-2.5 rounded-xl bg-sky-50 border border-sky-200 text-sky-900 font-medium";
+          feedbackEl.textContent = "🌐 场景安检通过！你的比喻已登上「+1 新鲜人类挑战席」，奖励开荒券 +1 张！";
+          feedbackEl.classList.remove("hidden");
+        }
+        showToast("🌱 公开挑战成功！开荒券 +1");
+      });
+
+      // ==================== [ ⚙️ API ] 配置弹窗逻辑 ====================
+      function openApiConfigModal() {
+        const keyInput = document.getElementById("api-key-input");
+        const handleInput = document.getElementById("user-handle-input");
+        if (keyInput) keyInput.value = getStoredDeepSeekKey();
+        if (handleInput) handleInput.value = userHandle;
+        apiDialog?.showModal();
+      }
+
+      document.getElementById("btn-api-config")?.addEventListener("click", openApiConfigModal);
+      document.getElementById("summon-open-api-btn")?.addEventListener("click", () => {
+        openApiConfigModal();
+      });
+
+      document.getElementById("api-config-form")?.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const keyInput = document.getElementById("api-key-input");
+        const handleInput = document.getElementById("user-handle-input");
+        const keyVal = (keyInput?.value || "").trim();
+        let handleVal = (handleInput?.value || "").trim();
+        if (handleVal && !handleVal.startsWith("@")) {
+          handleVal = "@" + handleVal;
+        }
+        try {
+          if (keyVal) {
+            localStorage.setItem(DEEPSEEK_KEY_STORAGE, keyVal);
+          } else {
+            localStorage.removeItem(DEEPSEEK_KEY_STORAGE);
+          }
+          if (handleVal) {
+            userHandle = handleVal;
+            localStorage.setItem(USER_HANDLE_KEY, userHandle);
+          }
+        } catch (_) {}
+        apiDialog?.close();
+        refreshAllViewsAndStats();
+        showToast("⚙️ DeepSeek API Key 与玩家身份已保存至本地");
+      });
+
+      // ==================== [ + 召唤新概念 ] 真实接入 DeepSeek API（含同义词拦截与跨界双子星自动配对） ====================
+      const summonForm = document.getElementById("summon-concept-form");
+      const summonInput = document.getElementById("summon-concept-input");
+      const summonStatusBox = document.getElementById("summon-status-box");
+      const summonSubmitBtn = document.getElementById("summon-submit-btn");
+
+      function showSummonStatus(text, tone = "loading") {
+        if (!summonStatusBox) return;
+        summonStatusBox.classList.remove("hidden");
+        if (tone === "error") {
+          summonStatusBox.className = "rounded-xl px-3.5 py-2.5 text-xs leading-relaxed bg-rose-50 border border-rose-200 text-rose-900";
+        } else if (tone === "warn") {
+          summonStatusBox.className = "rounded-xl px-3.5 py-2.5 text-xs leading-relaxed bg-amber-50 border border-amber-200 text-amber-900";
+        } else {
+          summonStatusBox.className = "rounded-xl px-3.5 py-2.5 text-xs leading-relaxed bg-stone-900 text-stone-100 font-medium";
+        }
+        summonStatusBox.textContent = text;
+      }
+
+      document.getElementById("btn-summon-concept")?.addEventListener("click", () => {
+        if (summonStatusBox) summonStatusBox.classList.add("hidden");
+        saveTickets();
+        summonDialog?.showModal();
+        summonInput?.focus();
+      });
+
+      summonForm?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const term = (summonInput?.value || "").trim();
+        if (!term) return;
+
+        // 检查是否已存在同名概念
+        const existing = conceptsList.find((c) => c.name.toLowerCase() === term.toLowerCase());
+        if (existing) {
+          summonDialog?.close();
+          openConceptDetail(existing.id);
+          showToast(`「${existing.name}」已在星图中，已为你直接打开！`);
+          return;
+        }
+
+        if (userTickets <= 0) {
+          showSummonStatus("你的开荒券已用完（当前 0 张）。去任意概念下公开写一条真实经历比喻，或助推人类攻占节点即可获得 +1 开荒券！", "warn");
+          return;
+        }
+
+        const apiKey = getStoredDeepSeekKey();
+        if (!apiKey) {
+          showSummonStatus("请先点击下方「配置 API Key」输入你的 DeepSeek API Key（sk-...），即可实时召唤新概念。", "warn");
+          return;
+        }
+
+        const existingSummary = conceptsList
+          .map((c) => `${c.id}: ${c.name} (${c.category})`)
+          .join("；");
+
+        const systemPrompt = `你是一位冷酷犀利的概念解构大师。用户会输入一个词，请在一秒钟内完成概念安检、同义词查重、跨界双子星配对与解构生成，并严格只返回如下 JSON 对象（不要输出任何 Markdown 代码块标记）：
+{
+  "isValid": true,
+  "duplicateOfId": "",
+  "rejectReason": "",
+  "category": "物理与宇宙",
+  "definition": "不许超过30个字！极其辛辣、一针见血的大白话本质定义，绝不掉书袋。",
+  "twinConceptId": "concept-01",
+  "twinReason": "20字以内道破它与该跨界概念的底层同构本质",
+  "metaphors": [
+    "模仿真实网民口语的具体生活/职场小故事比喻1（约60字，绝不许用“这就像”、“好比”、“如同”开头！直接写场景！）",
+    "模仿另一位毒舌网友口语的具体经历比喻2（约60字，绝不许用“这就像”、“好比”开头！）",
+    "模仿第三位过来人网友口语的具体场景比喻3（约60字，绝不许用“这就像”、“好比”开头！）"
+  ]
+}
+当前星图已存在概念列表：[${existingSummary}]
+严格规则：
+1. 判断用户输入的是否为一个有解释价值的学科知识/规律/效应/哲学或科学概念。若是“番茄炒蛋”、“哈哈哈”等无意义日常词，isValid 返回 false，并在 rejectReason 中给出温和幽默的拒绝理由。
+2. 同义词查重拦截：如果用户输入的词与上方【当前星图已存在概念列表】中的某个概念属于同义词、别名或高度重合（例如输入“眼镜蛇效应”对应已有的“古德哈特定律”，或“信息熵”对应“香农熵”），请将 isValid 设为 false，duplicateOfId 填已存在概念的 id，并在 rejectReason 中提示已存在该同构概念。
+3. category 优先从 [商业与博弈, 物理与宇宙, 心理与人性] 中选择最贴切的一个；若确实完全不属于这三类，可开启一个精准的四字学科分类（如：计算机与逻辑）。
+4. twinConceptId 必须从上方【当前星图已存在概念列表】中挑选 1 个不同学科但底层逻辑最相通的概念 ID，并在 twinReason 中用 20 字以内写出一针见血的相通本质。
+5. metaphors 必须包含 3 条模仿不同真实网民口语的比喻，绝对禁止使用“这就像”、“就像”、“好比”、“如同”开头！`;
+
+        if (summonSubmitBtn) summonSubmitBtn.disabled = true;
+        showSummonStatus("🌌 AI 正在星图中构建防线并匹配跨界双子星...", "loading");
+
+        try {
+          const response = await fetch("https://api.deepseek.com/chat/completions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+              model: "deepseek-chat",
+              response_format: { type: "json_object" },
+              temperature: 0.7,
+              messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: `请解构概念：「${term}」` }
+              ]
+            })
+          });
+
+          if (!response.ok) {
+            const errText = await response.text().catch(() => "");
+            throw new Error(`DeepSeek API 请求失败 (${response.status}) ${errText.slice(0, 80)}`);
+          }
+
+          const data = await response.json();
+          const rawContent = data?.choices?.[0]?.message?.content || "{}";
+          const result = JSON.parse(rawContent);
+
+          if (!result.isValid) {
+            if (result.duplicateOfId) {
+              const dup = conceptsList.find((c) => c.id === result.duplicateOfId);
+              if (dup) {
+                summonDialog?.close();
+                openConceptDetail(dup.id);
+                showToast(result.rejectReason || `「${term}」与星图中已有的【${dup.name}】同构，已为你直接跳转！`);
+                return;
+              }
+            }
+            showSummonStatus(
+              result.rejectReason || `「${term}」似乎还算不上一个独立硬核概念或规律，换个词试试吧（未扣除开荒券）。`,
+              "warn"
+            );
+            return;
+          }
+
+          const metaphorsArr = Array.isArray(result.metaphors) && result.metaphors.length > 0
+            ? result.metaphors.slice(0, 3)
+            : [
+                `前阵子部门搞末位淘汰，原本大家还会互相帮衬改Bug，规定一出全员开始藏私留一手，结果整个项目组交付速度反而腰斩了。`,
+                `每次去菜市场买螃蟹，绑螃蟹的那根粗草绳浸满了水比螃蟹腿还沉，单价看着便宜，回家剪开绳子一称亏掉半斤肉钱。`,
+                `大学宿舍四个人都不想倒垃圾，垃圾桶满了大家就拿外卖盒在上面搭积木，谁先受不了去倒一次，以后就默认成了全宿舍的保洁员。`
+              ];
+
+          const validTwin = conceptsList.find((c) => c.id === result.twinConceptId) || conceptsList[0];
+          const newConceptId = "concept-" + Date.now();
+          const nextCode = String(conceptsList.length + 1).padStart(2, "0");
+          const newConcept = {
+            id: newConceptId,
+            code: nextCode,
+            name: term,
+            category: String(result.category || "商业与博弈").trim(),
+            definition: String(result.definition || "").trim().slice(0, 42),
+            twinConceptId: validTwin ? validTwin.id : "concept-01",
+            twinReason: String(result.twinReason || "跨学科底层博弈结构同构").trim().slice(0, 24),
+            hallOfFame: [],
+            metaphors: metaphorsArr.map((mText, idx) => ({
+              id: `${newConceptId}-ai-${idx + 1}`,
+              content: String(mText).trim().replace(/^(这就像|就像|好比|如同)/, ""),
+              author: `🤖 AI 生成`,
+              isAI: true,
+              likes: 3,
+              flaw: null
+            }))
+          };
+
+          // 扣除 1 张开荒券并挂载新概念节点
+          userTickets = Math.max(0, userTickets - 1);
+          conceptsList.push(newConcept);
+          starredMap[newConceptId] = true;
+          justSummonedConceptId = newConceptId;
+          hoveredConceptId = newConceptId;
+
+          saveTickets();
+          saveStarred();
+          saveConcepts();
+
+          if (summonInput) summonInput.value = "";
+          summonDialog?.close();
+
+          // 自动切换到星图视图并聚焦新召唤的 🔴 红色守擂节点及其跨界双子星金弧
+          switchView("starmap");
+          refreshAllViewsAndStats();
+          showHoverConceptCard(newConceptId);
+          showToast(`🔴 新概念「${term}」已挂载至【${newConcept.category}】并与【${validTwin?.name || ""}】结成跨界双子星！`);
+        } catch (err) {
+          showSummonStatus(`召唤失败：${err.message || "请检查 API Key 或网络连接"}`, "error");
+        } finally {
+          if (summonSubmitBtn) summonSubmitBtn.disabled = false;
+        }
+      });
+
+      // ==================== 底部角落：[重置初始数据] ====================
+      document.getElementById("btn-reset-demo-data")?.addEventListener("click", () => {
+        if (!window.confirm("确定要重置所有本地数据（恢复 8 个初始概念战况、3 张开荒券并清空私人批注）吗？")) {
+          return;
+        }
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(STARRED_KEY);
+        localStorage.removeItem(LIKED_METAPHORS_KEY);
+        localStorage.removeItem(PRIVATE_NOTES_KEY);
+        localStorage.removeItem(TICKETS_KEY);
+
+        conceptsList = loadConcepts();
+        starredMap = loadStarred();
+        likedMetaphorsMap = loadLikedMetaphors();
+        privateNotesMap = loadPrivateNotes();
+        userTickets = 3;
+        onlyMyCollection = false;
+        justSummonedConceptId = null;
+        hoveredConceptId = null;
+
+        refreshAllViewsAndStats();
+        showToast("已恢复初始演示数据与 3 张开荒券");
       });
     });
   </script>
