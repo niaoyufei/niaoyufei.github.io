@@ -4,19 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
-  <title>硬核概念卡片与活人比喻共创站</title>
+  <title>概念星图：人类 vs AI 活人比喻争夺战</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root {
       --bg-paper: #F7F6F2;
       --bg-card: #FCFBF9;
-      --bg-subtle: #F0EEE8;
+      --bg-subtle: #EFECE6;
       --ink-primary: #1C1B18;
       --ink-secondary: #57534E;
       --ink-muted: #9A958C;
       --border-warm: #E5E2DA;
       --border-strong: #D4CFC3;
-      --accent-ink: #292524;
     }
 
     html {
@@ -28,311 +27,542 @@
 
     body {
       background-color: var(--bg-paper);
-      background-image: radial-gradient(rgba(28, 27, 24, 0.03) 1px, transparent 0);
+      background-image: radial-gradient(rgba(28, 27, 24, 0.035) 1px, transparent 0);
       background-size: 24px 24px;
       min-height: 100vh;
       margin: 0;
     }
 
-    /* 衬线体：用于概念标头与一句话本质解构 */
+    /* 概念标题高质感衬线体 */
     .font-editorial {
       font-family: "Songti SC", "STSong", "Noto Serif SC", "Source Han Serif SC", "PMingLiU", Georgia, serif;
     }
 
-    /* 纸张卡片质感 */
+    /* 纸张杂志卡片 */
     .paper-card {
       background-color: var(--bg-card);
       border: 1px solid var(--border-warm);
-      box-shadow: 0 2px 12px rgba(28, 27, 24, 0.025);
+      box-shadow: 0 2px 10px rgba(28, 27, 24, 0.025);
+      transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
     }
 
-    /* 移动端防 iOS 自动缩放：输入框至少 1rem (16px) */
-    textarea,
-    input[type="text"],
-    input[type="search"] {
-      font-size: 1rem;
-      line-height: 1.65;
+    .paper-card:hover {
+      border-color: var(--border-strong);
+      box-shadow: 0 8px 24px rgba(28, 27, 24, 0.055);
+      transform: translateY(-1px);
     }
 
-    textarea:focus-visible,
-    input:focus-visible,
     button:focus-visible,
     a:focus-visible {
       outline: 2px solid #57534E;
       outline-offset: 2px;
     }
-
-    /* 辅助无障碍隐藏标签 */
-    .visually-hidden {
-      position: absolute;
-      clip-path: inset(50%);
-      overflow: hidden;
-      width: 1px;
-      height: 1px;
-      margin: -1px;
-      padding: 0;
-      border: 0;
-      white-space: nowrap;
-    }
-
-    /* 原生单选框品牌色与可点击热区优化 */
-    input[type="radio"] {
-      accent-color: #292524;
-      width: 1rem;
-      height: 1rem;
-      cursor: pointer;
-    }
   </style>
 </head>
 <body class="pb-24">
 
-  <!-- ==================== 顶部极简杂志导航栏 ==================== -->
-  <header class="sticky top-0 z-20 bg-[#F7F6F2]/90 backdrop-blur-md border-b border-[#E5E2DA]">
-    <div class="max-w-3xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between gap-4">
-      <div class="flex items-baseline gap-3 min-w-0">
-        <h1 class="font-editorial text-lg sm:text-xl font-bold tracking-tight text-[#1C1B18] truncate">
-          硬核概念 × 活人比喻
-        </h1>
-        <span class="hidden sm:inline-block text-xs text-[#8C867B]">
-          剥离术语黑话 · 沉淀人类真实体感
-        </span>
+  <!-- ==================== 顶部常驻全局导航栏 ==================== -->
+  <header class="sticky top-0 z-30 bg-[#F7F6F2]/95 backdrop-blur-md border-b border-[#E5E2DA]">
+    <div class="max-w-6xl mx-auto px-4 sm:px-8 py-3.5 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+      
+      <!-- 左侧：标题 + 实时全局战况统计条 -->
+      <div class="flex flex-wrap items-center gap-3 min-w-0">
+        <div class="flex items-center gap-2.5">
+          <a href="index.html" title="返回四维主星图"
+            class="text-xs px-2.5 py-1 rounded-lg bg-[#EFECE6] hover:bg-[#E4E0D8] text-[#57534E] hover:text-[#1C1B18] transition shrink-0">
+            ← 四维星图
+          </a>
+          <h1 class="font-editorial text-lg sm:text-xl font-bold tracking-tight text-[#1C1B18] truncate">
+            概念星图：人类 vs AI 活人比喻争夺战
+          </h1>
+        </div>
+
+        <!-- 实时战况条：🔴 AI 守擂: X | 🟣 争夺中: Y | 🔵 人类攻占: Z -->
+        <div id="global-battle-bar" aria-live="polite"
+          class="inline-flex items-center gap-2.5 px-3 py-1 rounded-full bg-[#FCFBF9] border border-[#E2DFD7] text-xs font-medium text-[#44403C]">
+          <span>🔴 AI 守擂: <strong id="stat-ai-count" class="font-bold text-rose-700">0</strong></span>
+          <span class="text-[#D4CFC3]">|</span>
+          <span>🟣 争夺中: <strong id="stat-contest-count" class="font-bold text-purple-700">0</strong></span>
+          <span class="text-[#D4CFC3]">|</span>
+          <span>🔵 人类攻占: <strong id="stat-human-count" class="font-bold text-sky-700">0</strong></span>
+        </div>
       </div>
 
-      <div class="flex items-center gap-2.5 shrink-0">
-        <button type="button" id="toggle-new-concept-btn"
-          class="text-xs px-3 py-1.5 rounded-lg border border-[#D4CFC3] bg-[#FCFBF9] hover:bg-[#F0EEE8] text-[#292524] font-medium transition">
-          + 添新概念卡
-        </button>
-        <a href="index.html"
-          class="text-xs px-3 py-1.5 rounded-lg text-[#6E6A61] hover:text-[#1C1B18] hover:bg-[#ECEAE3] transition">
-          ← 返回四维星图
-        </a>
+      <!-- 中间：双视图切换按钮组 -->
+      <div class="flex items-center justify-between sm:justify-start lg:justify-center gap-2">
+        <div role="tablist" aria-label="视图模式切换"
+          class="inline-flex items-center bg-[#EFECE6] border border-[#DFDCD2] rounded-xl p-1">
+          <button type="button" id="tab-btn-starmap" role="tab" aria-selected="false"
+            data-view="starmap"
+            class="view-switch-btn text-xs px-3 py-1.5 rounded-lg font-medium transition text-[#6E6A61] hover:text-[#1C1B18]">
+            🌌 星图全局视图
+          </button>
+          <button type="button" id="tab-btn-directory" role="tab" aria-selected="true"
+            data-view="directory"
+            class="view-switch-btn text-xs px-3 py-1.5 rounded-lg font-semibold transition bg-[#FCFBF9] text-[#1C1B18] shadow-sm">
+            🗂️ 极简目录视图
+          </button>
+        </div>
+
+        <!-- 右侧：全局操作按钮占位 -->
+        <div class="flex items-center gap-2">
+          <button type="button" id="btn-my-collection"
+            class="text-xs px-3 py-1.5 rounded-xl border border-[#DFDCD2] bg-[#FCFBF9] hover:bg-[#EFECE6] text-[#44403C] font-medium transition">
+            ⭐ 我的点亮图鉴
+          </button>
+          <button type="button" id="btn-summon-concept"
+            class="text-xs px-3 py-1.5 rounded-xl bg-[#1C1B18] hover:bg-[#33302B] text-[#F7F6F2] font-medium transition">
+            + 召唤新概念 <span class="opacity-75">(开荒券: <span id="ticket-count">3</span>)</span>
+          </button>
+        </div>
       </div>
+
     </div>
   </header>
 
-  <!-- ==================== 主体阅读容器（大留白杂志单栏） ==================== -->
-  <main class="max-w-3xl mx-auto px-5 sm:px-8 pt-8 sm:pt-12">
+  <!-- ==================== 主内容区 ==================== -->
+  <main class="max-w-6xl mx-auto px-4 sm:px-8 pt-8 sm:pt-10">
 
-    <!-- 顶部导语与快速检索/定位 -->
-    <section class="mb-10 pb-8 border-b border-[#E5E2DA] space-y-5">
-      <p class="font-editorial text-base sm:text-lg text-[#44403C] leading-relaxed">
-        这里不搬运教科书定义。每一张卡片只留<strong>一句 30 字以内的大白话扒底裤</strong>，以及各行各业活人被这个概念击中时的<strong>真实经历与肉身比喻</strong>。
-      </p>
-
-      <!-- 新增概念卡片折叠表单（默认收起，保持页面克制） -->
-      <div id="new-concept-panel" class="hidden paper-card rounded-2xl p-6 sm:p-7 space-y-4">
-        <div class="flex items-center justify-between">
-          <h2 class="font-editorial text-base font-bold text-[#1C1B18]">新建一张概念卡片</h2>
-          <button type="button" id="close-new-concept-btn" class="text-xs text-[#8C867B] hover:text-[#1C1B18]">收起</button>
-        </div>
-        <form id="new-concept-form" class="space-y-4">
-          <div>
-            <label for="new-concept-title" class="block text-xs font-medium text-[#57534E] mb-1.5">
-              概念名称（必填）
-            </label>
-            <input id="new-concept-title" name="title" type="text" required maxlength="40"
-              placeholder="例如：古德哈特定律 / 邓宁-克鲁格效应 / 螃蟹效应"
-              class="w-full bg-[#F7F6F2] border border-[#D6D3C9] rounded-xl px-3.5 py-2.5 text-[#1C1B18] placeholder-[#A8A29E]">
-          </div>
-          <div>
-            <div class="flex items-center justify-between mb-1.5">
-              <label for="new-concept-essence" class="block text-xs font-medium text-[#57534E]">
-                一句话扒底裤（30字以内大白话本质解构）
-              </label>
-              <button type="button" id="ai-essence-btn"
-                class="text-xs text-[#57534E] hover:text-[#1C1B18] underline underline-offset-4">
-                AI 帮我浓缩 30 字本质
-              </button>
-            </div>
-            <input id="new-concept-essence" name="essence" type="text" required maxlength="35"
-              placeholder="撕掉包装，用 30 字以内的大白话点破它到底是什么…"
-              class="w-full bg-[#F7F6F2] border border-[#D6D3C9] rounded-xl px-3.5 py-2.5 font-editorial text-[#1C1B18] placeholder-[#A8A29E]">
-          </div>
-          <div class="flex justify-end gap-2 pt-1">
-            <button type="submit"
-              class="text-xs px-4 py-2.5 rounded-xl bg-[#1C1B18] hover:bg-[#33302B] text-[#F7F6F2] font-medium transition">
-              生成概念卡
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <!-- 概念速览索引条 + 极简搜索 -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
-        <nav id="concept-index-nav" aria-label="概念快速定位" class="flex items-center gap-1.5 flex-wrap"></nav>
-
-        <div class="relative w-full sm:w-56 shrink-0">
-          <label for="concept-search-input" class="visually-hidden">搜索概念或比喻经历</label>
-          <input id="concept-search-input" type="search" autocomplete="off"
-            autocorrect="off" autocapitalize="off" spellcheck="false"
-            placeholder="筛选概念或比喻关键词…"
-            class="w-full bg-[#FCFBF9] border border-[#DFDCD2] rounded-xl px-3 py-1.5 text-sm text-[#1C1B18] placeholder-[#9A958C]">
+    <!-- 视图 1：🌌 星图全局视图（第 1 步先留空容器占位，第 2 步实现） -->
+    <section id="view-starmap" class="hidden" aria-label="星图全局视图">
+      <div class="paper-card rounded-3xl p-12 sm:p-20 text-center space-y-4 border-dashed border-[#D4CFC3]">
+        <div class="text-3xl">🌌</div>
+        <h2 class="font-editorial text-xl font-bold text-[#1C1B18]">星图全局视图（待第 2 步点亮）</h2>
+        <p class="text-sm text-[#6E6A61] max-w-md mx-auto leading-relaxed">
+          此处将在下一步接入一级学科引力中心与红/紫/蓝阵营概念节点连线画布。当前请先检视「🗂️ 极简目录视图」的数据结构与卡片排版。
+        </p>
+        <div class="pt-2">
+          <button type="button" data-switch-to="directory"
+            class="text-xs px-4 py-2 rounded-xl bg-[#1C1B18] text-[#F7F6F2] font-medium hover:bg-[#33302B] transition">
+            返回 🗂️ 极简目录视图
+          </button>
         </div>
       </div>
     </section>
 
-    <!-- ==================== 概念卡片流（三段式极简布局） ==================== -->
-    <div id="concepts-feed" class="space-y-12 sm:space-y-16"></div>
+    <!-- 视图 2：🗂️ 极简目录视图（第 1 步默认激活） -->
+    <section id="view-directory" aria-label="极简目录视图" class="space-y-12">
+
+      <!-- 杂志感导语与阵营规则一句话说明 -->
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b border-[#E5E2DA]">
+        <div class="space-y-1.5">
+          <p class="text-xs font-mono uppercase tracking-widest text-[#8C867B]">
+            HUMAN EXPERIENCE VS. AI DEFENSE · THREE-OUT-OF-TWO RULE
+          </p>
+          <h2 class="font-editorial text-2xl sm:text-3xl font-bold text-[#1C1B18]">
+            三大一级学科星系 · 概念争夺目录
+          </h2>
+        </div>
+        <p class="text-xs text-[#6E6A61] leading-relaxed max-w-lg">
+          每个概念初始由 3 条 AI 比喻守擂（默认各 3 赞）。按点赞数取 <strong>Top 3 席位</strong>：全为 AI 则 <span class="text-rose-700 font-medium">🔴 AI 守擂</span>，人类挤入 1 席为 <span class="text-purple-700 font-medium">🟣 争夺中</span>，人类占据 ≥2 席即宣告 <span class="text-sky-700 font-medium">🔵 人类攻占</span>。
+        </p>
+      </div>
+
+      <!-- 学科分区卡片墙容器 -->
+      <div id="directory-galaxies-container" class="space-y-12"></div>
+
+    </section>
 
   </main>
 
-  <!-- ==================== 页脚留白 ==================== -->
-  <footer class="max-w-3xl mx-auto px-5 sm:px-8 mt-20 pt-8 border-t border-[#E5E2DA] flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-[#9A958C]">
-    <span>内容永远置顶 · 名字永远置后 · 回归纯粹阅读与直觉共鸣</span>
-    <button type="button" id="reset-concepts-btn" class="hover:text-[#57534E] underline underline-offset-4">
-      恢复初始示例卡片
-    </button>
-  </footer>
-
   <script>
-    // ==================== 初始硬核概念与活人比喻数据 ====================
-    const DEFAULT_CONCEPTS = [
+    // ==================== 一级学科星系配置 ====================
+    const GALAXIES = [
       {
-        id: "concept-goodhart",
-        title: "古德哈特定律",
-        subtitle: "Goodhart's Law",
-        essence: "当一个指标变成考核目标，它就立刻失去测量价值，只剩造假。",
+        id: "biz",
+        name: "商业与博弈",
+        en: "Business & Game Theory",
+        desc: "指标异化、囚徒困境与分布式信任的底层算计"
+      },
+      {
+        id: "phys",
+        name: "物理与宇宙",
+        en: "Physics & Cosmos",
+        desc: "信息不确定性、微观测量干扰与系统演化的必然"
+      },
+      {
+        id: "psych",
+        name: "心理与人性",
+        en: "Psychology & Human Nature",
+        desc: "认知盲区、沉默的失败者与无法割舍的已付代价"
+      }
+    ];
+
+    // ==================== 预置 8 个经典硬核概念节点（含红、紫、蓝三种阵营状态） ====================
+    const INITIAL_CONCEPTS_DATA = [
+      // -------------------- 星系 1：商业与博弈 --------------------
+      {
+        id: "concept-01",
+        code: "01",
+        name: "古德哈特定律",
+        category: "商业与博弈",
+        definition: "当一个指标变成考核目标，它就立刻失去测量价值，只剩造假。",
+        // 预置为 🔵 人类攻占（Top 3 中有 2 条高赞人类比喻 + 1 条 AI 守擂，另有 1 条人类挑战席示例）
         metaphors: [
           {
-            id: "m-101",
-            content: "以前我们在呼叫中心上班，老板原本用「通话时长短」来衡量客服解决问题的效率。结果从宣布跟绩效挂钩那天起，大家遇到复杂问题不再帮客户解决，而是故意把声音调小假装信号不好直接挂断——平均通话时长瞬间降到 30 秒，全员拿满分奖金，客户投诉率直接爆表。",
-            author: "前客服主管老林",
-            votes: 186,
-            isPrivate: false
+            id: "m-01-h1",
+            content: "英国殖民印度时为了消灭德里街头的眼镜蛇，宣布每上交一条死蛇奖励一笔钱。结果当地人不仅不去野外抓蛇，反而家家户户建起眼镜蛇养殖场专门孵小蛇换奖金；后来政府发现不对劲取消悬赏，养殖户直接把没价值的眼镜蛇全放生了，街上的毒蛇比悬赏前翻了三倍。",
+            author: "@野生经济史官",
+            isAI: false,
+            likes: 46,
+            flaw: {
+              content: "这属于正向激励设计反噬，严格说还叠加了眼镜蛇效应，不完全等同于纯测量指标失效。",
+              author: "@较真逻辑控",
+              likes: 4
+            }
           },
           {
-            id: "m-102",
-            content: "我妈当年要求我每天必须在书桌前坐满 3 小时才算认真学习。于是我练就了把《故事会》夹在《五年高考三年模拟》里一页不翻坐满 3 小时的绝活——屁股焊在椅子上了，脑子一秒钟没学。",
-            author: "小镇做题家阿泽",
-            votes: 142,
-            isPrivate: false
+            id: "m-01-h2",
+            content: "为了治孩子驼背和手机瘾，我规定他每天必须拿羽毛球拍挥够 500 下才准看电视，还专门在拍柄装了计步传感器。第三天推门一看，这小子瘫在沙发上一边看动画片，一边只用两根手指捏着球拍高频抖手腕——传感器数字飙到 800，汗一滴没流。",
+            author: "@被娃反杀的老张",
+            isAI: false,
+            likes: 31,
+            flaw: null
           },
           {
-            id: "m-103",
-            content: "医院为了降低「住院患者院内死亡率」这项考核指标，遇到真正救不活的重症病人，会在最后一口气前拼命劝家属办出院手续拉回家。报表上的死亡率漂亮极了，但没有一个病人因此多活一天。",
-            author: "急诊科夜班人",
-            votes: 98,
-            isPrivate: false
+            id: "m-01-ai1",
+            content: "就像用「代码行数」考核程序员的月度产出，原本一行函数能写完的逻辑，大家全拆成五十行复制粘贴的废话，系统越写越慢，但每个人的周报数字都无比华丽。",
+            author: "@AI-守擂者α",
+            isAI: true,
+            likes: 3,
+            flaw: null
+          },
+          {
+            id: "m-01-ai2",
+            content: "好比学校把「班级平均分」跟班主任奖金死绑，老师最省力的做法不再是教好差生，而是想方设法劝退最后五名学生不参加统考。",
+            author: "@AI-守擂者β",
+            isAI: true,
+            likes: 3,
+            flaw: null
+          },
+          {
+            id: "m-01-ai3",
+            content: "如同医院考核「门诊候诊不超过15分钟」，分诊台干脆让病人在大楼外排长队，快轮到时才准刷卡进门开始计时。",
+            author: "@AI-守擂者γ",
+            isAI: true,
+            likes: 3,
+            flaw: null
+          },
+          {
+            id: "m-01-h3",
+            content: "某三甲急诊室被考核「救护车抵达后30分钟内必须完成接诊分流」，结果门口出现了救护车排长龙不让病人下车的奇观——因为只要病人没下车办登记，那30分钟倒计时秒表就还没按响。",
+            author: "@夜班急诊人",
+            isAI: false,
+            likes: 2,
+            flaw: null
           }
         ]
       },
       {
-        id: "concept-sunk-cost",
-        title: "沉没成本谬误",
-        subtitle: "Sunk Cost Fallacy",
-        essence: "为了心疼已经泼出去的水，硬逼自己把剩下的半瓶毒药也喝光。",
+        id: "concept-02",
+        code: "02",
+        name: "纳什均衡",
+        category: "商业与博弈",
+        definition: "所有人都算到了极致，结果全卡死在谁也不敢先退一步的烂局里。",
+        // 预置为 🟣 争夺中（Top 3 中有 1 条人类高赞 + 2 条 AI 守擂）
         metaphors: [
           {
-            id: "m-201",
-            content: "花 68 块钱买了一张奇烂无比的电影票，开场 20 分钟就已经如坐针毡了，但脑子里有个声音一直在算账：「走人岂不是白瞎了 68 块？」结果硬着头皮坐满两小时——最后不仅 68 块钱没回来，还多赔进去两小时周末晚上的好心情。",
-            author: "周末影院受难者",
-            votes: 215,
-            isPrivate: false
+            id: "m-02-h1",
+            content: "演唱会第一排原本大家都坐着看得很舒服，突然有一个人站起来挡住了后面，接着第二排、第三排全被迫站起来。最后全场两万人站得腿酸脖子痛，谁看到的视野也没比原来坐着时更好，但没有一个人敢独自坐下——因为谁先坐下谁就只能看前排的屁股。",
+            author: "@看台罚站观众",
+            isAI: false,
+            likes: 22,
+            flaw: null
           },
           {
-            id: "m-202",
-            content: "自助餐厅里明明吃到第七盘已经撑到嗓子眼了，一想到进门交了 298 块还没吃回本，硬是又往嘴里塞了两块冻硬的三文鱼，最后出门直接花 300 块挂急诊开健胃消食和急性肠胃炎的药。",
-            author: "胃酸倒流患者",
-            votes: 164,
-            isPrivate: false
+            id: "m-02-ai1",
+            content: "就像整条美食街两家紧挨着的奶茶店，明明一起维持原价都能赚钱，但为了防对方偷袭搞半价抢客，两家只能常年挂着「买一送一」横幅互相放血，谁也不敢先恢复原价。",
+            author: "@AI-守擂者α",
+            isAI: true,
+            likes: 3,
+            flaw: null
           },
           {
-            id: "m-203",
-            content: "谈了六年早就没话聊、每天都在互相折磨的感情，谁也不敢提分手。问就是「我都把六年青春砸进去了，现在分岂不是全白费了」——好像再多耗三十年，前六年就能变成利息退回来一样。",
-            author: "民政局门口吹风的人",
-            votes: 129,
-            isPrivate: false
+            id: "m-02-ai2",
+            content: "好比晚高峰没有红绿灯的十字路口，四个方向的司机都怕自己踩刹车会让对方抢先插队，于是全员往中间顶，最终严丝合缝锁死在路中央。",
+            author: "@AI-守擂者β",
+            isAI: true,
+            likes: 3,
+            flaw: null
+          },
+          {
+            id: "m-02-ai3",
+            content: "如同办公室里没人敢第一个六点准时下班，哪怕所有人手头活都干完了，也得互相熬到九点。",
+            author: "@AI-守擂者γ",
+            isAI: true,
+            likes: 3,
+            flaw: null
           }
         ]
       },
       {
-        id: "concept-survivorship",
-        title: "幸存者偏差",
-        subtitle: "Survivorship Bias",
-        essence: "死人不会说话，你听到的全是刚好没被雷劈中的人在传授避雷秘籍。",
+        id: "concept-03",
+        code: "03",
+        name: "拜占庭将军问题",
+        category: "商业与博弈",
+        definition: "在传令兵可能骗人、队友可能叛变时，怎么隔空敲定同一个行动？",
+        // 预置为 🔴 AI 守擂（Top 3 全是 AI 默认 3 赞）
         metaphors: [
           {
-            id: "m-301",
-            content: "老家亲戚总爱拿某首富初中辍学创业身家百亿来教育小孩「读书没用」。但他们从来不去火车站桥洞底下采访那十万个同样初中辍学、现在连泡面都吃不起的同龄人——因为失败的人根本没机会出书上电视。",
-            author: "大厂搬砖工小陈",
-            votes: 193,
-            isPrivate: false
+            id: "m-03-ai1",
+            content: "四个互不信任的合伙人被关在四个没有电话的房间里，只能靠一个可能收了黑钱的跑腿小哥传纸条商量今天是「全员满仓买入」还是「全员撤退」。只要有人收到假纸条单独冲出去就会倾家荡产。",
+            author: "@AI-守擂者α",
+            isAI: true,
+            likes: 3,
+            flaw: null
           },
           {
-            id: "m-302",
-            content: "视频评论区里经常有人说：「现在的建筑全是豆腐渣，你看古代留下来的木塔和石桥几百年都不倒！」废话，古代那 99.9% 造得不结实的房子早就塌成泥了，能熬到今天让你看见的，本来就是万里挑一的怪物。",
-            author: "土木老狗老赵",
-            votes: 151,
-            isPrivate: false
+            id: "m-03-ai2",
+            content: "就像没有裁判的狼人杀面杀局，不仅混进了会说谎的狼人，连负责传递验人手势的中间人都可能是内鬼，好人阵营必须靠一套没法伪造的工作量证明才能对齐口供。",
+            author: "@AI-守擂者β",
+            isAI: true,
+            likes: 3,
+            flaw: null
+          },
+          {
+            id: "m-03-ai3",
+            content: "好比异地恋情侣吵架后只靠一个爱添油加醋的闺蜜传话，双方怎么确认那句「今晚八点老地方和好」真的是对方亲口说的？",
+            author: "@AI-守擂者γ",
+            isAI: true,
+            likes: 3,
+            flaw: null
+          }
+        ]
+      },
+
+      // -------------------- 星系 2：物理与宇宙 --------------------
+      {
+        id: "concept-04",
+        code: "04",
+        name: "香农熵",
+        category: "物理与宇宙",
+        definition: "一句话越让你猜不透下文，它消除的瞎猜就越多，信息量才越大。",
+        // 预置为 🔴 AI 守擂（Top 3 全是 AI 默认 3 赞）
+        metaphors: [
+          {
+            id: "m-04-ai1",
+            content: "天气预报说「撒哈拉沙漠明天晴天」，这句话哪怕一万个字也是零信息量，因为不用它说你也知道；但如果它说「撒哈拉明天下午三点下暴雪」，香农熵直接拉满，因为彻底击碎了你原有的确定性。",
+            author: "@AI-守擂者α",
+            isAI: true,
+            likes: 3,
+            flaw: null
+          },
+          {
+            id: "m-04-ai2",
+            content: "就像领导开会讲了两个小时正确的废话，你听完一抬头完全能背出他下一句要讲什么，这场会的香农熵几乎为零；而医生低头看了一眼化验单突然叹口气说「你让家属进来一下」，短短七个字信息量爆炸。",
+            author: "@AI-守擂者β",
+            isAI: true,
+            likes: 3,
+            flaw: null
+          },
+          {
+            id: "m-04-ai3",
+            content: "好比猜硬币，一枚两面都是正面的假硬币抛一万次也没有任何悬念（熵为0）；只有正反概率完全五五开的真硬币，落地揭晓那一刻才真正提供了1比特的信息。",
+            author: "@AI-守擂者γ",
+            isAI: true,
+            likes: 3,
+            flaw: null
           }
         ]
       },
       {
-        id: "concept-dunning-kruger",
-        title: "达克效应",
-        subtitle: "Dunning-Kruger Effect",
-        essence: "懂得越少的人越觉得自己全懂了，因为连「自己不懂什么」都看不见。",
+        id: "concept-05",
+        code: "05",
+        name: "观察者效应",
+        category: "物理与宇宙",
+        definition: "不是意念改变了世界，而是你拿去测量的工具本身撞歪了被测物。",
+        // 预置为 🟣 争夺中（Top 3 中有 1 条人类高赞 + 2 条 AI 守擂）
         metaphors: [
           {
-            id: "m-401",
-            content: "刚学会煎鸡蛋和可乐鸡翅那周，我觉得米其林大厨纯属智商税，差点辞职去盘一家私房菜馆；直到后来真去后厨帮工三天，发现光是一个「炒青菜不出水、保持翠绿」的油温和锅气就让我连废了二十锅，才终于闭上了嘴。",
-            author: "厨房炸锅选手",
-            votes: 174,
-            isPrivate: false
+            id: "m-05-h1",
+            content: "给汽车轮胎测胎压时，气压表接上气嘴的那一瞬间必须先「噗」地放掉一小口轮胎里的气才能顶开读数针——你测出来的那个胎压，已经是被你放掉一口气之后改变掉的胎压了。",
+            author: "@修车铺老周",
+            isAI: false,
+            likes: 18,
+            flaw: null
           },
           {
-            id: "m-402",
-            content: "就像拿着手电筒在黑夜里照地面：光圈很小的时候，周围一圈边界很短，你觉得黑暗不过如此；当你手电筒越亮、照亮的面积越大，你接触到的黑暗边界反而成倍变长，才第一次对未知产生敬畏。",
-            author: "野生天文迷",
-            votes: 118,
-            isPrivate: false
+            id: "m-05-ai1",
+            content: "就像在伸手不见五指的黑屋子里，你想知道一只飘着的肥皂泡在哪，手里唯一的工具是一把高压水枪——水柱射中泡泡的瞬间你确实测出位置了，但泡泡也同时被水柱冲烂了。",
+            author: "@AI-守擂者α",
+            isAI: true,
+            likes: 3,
+            flaw: null
+          },
+          {
+            id: "m-05-ai2",
+            content: "好比想知道冰镇西瓜中心凉不凉，你把一根刚从沸水里捞出来的粗铁温度计捅进瓜心，读出来的温度早就混进了铁棒自己的热量。",
+            author: "@AI-守擂者β",
+            isAI: true,
+            likes: 3,
+            flaw: null
+          },
+          {
+            id: "m-05-ai3",
+            content: "如同班主任突然把脸贴在教室后门玻璃窗上看大家自习，全班原本交头接耳的真实状态在看到那双眼睛的0.1秒内就坍缩成了端坐低头。",
+            author: "@AI-守擂者γ",
+            isAI: true,
+            likes: 3,
+            flaw: null
+          }
+        ]
+      },
+      {
+        id: "concept-06",
+        code: "06",
+        name: "墨菲定律",
+        category: "物理与宇宙",
+        definition: "只要一件事存在变糟的可能，不管概率多小，拉长时间它必炸无疑。",
+        // 预置为 🔵 人类攻占（Top 3 中有 2 条人类高赞 + 1 条 AI 守擂）
+        metaphors: [
+          {
+            id: "m-06-h1",
+            content: "每次洗完车第二天必下雨，不是老天爷针对你，而是平时不下雨的晴天车本来就是干净的你根本不会去洗；你唯独挑中积灰最厚、气压变低闷热难耐的那天去洗车，正好撞上冷空气前锋。",
+            author: "@露天停车位怨种",
+            isAI: false,
+            likes: 27,
+            flaw: null
+          },
+          {
+            id: "m-06-h2",
+            content: "早上赶高铁快迟到了，手里端着刚涂满花生酱的吐司，心里越默念「千万别掉」，手抖掉地上的瞬间绝对是涂满花生酱那一面死死拍在刚拖过的地板上。",
+            author: "@早八赶车人",
+            isAI: false,
+            likes: 15,
+            flaw: null
+          },
+          {
+            id: "m-06-ai1",
+            content: "就像耳机线塞进裤兜里，明明只有一种顺整齐的排法，却有一万种互相缠成死结的排法——随便走两步掏出来，它必然精准变成最难解开的那个死疙瘩。",
+            author: "@AI-守擂者α",
+            isAI: true,
+            likes: 3,
+            flaw: null
+          },
+          {
+            id: "m-06-ai2",
+            content: "好比超市结账有五条队伍，你千挑万选排进最短的那一队，前面那个大爷一定会突然掏出十张过期优惠券跟收银员吵十分钟。",
+            author: "@AI-守擂者β",
+            isAI: true,
+            likes: 3,
+            flaw: null
+          },
+          {
+            id: "m-06-ai3",
+            content: "如同上线前觉得「这个极端输入用户一辈子不可能点到」而省掉的一行判空代码，正式演示时老板第一下就会精准点上去。",
+            author: "@AI-守擂者γ",
+            isAI: true,
+            likes: 3,
+            flaw: null
+          }
+        ]
+      },
+
+      // -------------------- 星系 3：心理与人性 --------------------
+      {
+        id: "concept-07",
+        code: "07",
+        name: "幸存者偏差",
+        category: "心理与人性",
+        definition: "死人不会说话，你听到的全是刚好没被雷劈中的人在传授避雷秘籍。",
+        // 预置为 🔵 人类攻占（Top 3 中有 2 条人类高赞 + 1 条 AI 守擂）
+        metaphors: [
+          {
+            id: "m-07-h1",
+            content: "过年饭桌上二舅最爱拿某首富初中辍学创业身家百亿来教育小孩「读书没用」。但他从来不去火车站桥洞底下采访那十万个同样初中辍学、现在连泡面都吃不起的同龄人——因为失败的人根本没机会出书上电视。",
+            author: "@小镇做题家小陈",
+            isAI: false,
+            likes: 38,
+            flaw: null
+          },
+          {
+            id: "m-07-h2",
+            content: "短视频评论区天天有人感叹：「现在的建筑全是豆腐渣，你看古代留下来的木塔和石桥几百年都不倒！」废话，古代那 99.9% 造得不结实的房子早就塌成泥了，能熬到今天让你看见的本来就是万里挑一的怪物。",
+            author: "@土木老狗老赵",
+            isAI: false,
+            likes: 24,
+            flaw: null
+          },
+          {
+            id: "m-07-ai1",
+            content: "就像二战时军方看到飞回基地的轰炸机机翼满是弹孔、引擎却完好无损，差点决定只给机翼加装钢板——直到统计学家指出，引擎中弹的飞机早就掉进海里喂鱼了。",
+            author: "@AI-守擂者α",
+            isAI: true,
+            likes: 3,
+            flaw: null
+          },
+          {
+            id: "m-07-ai2",
+            content: "好比在养老院采访百岁老人长寿秘诀，有人说天天抽烟喝酒，你就以为抽烟喝酒能长寿，却没法去墓地采访那几百万因为抽烟喝酒六十岁就走掉的人。",
+            author: "@AI-守擂者β",
+            isAI: true,
+            likes: 3,
+            flaw: null
+          },
+          {
+            id: "m-07-ai3",
+            content: "如同畅销书架上摆满《我靠梭哈翻身》，因为梭哈跳楼的人都没法坐在出版社签售。",
+            author: "@AI-守擂者γ",
+            isAI: true,
+            likes: 3,
+            flaw: null
+          }
+        ]
+      },
+      {
+        id: "concept-08",
+        code: "08",
+        name: "沉没成本",
+        category: "心理与人性",
+        definition: "为了心疼已经泼出去的水，硬逼自己把剩下的半瓶毒药也喝光。",
+        // 预置为 🔴 AI 守擂（Top 3 全是 AI 默认 3 赞）
+        metaphors: [
+          {
+            id: "m-08-ai1",
+            content: "花 68 块钱买了一张烂片电影票，开场 20 分钟已经如坐针毡，但脑子里算着「走人岂不是白瞎了 68 块」，硬是忍着恶心坐满两小时——最后不仅钱没退回来，还多搭进去两小时周末晚上的好心情。",
+            author: "@AI-守擂者α",
+            isAI: true,
+            likes: 3,
+            flaw: null
+          },
+          {
+            id: "m-08-ai2",
+            content: "好比自助餐厅里吃到第七盘已经撑到嗓子眼了，一想到进门交了 298 块还没回本，硬是又往嘴里塞了两块冻硬的三文鱼，出门直接花 300 块挂急诊开肠胃药。",
+            author: "@AI-守擂者β",
+            isAI: true,
+            likes: 3,
+            flaw: null
+          },
+          {
+            id: "m-08-ai3",
+            content: "如同等公交车已经等了四十分钟还没来，明明打车十分钟就能到家，却觉得「现在打车前面四十分钟就白吹冷风了」，结果在寒风里又多冻了半小时。",
+            author: "@AI-守擂者γ",
+            isAI: true,
+            likes: 3,
+            flaw: null
           }
         ]
       }
     ];
 
-    const STORAGE_KEY = "sike_concepts_cards_v1";
-    const LIKED_METAPHORS_KEY = "sike_concepts_liked_v1";
+    const STORAGE_KEY = "concept_star_battle_v1";
 
-    let conceptsData = loadConceptsData();
-    let likedMetaphors = loadLikedMetaphors();
-    let activeFilterId = "all";
-    let searchKeyword = "";
-
-    function loadConceptsData() {
+    function loadConcepts() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return JSON.parse(JSON.stringify(DEFAULT_CONCEPTS));
+        if (!raw) return JSON.parse(JSON.stringify(INITIAL_CONCEPTS_DATA));
         const parsed = JSON.parse(raw);
-        if (!Array.isArray(parsed) || parsed.length === 0) {
-          return JSON.parse(JSON.stringify(DEFAULT_CONCEPTS));
+        if (!Array.isArray(parsed) || parsed.length < 8) {
+          return JSON.parse(JSON.stringify(INITIAL_CONCEPTS_DATA));
         }
         return parsed;
       } catch (_) {
-        return JSON.parse(JSON.stringify(DEFAULT_CONCEPTS));
+        return JSON.parse(JSON.stringify(INITIAL_CONCEPTS_DATA));
       }
     }
 
-    function saveConceptsData() {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(conceptsData));
-      } catch (_) {}
-    }
-
-    function loadLikedMetaphors() {
-      try {
-        return JSON.parse(localStorage.getItem(LIKED_METAPHORS_KEY) || "{}");
-      } catch (_) {
-        return {};
-      }
-    }
-
-    function saveLikedMetaphors() {
-      try {
-        localStorage.setItem(LIKED_METAPHORS_KEY, JSON.stringify(likedMetaphors));
-      } catch (_) {}
-    }
+    let conceptsList = loadConcepts();
+    let currentView = "directory"; // 第 1 步默认激活「极简目录视图」
 
     function escapeHtml(str) {
       return String(str || "")
@@ -343,472 +573,189 @@
         .replace(/'/g, "&#39;");
     }
 
-    // ==================== 概念速览索引栏渲染 ====================
-    function renderIndexNav() {
-      const nav = document.getElementById("concept-index-nav");
-      if (!nav) return;
-
-      const allActive = activeFilterId === "all";
-      let html = `
-        <button type="button" data-filter="all"
-          class="text-xs px-3 py-1.5 rounded-full transition ${
-            allActive
-              ? "bg-[#1C1B18] text-[#F7F6F2] font-medium"
-              : "bg-[#EFECE6] text-[#57534E] hover:bg-[#E5E1D8] hover:text-[#1C1B18]"
-          }">
-          全部 (${conceptsData.length})
-        </button>
-      `;
-
-      conceptsData.forEach((c) => {
-        const isActive = activeFilterId === c.id;
-        html += `
-          <button type="button" data-filter="${escapeHtml(c.id)}"
-            class="text-xs px-3 py-1.5 rounded-full transition ${
-              isActive
-                ? "bg-[#1C1B18] text-[#F7F6F2] font-medium"
-                : "bg-[#EFECE6] text-[#57534E] hover:bg-[#E5E1D8] hover:text-[#1C1B18]"
-            }">
-            ${escapeHtml(c.title)}
-          </button>
-        `;
+    // ==================== 阵营计算规则（三局两胜制：取 Top 3 高赞席位） ====================
+    function getConceptBattleStatus(concept) {
+      const list = Array.isArray(concept.metaphors) ? [...concept.metaphors] : [];
+      // 按点赞数从高到低排序；同赞数时 AI 原生守擂优先保持防线（人类需超过 3 赞才能破防）
+      list.sort((a, b) => {
+        const diff = (Number(b.likes) || 0) - (Number(a.likes) || 0);
+        if (diff !== 0) return diff;
+        return (b.isAI ? 1 : 0) - (a.isAI ? 1 : 0);
       });
 
-      nav.innerHTML = html;
-    }
+      const top3 = list.slice(0, 3);
+      const humanInTop3 = top3.filter((m) => !m.isAI).length;
+      const aiInTop3 = top3.length - humanInTop3;
 
-    // ==================== 单张概念卡片（三段式极简布局）渲染 ====================
-    function renderConceptsFeed() {
-      const feed = document.getElementById("concepts-feed");
-      if (!feed) return;
-
-      const kw = searchKeyword.trim().toLowerCase();
-      const filtered = conceptsData.filter((card) => {
-        if (activeFilterId !== "all" && card.id !== activeFilterId) return false;
-        if (!kw) return true;
-        const matchCard =
-          (card.title || "").toLowerCase().includes(kw) ||
-          (card.subtitle || "").toLowerCase().includes(kw) ||
-          (card.essence || "").toLowerCase().includes(kw);
-        const matchMetaphor = (card.metaphors || []).some((m) =>
-          (m.content || "").toLowerCase().includes(kw)
-        );
-        return matchCard || matchMetaphor;
-      });
-
-      if (filtered.length === 0) {
-        feed.innerHTML = `
-          <div class="paper-card rounded-2xl p-12 text-center space-y-3">
-            <p class="font-editorial text-base text-[#57534E]">没有找到匹配的概念卡片</p>
-            <button type="button" id="clear-filter-btn"
-              class="text-xs px-3.5 py-2 rounded-lg bg-[#EFECE6] hover:bg-[#E5E1D8] text-[#1C1B18] transition">
-              显示全部概念卡片
-            </button>
-          </div>
-        `;
-        return;
-      }
-
-      feed.innerHTML = filtered
-        .map((card) => {
-          // 按点赞数从高到低排序
-          const sortedMetaphors = [...(card.metaphors || [])].sort(
-            (a, b) => (Number(b.votes) || 0) - (Number(a.votes) || 0)
-          );
-
-          const metaphorsHtml =
-            sortedMetaphors.length === 0
-              ? `<p class="text-sm text-[#9A958C] py-4">暂无经历比喻，在下方写下你的第一条真实体感吧。</p>`
-              : sortedMetaphors
-                  .map((m) => {
-                    const isLiked = Boolean(likedMetaphors[m.id]);
-                    const privateBadge = m.isPrivate
-                      ? `<span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-[#EFECE6] text-[#6E6A61] mr-2">🔒 仅自己可见 · 私人笔记</span>`
-                      : "";
-
-                    return `
-                      <li class="py-6 first:pt-2 last:pb-2 border-b last:border-b-0 border-[#ECE9E1] flex items-start justify-between gap-5">
-                        <div class="flex-1 min-w-0">
-                          <!-- 比喻内容永远排在最上方/最显眼位置 -->
-                          <p class="text-[16px] sm:text-[17px] text-[#1C1B18] leading-[1.8] whitespace-pre-wrap break-words">${escapeHtml(m.content)}</p>
-                          <!-- 贡献者名字永远作为次要灰色小字排在底部靠边 -->
-                          <div class="mt-3 flex items-center justify-end text-xs text-[#9A958C]">
-                            ${privateBadge}
-                            <span>— ${escapeHtml(m.author || "匿名读者")}</span>
-                          </div>
-                        </div>
-
-                        <!-- 极简 👍 [点赞数] 按钮 -->
-                        <div class="shrink-0 pt-0.5">
-                          <button type="button"
-                            data-action="like-metaphor"
-                            data-card-id="${escapeHtml(card.id)}"
-                            data-metaphor-id="${escapeHtml(m.id)}"
-                            aria-pressed="${isLiked ? "true" : "false"}"
-                            aria-label="支持这条比喻，当前 ${Number(m.votes) || 0} 赞"
-                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs transition select-none ${
-                              isLiked
-                                ? "bg-[#292524] border-[#292524] text-[#F7F6F2] font-medium"
-                                : "bg-[#F7F6F2] border-[#E0DDD3] text-[#57534E] hover:border-[#BDB8AA] hover:text-[#1C1B18]"
-                            }">
-                            <span aria-hidden="true">👍</span>
-                            <span>${Number(m.votes) || 0}</span>
-                          </button>
-                        </div>
-                      </li>
-                    `;
-                  })
-                  .join("");
-
-          return `
-            <article id="card-${escapeHtml(card.id)}" class="paper-card rounded-2xl p-6 sm:p-10 md:p-12 space-y-8">
-              
-              <!-- ==================== 1. 顶部：【概念标头与一句话扒底裤】 ==================== -->
-              <header class="border-b border-[#E5E2DA] pb-7 space-y-4">
-                <div class="flex flex-wrap items-baseline justify-between gap-2">
-                  <h2 class="font-editorial text-2xl sm:text-3xl font-bold text-[#1C1B18] tracking-tight">
-                    ${escapeHtml(card.title)}
-                  </h2>
-                  ${
-                    card.subtitle
-                      ? `<span class="text-xs font-mono text-[#9A958C] tracking-wide">${escapeHtml(card.subtitle)}</span>`
-                      : ""
-                  }
-                </div>
-
-                <!-- AI 生成的 30 字以内大白话本质解构：大字号、衬线体、杂志留白风格 -->
-                <p class="font-editorial text-lg sm:text-xl text-[#292524] leading-relaxed bg-[#F7F6F2] border-l-2 border-[#292524] pl-4 py-2.5 rounded-r-lg">
-                  ${escapeHtml(card.essence)}
-                </p>
-              </header>
-
-              <!-- ==================== 2. 中部：【高赞活人比喻流】 ==================== -->
-              <section aria-label="${escapeHtml(card.title)}的高赞活人比喻">
-                <div class="flex items-center justify-between mb-2">
-                  <h3 class="text-xs font-medium tracking-wider text-[#8C867B] uppercase">
-                    活人真实经历与比喻 (${sortedMetaphors.length})
-                  </h3>
-                  <span class="text-[11px] text-[#A8A29E]">按支持数排序</span>
-                </div>
-                <ul class="divide-y divide-[#ECE9E1]">
-                  ${metaphorsHtml}
-                </ul>
-              </section>
-
-              <!-- ==================== 3. 底部：【写下我的体感 / 补充经历】 ==================== -->
-              <footer class="pt-6 border-t border-[#E5E2DA]">
-                <form class="metaphor-form space-y-4" data-card-id="${escapeHtml(card.id)}">
-                  <div>
-                    <label for="textarea-${escapeHtml(card.id)}" class="block text-xs font-medium text-[#57534E] mb-2">
-                      写下我的体感 / 补充经历
-                    </label>
-                    <textarea
-                      id="textarea-${escapeHtml(card.id)}"
-                      name="content"
-                      rows="3"
-                      required
-                      maxlength="500"
-                      placeholder="随手记录你被「${escapeHtml(card.title)}」戳中的真实经历，或拿日常生活打个比方…"
-                      class="w-full bg-[#F7F6F2] border border-[#DCD8CE] focus:border-[#78716C] rounded-xl p-3.5 text-[#1C1B18] placeholder-[#9A958C] transition"></textarea>
-                  </div>
-
-                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <!-- 简单的单选开关：[🔒 仅作为私人笔记保存] 或 [🌐 公开并提交到该概念的广场] -->
-                    <fieldset class="flex flex-wrap items-center gap-4 border-0 p-0 m-0">
-                      <legend class="visually-hidden">选择保存与公开方式</legend>
-                      <label for="vis-public-${escapeHtml(card.id)}" class="inline-flex items-center gap-2 text-xs text-[#44403C] cursor-pointer select-none py-1">
-                        <input type="radio" id="vis-public-${escapeHtml(card.id)}" name="visibility-${escapeHtml(card.id)}" value="public" checked>
-                        <span>🌐 公开并提交到该概念的广场</span>
-                      </label>
-                      <label for="vis-private-${escapeHtml(card.id)}" class="inline-flex items-center gap-2 text-xs text-[#6E6A61] cursor-pointer select-none py-1">
-                        <input type="radio" id="vis-private-${escapeHtml(card.id)}" name="visibility-${escapeHtml(card.id)}" value="private">
-                        <span>🔒 仅作为私人笔记保存</span>
-                      </label>
-                    </fieldset>
-
-                    <!-- 弱化署名输入 + 直接提交按钮 -->
-                    <div class="flex items-center justify-end gap-2 shrink-0">
-                      <label for="author-${escapeHtml(card.id)}" class="visually-hidden">署名（选填）</label>
-                      <input
-                        id="author-${escapeHtml(card.id)}"
-                        name="author"
-                        type="text"
-                        maxlength="18"
-                        placeholder="署名（选填）"
-                        class="w-28 bg-[#F7F6F2] border border-[#DCD8CE] rounded-lg px-2.5 py-1.5 text-xs text-[#57534E] placeholder-[#A8A29E]">
-                      <button type="submit"
-                        class="text-xs px-4 py-2 rounded-lg bg-[#292524] hover:bg-[#1C1B18] text-[#F7F6F2] font-medium transition shrink-0">
-                        提交记录
-                      </button>
-                    </div>
-                  </div>
-                </form>
-              </footer>
-
-            </article>
-          `;
-        })
-        .join("");
-    }
-
-    // ==================== 交互逻辑：点赞支持 + 提交体感 + 新建概念卡 ====================
-    function handleLikeMetaphor(cardId, metaphorId) {
-      const card = conceptsData.find((c) => c.id === cardId);
-      if (!card || !Array.isArray(card.metaphors)) return;
-      const item = card.metaphors.find((m) => m.id === metaphorId);
-      if (!item) return;
-
-      if (likedMetaphors[metaphorId]) {
-        delete likedMetaphors[metaphorId];
-        item.votes = Math.max(0, (Number(item.votes) || 1) - 1);
-      } else {
-        likedMetaphors[metaphorId] = true;
-        item.votes = (Number(item.votes) || 0) + 1;
-      }
-
-      saveLikedMetaphors();
-      saveConceptsData();
-      renderConceptsFeed();
-    }
-
-    function handleMetaphorSubmit(formEl) {
-      const cardId = formEl.getAttribute("data-card-id");
-      const card = conceptsData.find((c) => c.id === cardId);
-      if (!card) return;
-
-      const contentEl = formEl.querySelector('textarea[name="content"]');
-      const authorEl = formEl.querySelector('input[name="author"]');
-      const visEl = formEl.querySelector(`input[name="visibility-${cardId}"]:checked`);
-
-      const content = (contentEl?.value || "").trim();
-      if (!content) {
-        contentEl?.focus();
-        return;
-      }
-
-      const isPrivate = visEl?.value === "private";
-      const rawAuthor = (authorEl?.value || "").trim();
-      const author = rawAuthor || (isPrivate ? "我的私人笔记" : "匿名读者");
-
-      const newMetaphor = {
-        id: "m-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6),
-        content,
-        author,
-        votes: 1,
-        isPrivate
-      };
-
-      card.metaphors = card.metaphors || [];
-      card.metaphors.push(newMetaphor);
-      likedMetaphors[newMetaphor.id] = true;
-
-      saveLikedMetaphors();
-      saveConceptsData();
-      renderConceptsFeed();
-    }
-
-    // 内置 30 字以内大白话解构生成器（同时兼容复用本机已配置的 AI Key）
-    async function generate30CharEssence(conceptTitle) {
-      const cleanTitle = conceptTitle.trim();
-      if (!cleanTitle) return "";
-
-      // 若用户在主站配置过 AI Key，优先调用真大模型生成 30 字内本质解构
-      try {
-        const aiCfg = JSON.parse(localStorage.getItem("bookgraph_ai_config_v1") || "{}");
-        if (aiCfg.apiKey) {
-          const baseUrl = (aiCfg.baseUrl || "https://api.deepseek.com/v1").replace(/\/+$/, "");
-          const endpoint = baseUrl.endsWith("/chat/completions") ? baseUrl : `${baseUrl}/chat/completions`;
-          const res = await fetch(endpoint, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${aiCfg.apiKey}`
-            },
-            body: JSON.stringify({
-              model: aiCfg.model || "deepseek-chat",
-              temperature: 0.6,
-              messages: [
-                {
-                  role: "system",
-                  content: "你是一个极简概念解构专家。请用30字以内的大白话，撕掉专业包装，一针见血点破用户输入概念的本质。严格控制在30个汉字以内，不要引号，不要多余前缀。"
-                },
-                {
-                  role: "user",
-                  content: cleanTitle
-                }
-              ]
-            })
-          });
-          if (res.ok) {
-            const data = await res.json();
-            const text = (data?.choices?.[0]?.message?.content || "").trim().replace(/^["“「]|["”」]$/g, "");
-            if (text) return text.slice(0, 34);
-          }
-        }
-      } catch (_) {}
-
-      // 常见硬核概念内置精准 30 字扒底裤词典与通用兜底
-      const presetDict = {
-        "破窗效应": "第一扇破窗户没人修，路人就会默认这里允许砸烂一切。",
-        "公地悲剧": "大家都能免费薅的草地，最后一定会被所有人抢着薅成沙漠。",
-        "螃蟹效应": "竹篓里只要有一只螃蟹想往上爬，底下所有螃蟹都会伸钳子拽它下来。",
-        "墨菲定律": "只要一件事存在变糟的可能，不管概率多小，它迟早会当面炸开。",
-        "彼得原理": "每个人都会被提拔到他刚好干不动、开始出洋相的那个职位上停住。",
-        "帕金森定律": "大机构就算屁事没有，也会自己制造审批和会议把所有时间塞满。",
-        "奥卡姆剃刀": "别把事情想得太玄乎，最少假设就能讲通的往往就是真相。",
-        "信息茧房": "算法只喂你爱看的东西，久了你以为全世界都跟你想的一模一样。",
-        "禀赋效应": "破水杯一旦塞进自己手里，要你卖掉时你觉得它值传家宝的价。"
-      };
-
-      for (const [k, v] of Object.entries(presetDict)) {
-        if (cleanTitle.includes(k) || k.includes(cleanTitle)) return v;
-      }
-
-      return `撕掉术语包装：它揭示了人在面对「${cleanTitle.slice(0, 8)}」时最本能的隐蔽算计。`;
-    }
-
-    // ==================== 事件委托与初始化 ====================
-    document.addEventListener("DOMContentLoaded", () => {
-      renderIndexNav();
-      renderConceptsFeed();
-
-      // 顶栏「+ 添新概念卡」展开/收起
-      const toggleNewBtn = document.getElementById("toggle-new-concept-btn");
-      const closeNewBtn = document.getElementById("close-new-concept-btn");
-      const newPanel = document.getElementById("new-concept-panel");
-      const titleInput = document.getElementById("new-concept-title");
-      const essenceInput = document.getElementById("new-concept-essence");
-      const aiEssenceBtn = document.getElementById("ai-essence-btn");
-
-      toggleNewBtn?.addEventListener("click", () => {
-        if (!newPanel) return;
-        const isHidden = newPanel.classList.contains("hidden");
-        if (isHidden) {
-          newPanel.classList.remove("hidden");
-          titleInput?.focus();
-        } else {
-          newPanel.classList.add("hidden");
-        }
-      });
-
-      closeNewBtn?.addEventListener("click", () => {
-        newPanel?.classList.add("hidden");
-      });
-
-      aiEssenceBtn?.addEventListener("click", async () => {
-        const titleVal = (titleInput?.value || "").trim();
-        if (!titleVal) {
-          titleInput?.focus();
-          return;
-        }
-        aiEssenceBtn.textContent = "正在提炼…";
-        const generated = await generate30CharEssence(titleVal);
-        if (essenceInput && generated) {
-          essenceInput.value = generated;
-        }
-        aiEssenceBtn.textContent = "AI 帮我浓缩 30 字本质";
-      });
-
-      // 新建概念卡表单提交
-      const newConceptForm = document.getElementById("new-concept-form");
-      newConceptForm?.addEventListener("submit", (e) => {
-        e.preventDefault();
-        const title = (titleInput?.value || "").trim();
-        const essence = (essenceInput?.value || "").trim();
-        if (!title || !essence) return;
-
-        const newCard = {
-          id: "concept-" + Date.now(),
-          title,
-          subtitle: "",
-          essence: essence.slice(0, 35),
-          metaphors: []
+      if (humanInTop3 >= 2) {
+        return {
+          state: "human",
+          dot: "🔵",
+          label: "人类攻占",
+          badgeCls: "bg-sky-50 text-sky-800 border-sky-200/90",
+          humanInTop3,
+          aiInTop3,
+          top3
         };
+      }
+      if (humanInTop3 === 1) {
+        return {
+          state: "contest",
+          dot: "🟣",
+          label: "争夺中",
+          badgeCls: "bg-purple-50 text-purple-800 border-purple-200/90",
+          humanInTop3,
+          aiInTop3,
+          top3
+        };
+      }
+      return {
+        state: "ai",
+        dot: "🔴",
+        label: "AI 守擂",
+        badgeCls: "bg-rose-50 text-rose-800 border-rose-200/90",
+        humanInTop3,
+        aiInTop3,
+        top3
+      };
+    }
 
-        conceptsData.unshift(newCard);
-        activeFilterId = "all";
-        saveConceptsData();
-        renderIndexNav();
-        renderConceptsFeed();
+    // ==================== 渲染顶栏全局战况条 ====================
+    function renderGlobalBattleStats() {
+      let aiCount = 0;
+      let contestCount = 0;
+      let humanCount = 0;
 
-        if (titleInput) titleInput.value = "";
-        if (essenceInput) essenceInput.value = "";
-        newPanel?.classList.add("hidden");
+      conceptsList.forEach((c) => {
+        const st = getConceptBattleStatus(c);
+        if (st.state === "ai") aiCount++;
+        else if (st.state === "contest") contestCount++;
+        else if (st.state === "human") humanCount++;
       });
 
-      // 索引导航切换
-      const indexNav = document.getElementById("concept-index-nav");
-      indexNav?.addEventListener("click", (e) => {
-        const btn = e.target.closest("button[data-filter]");
-        if (!btn) return;
-        activeFilterId = btn.getAttribute("data-filter") || "all";
-        renderIndexNav();
-        renderConceptsFeed();
+      const aiEl = document.getElementById("stat-ai-count");
+      const contestEl = document.getElementById("stat-contest-count");
+      const humanEl = document.getElementById("stat-human-count");
+      if (aiEl) aiEl.textContent = String(aiCount);
+      if (contestEl) contestEl.textContent = String(contestCount);
+      if (humanEl) humanEl.textContent = String(humanCount);
+    }
+
+    // ==================== 渲染 🗂️ 极简目录视图 ====================
+    function renderDirectoryView() {
+      const container = document.getElementById("directory-galaxies-container");
+      if (!container) return;
+
+      container.innerHTML = GALAXIES.map((galaxy, gIdx) => {
+        const galaxyConcepts = conceptsList.filter((c) => c.category === galaxy.name);
+
+        const cardsHtml = galaxyConcepts
+          .map((concept) => {
+            const status = getConceptBattleStatus(concept);
+            const topMetaphor = status.top3[0];
+
+            return `
+              <article
+                class="paper-card rounded-2xl p-6 flex flex-col justify-between gap-5"
+                data-concept-id="${escapeHtml(concept.id)}">
+                
+                <div class="space-y-3.5">
+                  <!-- 顶部：编号 + 右上角醒目阵营状态标识 -->
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="font-mono text-xs text-[#9A958C] tracking-wider">
+                      #${escapeHtml(concept.code || "00")} · ${escapeHtml(concept.category)}
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-xs font-medium ${status.badgeCls}">
+                      <span>${status.dot}</span>
+                      <span>${status.label}</span>
+                    </span>
+                  </div>
+
+                  <!-- 主视觉区：概念名称（高质感衬线体）+ 一句话大白话定义预览（绝对置顶） -->
+                  <h3 class="font-editorial text-xl sm:text-2xl font-bold text-[#1C1B18] tracking-tight">
+                    ${escapeHtml(concept.name)}
+                  </h3>
+
+                  <p class="text-[15px] text-[#292524] leading-relaxed bg-[#F7F6F2] border-l-2 border-[#292524] pl-3.5 py-2 rounded-r-lg">
+                    ${escapeHtml(concept.definition)}
+                  </p>
+                </div>
+
+                <!-- 底部次要信息：当前榜首比喻微缩预览 & Top 3 席位战况 -->
+                <div class="pt-3.5 border-t border-[#ECE9E1] flex items-center justify-between text-xs text-[#8C867B]">
+                  <span>
+                    Top 3 席位：人类 ${status.humanInTop3} / AI ${status.aiInTop3}
+                  </span>
+                  <span>
+                    最高赞 👍 ${topMetaphor ? Number(topMetaphor.likes) || 0 : 0}
+                  </span>
+                </div>
+              </article>
+            `;
+          })
+          .join("");
+
+        return `
+          <section class="space-y-5" aria-labelledby="galaxy-heading-${escapeHtml(galaxy.id)}">
+            <!-- 一级学科星系分区标头 -->
+            <div class="flex flex-wrap items-baseline justify-between gap-2 border-b border-[#E5E2DA] pb-3">
+              <div class="flex items-baseline gap-3">
+                <span class="font-mono text-xs text-[#9A958C]">GALAXY 0${gIdx + 1}</span>
+                <h3 id="galaxy-heading-${escapeHtml(galaxy.id)}" class="font-editorial text-xl font-bold text-[#1C1B18]">
+                  ${escapeHtml(galaxy.name)}
+                </h3>
+                <span class="text-xs font-mono text-[#9A958C] hidden sm:inline">${escapeHtml(galaxy.en)}</span>
+              </div>
+              <p class="text-xs text-[#8C867B]">${escapeHtml(galaxy.desc)}</p>
+            </div>
+
+            <!-- 网格卡片墙 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              ${cardsHtml}
+            </div>
+          </section>
+        `;
+      }).join("");
+    }
+
+    // ==================== 视图切换控制 ====================
+    function switchView(targetView) {
+      currentView = targetView === "starmap" ? "starmap" : "directory";
+      const starmapSec = document.getElementById("view-starmap");
+      const dirSec = document.getElementById("view-directory");
+      const btnStar = document.getElementById("tab-btn-starmap");
+      const btnDir = document.getElementById("tab-btn-directory");
+
+      if (currentView === "starmap") {
+        starmapSec?.classList.remove("hidden");
+        dirSec?.classList.add("hidden");
+        btnStar?.setAttribute("aria-selected", "true");
+        btnDir?.setAttribute("aria-selected", "false");
+        if (btnStar) btnStar.className = "view-switch-btn text-xs px-3 py-1.5 rounded-lg font-semibold transition bg-[#FCFBF9] text-[#1C1B18] shadow-sm";
+        if (btnDir) btnDir.className = "view-switch-btn text-xs px-3 py-1.5 rounded-lg font-medium transition text-[#6E6A61] hover:text-[#1C1B18]";
+      } else {
+        starmapSec?.classList.add("hidden");
+        dirSec?.classList.remove("hidden");
+        btnStar?.setAttribute("aria-selected", "false");
+        btnDir?.setAttribute("aria-selected", "true");
+        if (btnDir) btnDir.className = "view-switch-btn text-xs px-3 py-1.5 rounded-lg font-semibold transition bg-[#FCFBF9] text-[#1C1B18] shadow-sm";
+        if (btnStar) btnStar.className = "view-switch-btn text-xs px-3 py-1.5 rounded-lg font-medium transition text-[#6E6A61] hover:text-[#1C1B18]";
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      renderGlobalBattleStats();
+      renderDirectoryView();
+
+      document.querySelectorAll(".view-switch-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const view = btn.getAttribute("data-view");
+          if (view) switchView(view);
+        });
       });
 
-      // 关键词搜索筛选
-      const searchInput = document.getElementById("concept-search-input");
-      searchInput?.addEventListener("input", () => {
-        searchKeyword = searchInput.value || "";
-        renderConceptsFeed();
-      });
-
-      // 卡片流事件委托：点赞支持 & 清除筛选
-      const feed = document.getElementById("concepts-feed");
-      feed?.addEventListener("click", (e) => {
-        const likeBtn = e.target.closest('button[data-action="like-metaphor"]');
-        if (likeBtn) {
-          const cardId = likeBtn.getAttribute("data-card-id");
-          const metaphorId = likeBtn.getAttribute("data-metaphor-id");
-          if (cardId && metaphorId) {
-            handleLikeMetaphor(cardId, metaphorId);
-          }
-          return;
-        }
-
-        const clearBtn = e.target.closest("#clear-filter-btn");
-        if (clearBtn) {
-          activeFilterId = "all";
-          searchKeyword = "";
-          if (searchInput) searchInput.value = "";
-          renderIndexNav();
-          renderConceptsFeed();
-        }
-      });
-
-      // 卡片内「写下我的体感 / 补充经历」表单提交
-      feed?.addEventListener("submit", (e) => {
-        const formEl = e.target.closest("form.metaphor-form");
-        if (!formEl) return;
-        e.preventDefault();
-        handleMetaphorSubmit(formEl);
-      });
-
-      // 支持 Cmd+Enter / Ctrl+Enter 快捷提交，并保护中文输入法 (IME) 候选词确认不误触
-      feed?.addEventListener("keydown", (e) => {
-        const textarea = e.target.closest('textarea[name="content"]');
-        if (!textarea) return;
-        if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-          if (e.isComposing || e.keyCode === 229) return;
-          e.preventDefault();
-          const formEl = textarea.closest("form.metaphor-form");
-          if (formEl) formEl.requestSubmit();
-        }
-      });
-
-      // 恢复初始示例卡片
-      const resetBtn = document.getElementById("reset-concepts-btn");
-      resetBtn?.addEventListener("click", () => {
-        if (!confirm("确定要恢复为初始示例概念卡片吗？")) return;
-        localStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(LIKED_METAPHORS_KEY);
-        conceptsData = loadConceptsData();
-        likedMetaphors = {};
-        activeFilterId = "all";
-        searchKeyword = "";
-        if (searchInput) searchInput.value = "";
-        renderIndexNav();
-        renderConceptsFeed();
+      document.querySelector('[data-switch-to="directory"]')?.addEventListener("click", () => {
+        switchView("directory");
       });
     });
   </script>
